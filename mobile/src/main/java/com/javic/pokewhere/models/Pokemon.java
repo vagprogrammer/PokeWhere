@@ -45,7 +45,7 @@ public class Pokemon {
         this.expiration_time = expiration_time;
     }
 
-    public double getPokemonId() {
+    public long getPokemonId() {
         return pokemonId;
     }
 

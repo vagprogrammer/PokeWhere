@@ -6,8 +6,33 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
+    <!-- Menu actions -->
     <string name="action_settings">Settings</string>
+
+    <string name="action_start_service">Flotante</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+
+    <!-- User Location -->
+    <string name="service_not_available">El Servicio no está disponible</string>
+    <string name="invalid_lat_long_used">Latitud y Longitud invalida</string>
+    <string name="no_address_found">No econtramos la dirección</string>
+    <string name="address_found">Address founded</string>
+    <string name="no_geocoder_available">Geocoder is not aviable</string>
+
+
+    <string name="location_alert_title">Error al obtener ubicación</string>
+    <string name="location_alert_message">PokeWhere no pudo obtener tu ubicación, intentalo nuevamente o muevete por el mapa</string>
+    <string name="location_alert_pos_btn">Inténtalo de nuevo</string>
+    <string name="location_alert_neg_btn">Cancelar</string>
+    <string name="location_alert_error">Ah currido un error, por favor intentalo más tarde!</string>
+
+
+    <string name="permission_alert_title">Servicios de ubicación desactivados</string>
+    <string name="permission_alert_message">Para el correcto funcionamiento de la aplicación, es necesario que los servicios de ubicación esten activados, puedes activarlos desde los Settings de la aplicación</string>
+    <string name="open_location_settings">Activar Servicios de Ubicación</string>
+
+
 </resources>
