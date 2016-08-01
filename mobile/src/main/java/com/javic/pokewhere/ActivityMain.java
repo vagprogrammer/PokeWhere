@@ -2,7 +2,6 @@ package com.javic.pokewhere;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -19,12 +18,14 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.javic.pokewhere.fragments.FragmentMap;
 import com.javic.pokewhere.services.ServiceFloatingMap;
+import com.javic.pokewhere.util.Constants;
 
 public class ActivityMain extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener{
+        implements NavigationView.OnNavigationItemSelectedListener, FragmentMap.OnFragmentInteractionListener{
 
 
     private static final String TAG = ActivityMain.class.getSimpleName();
@@ -41,9 +42,38 @@ public class ActivityMain extends AppCompatActivity
 
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        drawer.addDrawerListener(new DrawerLayout.DrawerListener() {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+
+                //since the drawer might have opened as a results of
+                //a click on the left menu, we need to make sure
+                //to close it right after the drawer opens, so that
+                //it is closed when the drawer is  closed.
+                FragmentMap.mSearchView.setLeftMenuOpen(true);
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+
+                FragmentMap.mSearchView.setLeftMenuOpen(false);
+            }
+
+            @Override
+            public void onDrawerStateChanged(int newState) {
+            }
+        });
+
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
+
+
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -170,6 +200,23 @@ public class ActivityMain extends AppCompatActivity
             if (!canShow) {
                 Log.w(TAG, "Permiso Denegado");
             }
+        }
+    }
+
+    @Override
+    public void onFragmentInteraction(int action) {
+
+        Log.i(TAG, String.valueOf(action));
+
+        switch (action){
+            case Constants.ACTION_OPEN_DRAWER:
+
+                DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+                if (!drawer.isDrawerOpen(GravityCompat.START)) {
+                    drawer.openDrawer(GravityCompat.START);
+                }
+
+                break;
         }
     }
 }

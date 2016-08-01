@@ -19,4 +19,7 @@ public class Constants {
     public static final String URL_FEED = "https://pokevision.com/map/data/";
 
     public static final int USER_ZOOM =15;
+
+    public static final int ACTION_OPEN_DRAWER = 0;
+    public static final int ACTION_CLOSE_DRAWER = 1;
 }
