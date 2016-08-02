@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -85,10 +86,10 @@ public class FragmentMap extends Fragment implements
 
     private static final String TAG = FragmentMap.class.getSimpleName();
 
-    public static final int PERMISSION_ACCESS_COARSE_LOCATION =0;
+    public static final int PERMISSION_ACCESS_COARSE_LOCATION = 0;
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
-    public static final int ALERT_ADDRESS_RESULT_RECIVER =0;
-    public static final int ALERT_PERMISSION_DENNIED =1;
+    public static final int ALERT_ADDRESS_RESULT_RECIVER = 0;
+    public static final int ALERT_PERMISSION_DENNIED = 1;
 
     private Context mContext;
 
@@ -100,7 +101,7 @@ public class FragmentMap extends Fragment implements
     private AddressResultReceiver mResultReceiver;
     private LatLng userPosition;
 
-    private Map<String,String> mPokemonsMap = new HashMap<String, String>();
+    private Map<String, String> mPokemonsMap = new HashMap<String, String>();
     private List<Pokemon> mPokemons = new ArrayList<>();
 
 
@@ -125,7 +126,7 @@ public class FragmentMap extends Fragment implements
      * fragment to allow an interaction in this fragment to be communicated
      * to the activity and potentially other fragments contained in that
      * activity.
-     * <p/>
+     * <p>
      * See the Android Training lesson <a href=
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
@@ -157,7 +158,7 @@ public class FragmentMap extends Fragment implements
         getGoogleCode();
 
         // First we need to check availability of play services
-        if (checkPlayServices()){
+        if (checkPlayServices()) {
             // Building the GoogleApi client
             buildGoogleApiClient();
         }
@@ -181,17 +182,15 @@ public class FragmentMap extends Fragment implements
         // Check availability of play services
         if (checkPlayServices()) {
             // Building the GoogleApi client
-            if (mGoogleApiClient==null){
+            if (mGoogleApiClient == null) {
                 buildGoogleApiClient();
-            }
-            else{
+            } else {
 
                 if (mLastLocation != null) {
                     userPosition = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
                     mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userPosition, Constants.USER_ZOOM));
-                }
-                else{
-                    Log.i(TAG,"We can't center the map");
+                } else {
+                    Log.i(TAG, "We can't center the map");
                     //getLocation();
                 }
 
@@ -218,7 +217,7 @@ public class FragmentMap extends Fragment implements
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                coonectWithPokemonGO();
+                conectWithPokemonGO();
             }
         });
 
@@ -254,7 +253,7 @@ public class FragmentMap extends Fragment implements
 
     /**
      * Creating google api client object
-     * */
+     */
     protected synchronized void buildGoogleApiClient() {
 
         mGoogleApiClient = new GoogleApiClient.Builder(mContext)
@@ -267,12 +266,12 @@ public class FragmentMap extends Fragment implements
 
     /**
      * Method to verify google play services on the device
-     * */
+     */
     private boolean checkPlayServices() {
         GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
         int result = googleAPI.isGooglePlayServicesAvailable(mContext);
-        if(result != ConnectionResult.SUCCESS) {
-            if(googleAPI.isUserResolvableError(result)) {
+        if (result != ConnectionResult.SUCCESS) {
+            if (googleAPI.isUserResolvableError(result)) {
                 googleAPI.getErrorDialog(getActivity(), result,
                         PLAY_SERVICES_RESOLUTION_REQUEST).show();
             }
@@ -283,13 +282,13 @@ public class FragmentMap extends Fragment implements
         return true;
     }
 
-    public void getPokemons(String LatLong){
+    public void getPokemons(String LatLong) {
 
-        Log.i(TAG, "URL request --> " + Constants.URL_FEED+ LatLong);
+        Log.i(TAG, "URL request --> " + Constants.URL_FEED + LatLong);
 
         // making fresh volley request and getting json
         JsonObjectRequest jsonReq = new JsonObjectRequest(Request.Method.GET,
-                Constants.URL_FEED+ LatLong, null, new Response.Listener<JSONObject>() {
+                Constants.URL_FEED + LatLong, null, new Response.Listener<JSONObject>() {
 
             @Override
             public void onResponse(JSONObject response) {
@@ -313,7 +312,7 @@ public class FragmentMap extends Fragment implements
 
     /**
      * Parsing json reponse and passing the data to feed view list adapter
-     * */
+     */
     private void parseJsonFeed(JSONObject response) {
         try {
             JSONArray feedArray = response.getJSONArray("pokemon");
@@ -321,7 +320,7 @@ public class FragmentMap extends Fragment implements
             Log.i(TAG, "user position:" + userPosition.latitude + " Longitude: " + userPosition.longitude);
 
             mPokemons.clear();
-            
+
             for (int i = 0; i < feedArray.length(); i++) {
                 JSONObject feedObj = (JSONObject) feedArray.get(i);
 
@@ -341,14 +340,12 @@ public class FragmentMap extends Fragment implements
                 Log.i(TAG, String.valueOf(pokemon.getPokemonName()));
             }
 
-            if (!mPokemons.isEmpty()){
+            if (!mPokemons.isEmpty()) {
                 // notify data changes to list adapater
                 drawPokemons();
-            }
-            else{
+            } else {
                 showMessage(getString(R.string.message_json_request_empty));
             }
-
 
 
         } catch (JSONException e) {
@@ -375,7 +372,7 @@ public class FragmentMap extends Fragment implements
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission was granted, yay!
-                        setUpGoogleMap();
+                    setUpGoogleMap();
 
                 } else {
                     // permission denied, boo!
@@ -386,6 +383,7 @@ public class FragmentMap extends Fragment implements
             }
         }
     }
+
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
 
@@ -396,7 +394,7 @@ public class FragmentMap extends Fragment implements
 
     /**
      * Method to display the location on UI
-     * */
+     */
     private void getLocation() {
 
         if (ContextCompat.checkSelfPermission(mContext,
@@ -419,37 +417,31 @@ public class FragmentMap extends Fragment implements
                     return;
                 }
                 startIntentService();*/
-            }
-
-            else{
+            } else {
                 showAlert(ALERT_ADDRESS_RESULT_RECIVER);
             }
-        }
-        else {
+        } else {
             showAlert(ALERT_PERMISSION_DENNIED);
         }
     }
 
 
-    public void drawPokemons(){
+    public void drawPokemons() {
 
         mGoogleMap.clear();
 
         AssetManager assetManager = mContext.getAssets();
 
-        for (Pokemon pokemon:mPokemons)
-        {
+        for (Pokemon pokemon : mPokemons) {
             try {
-                InputStream is= null;
+                InputStream is = null;
 
-                if (pokemon.getPokemonId()<10){
-                    is = assetManager.open(String.valueOf("00"+pokemon.getPokemonId())+".png");
-                }
-                else if(pokemon.getPokemonId()<100){
-                    is = assetManager.open(String.valueOf("0"+pokemon.getPokemonId())+".png");
-                }
-                else{
-                    is = assetManager.open(String.valueOf(pokemon.getPokemonId())+".png");
+                if (pokemon.getPokemonId() < 10) {
+                    is = assetManager.open(String.valueOf("00" + pokemon.getPokemonId()) + ".png");
+                } else if (pokemon.getPokemonId() < 100) {
+                    is = assetManager.open(String.valueOf("0" + pokemon.getPokemonId()) + ".png");
+                } else {
+                    is = assetManager.open(String.valueOf(pokemon.getPokemonId()) + ".png");
                 }
 
                 Bitmap bitmap = BitmapFactory.decodeStream(is);
@@ -465,9 +457,15 @@ public class FragmentMap extends Fragment implements
                 Log.e(TAG, e.getMessage());
             }
 
-            showMessage(getString(R.string.message_json_request_succes_1) + " " +String.valueOf(mPokemons.size()) + " " + getString(R.string.message_json_request_succes_2));
+            showMessage(getString(R.string.message_json_request_succes_1) + " " + String.valueOf(mPokemons.size()) + " " + getString(R.string.message_json_request_succes_2));
         }
 
+    }
+
+
+    public void drawLocation(LatLng position){
+        mGoogleMap.addMarker(new MarkerOptions()
+                .position(new LatLng(position.latitude, position.longitude)));
     }
 
 
@@ -509,24 +507,23 @@ public class FragmentMap extends Fragment implements
 
             // Show a toast message if an address was found.
             if (resultCode == Constants.SUCCESS_RESULT) {
-                Log.i(TAG,getString(R.string.address_found));
+                Log.i(TAG, getString(R.string.address_found));
 
 
-                if (resultData.getString(Constants.RESULT_DATA_KEY)!=null){
+                if (resultData.getString(Constants.RESULT_DATA_KEY) != null) {
                     String[] splited = resultData.getString(Constants.RESULT_DATA_KEY).split("\\s+");
 
                     showMessage(splited[0]);
 
                     mContext.stopService(new Intent(mContext, FetchAddressIntentService.class));
-                }
-                else{
+                } else {
                     //You should try to show the user to select their position
                     showAlert(ALERT_ADDRESS_RESULT_RECIVER);
                 }
 
             }
 
-            if( resultCode == Constants.FAILURE_RESULT){
+            if (resultCode == Constants.FAILURE_RESULT) {
                 //You should try to show the user to select their position
                 showAlert(ALERT_ADDRESS_RESULT_RECIVER);
             }
@@ -541,24 +538,23 @@ public class FragmentMap extends Fragment implements
         mContext.startService(intent);
     }
 
-    public void showMessage(String message){
+    public void showMessage(String message) {
 
         Snackbar.make(mView, message, Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show();
 
     }
 
-    public void showAlert(final int action){
+    public void showAlert(final int action) {
 
         String title, message, positive_btn_title, negative_btn_title;
 
-        if (action==ALERT_ADDRESS_RESULT_RECIVER){
+        if (action == ALERT_ADDRESS_RESULT_RECIVER) {
             title = mContext.getResources().getString(R.string.location_alert_title);
             message = mContext.getResources().getString(R.string.location_alert_message);
             positive_btn_title = mContext.getResources().getString(R.string.location_alert_pos_btn);
             negative_btn_title = mContext.getResources().getString(R.string.location_alert_neg_btn);
-        }
-        else {
+        } else {
             title = mContext.getResources().getString(R.string.permission_alert_title);
             message = mContext.getResources().getString(R.string.permission_alert_message);
             positive_btn_title = mContext.getResources().getString(R.string.open_location_settings);
@@ -574,10 +570,9 @@ public class FragmentMap extends Fragment implements
             public void onClick(DialogInterface paramDialogInterface, int paramInt) {
                 // TODO Auto-generated method stub
 
-                if(action==0){
+                if (action == 0) {
                     getLocation();
-                }
-                else{
+                } else {
                     Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                     mContext.startActivity(myIntent);
                 }
@@ -596,7 +591,7 @@ public class FragmentMap extends Fragment implements
         dialog.show();
     }
 
-    public void setUpSearchView(){
+    public void setUpSearchView() {
 
 /*        //this shows the top left circular progress
         //you can call it where ever you want, but
@@ -622,14 +617,14 @@ public class FragmentMap extends Fragment implements
         mSearchView.setOnMenuItemClickListener(new FloatingSearchView.OnMenuItemClickListener() {
             @Override
             public void onActionMenuItemSelected(MenuItem item) {
-                    switch (item.getItemId()){
-                        case R.id.action_location:
-                            View myLocationButton = ((View) mView.findViewById(Integer.parseInt("1")).getParent())
-                                    .findViewById(Integer.parseInt("2"));
+                switch (item.getItemId()) {
+                    case R.id.action_location:
+                        View myLocationButton = ((View) mView.findViewById(Integer.parseInt("1")).getParent())
+                                .findViewById(Integer.parseInt("2"));
 
-                            myLocationButton.performClick();
-                            break;
-                    }
+                        myLocationButton.performClick();
+                        break;
+                }
             }
         });
 
@@ -668,8 +663,7 @@ public class FragmentMap extends Fragment implements
                 if (!Geocoder.isPresent()) {
                     showMessage(getString(R.string.no_geocoder_available));
                     return;
-                }
-                else{
+                } else {
                     Geocoder gc = new Geocoder(mContext);
 
                     try {
@@ -680,11 +674,10 @@ public class FragmentMap extends Fragment implements
 
                         mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userPosition, Constants.USER_ZOOM));
 
-                        getPokemons(String.valueOf(userPosition.latitude)+"/"+String.valueOf(userPosition.longitude));
+                        getPokemons(String.valueOf(userPosition.latitude) + "/" + String.valueOf(userPosition.longitude));
 
 
-                    }
-                    catch (Exception e){
+                    } catch (Exception e) {
 
                     }
 
@@ -695,17 +688,16 @@ public class FragmentMap extends Fragment implements
         });
     }
 
-    public void setUpGoogleMap(){
+    public void setUpGoogleMap() {
 
-        if (mGoogleMap!=null){
+        if (mGoogleMap != null) {
 
             if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED) {
 
-                this.requestPermissions(new String[] { Manifest.permission.ACCESS_COARSE_LOCATION },
+                this.requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                         PERMISSION_ACCESS_COARSE_LOCATION);
-            }
-            else{
+            } else {
 
                 mGoogleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
                 mGoogleMap.setMyLocationEnabled(true);
@@ -727,34 +719,39 @@ public class FragmentMap extends Fragment implements
                         try {
                             Log.i(TAG, go.getPlayerProfile().getPlayerData().getUsername());
 
-                            for (int i=0; i<500;i++){
-                                LatLng ltn= getLocation(userPosition.longitude,userPosition.latitude ,2000);
-                                go.setLocation(ltn.latitude,ltn.longitude ,1);
+                            for (int i = 0; i < 100; i++) {
+                                LatLng ltn = getLocation(userPosition.longitude, userPosition.latitude, 1000);
+
+                                drawLocation(ltn);
+
+                                go.setLocation(ltn.latitude, ltn.longitude, 1);
 
 
-
-                                List<CatchablePokemon> chablePokemons = go.getMap().getCatchablePokemon();
-
-                                for (CatchablePokemon pokemon:chablePokemons) {
+                                for (int j = 0; j < 20; j++) {
 
 
-                                    Pokemon poke = new Pokemon();
-                                    poke.setId(pokemon.getEncounterId());
-                                    //pokemon.setData(feedObj.getString("data"));
-                                    poke.setExpiration_time(pokemon.getExpirationTimestampMs());
-                                    poke.setPokemonId(pokemon.getPokemonId().getNumber());
-                                    poke.setPokemonName(mPokemonsMap.get(String.valueOf(poke.getPokemonId())));
-                                    poke.setLatitude(pokemon.getLatitude());
-                                    poke.setLongitude(pokemon.getLongitude());
+                                    List<CatchablePokemon> chablePokemons = go.getMap().getCatchablePokemon();
+
+                                    for (CatchablePokemon pokemon : chablePokemons) {
 
 
-                                    if (!containsEncounteredId(mPokemons, poke.getId())){
-                                        mPokemons.add(poke);
-                                        Log.i(TAG, String.valueOf(poke.getPokemonName()));
-                                    }
+                                        Pokemon poke = new Pokemon();
+                                        poke.setId(pokemon.getEncounterId());
+                                        //pokemon.setData(feedObj.getString("data"));
+                                        poke.setExpiration_time(pokemon.getExpirationTimestampMs());
+                                        poke.setPokemonId(pokemon.getPokemonId().getNumber());
+                                        poke.setPokemonName(mPokemonsMap.get(String.valueOf(poke.getPokemonId())));
+                                        poke.setLatitude(pokemon.getLatitude());
+                                        poke.setLongitude(pokemon.getLongitude());
 
 
-                                    //Log.i(TAG, String.valueOf(poke.getPokemonName()));
+                                        if (!containsEncounteredId(mPokemons, poke.getId())) {
+                                            mPokemons.add(poke);
+                                            Log.i(TAG, String.valueOf(poke.getPokemonName()));
+                                        }
+
+
+                                        //Log.i(TAG, String.valueOf(poke.getPokemonName()));
 
 
                                     /*if (!mPokemons.isEmpty()){
@@ -764,15 +761,16 @@ public class FragmentMap extends Fragment implements
                                     else{
                                         showMessage(getString(R.string.message_json_request_empty));
                                     }*/
+                                    }
+
                                 }
 
                             }
 
-                            if (!mPokemons.isEmpty()){
+                            if (!mPokemons.isEmpty()) {
                                 // notify data changes to list adapater
                                 drawPokemons();
-                            }
-                            else{
+                            } else {
                                 showMessage(getString(R.string.message_json_request_empty));
                             }
 
@@ -789,13 +787,13 @@ public class FragmentMap extends Fragment implements
     }
 
     public static String createDate(long timestamp) {
-        Date d = new Date(timestamp *1000);
+        Date d = new Date(timestamp * 1000);
         SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
         String reportDate = df.format(d);
         return reportDate;
     }
 
-    public void getGoogleCode(){
+    public void getGoogleCode() {
 
         new Thread(new Runnable() {
             public void run() {
@@ -806,7 +804,7 @@ public class FragmentMap extends Fragment implements
 
                     // in this url, you will get a code for the google account that is logged
                     Log.i(TAG, "Please go to " + provider.LOGIN_URL);
-                    Log.i(TAG,"Enter authorisation code:");
+                    Log.i(TAG, "Enter authorisation code:");
 
                 } catch (LoginFailedException | RemoteServerException e) {
                     e.printStackTrace();
@@ -818,21 +816,49 @@ public class FragmentMap extends Fragment implements
     }
 
 
-    public void coonectWithPokemonGO(){
+    public void conectWithPokemonGO() {
 
         new Thread(new Runnable() {
             public void run() {
                 //Aquí ejecutamos nuestras tareas costosas
 
                 try {
-                    // we should be able to login with this token
+
+
                     provider.login(mEditText.getText().toString());
 
-                    Log.i(TAG,"Refresh token:" + provider.getRefreshToken());
+                    Log.i(TAG, "Refresh token:" + provider.getRefreshToken());
 
-                    refreshToken= provider.getRefreshToken();
+                    refreshToken = provider.getRefreshToken();
+
+                    createSharedPreferences();
 
                     go = new PokemonGo(provider, http);
+
+
+                    /*if (getRefreshToken().equalsIgnoreCase("")){
+                        // we should be able to login with this token
+                        provider.login(mEditText.getText().toString());
+
+                        Log.i(TAG, "Refresh token:" + provider.getRefreshToken());
+
+                        refreshToken = provider.getRefreshToken();
+
+                        createSharedPreferences();
+
+                        go = new PokemonGo(provider, http);
+                    }
+                    else{
+                        // we should be able to login with this token
+                        provider.login(getRefreshToken());
+
+                        Log.i(TAG, "Refresh token:" + provider.getRefreshToken());
+
+                        refreshToken = provider.getRefreshToken();
+
+                        go = new PokemonGo(provider, http);
+                    }*/
+
 
                 } catch (LoginFailedException | RemoteServerException e) {
                     e.printStackTrace();
@@ -863,174 +889,194 @@ public class FragmentMap extends Fragment implements
         double foundLongitude = new_x + x0;
         double foundLatitude = y + y0;
 
-        Log.i(TAG,"Longitude: " + foundLongitude + "  Latitude: " + foundLatitude );
+        Log.i(TAG, "Longitude: " + foundLongitude + "  Latitude: " + foundLatitude);
 
-        return new LatLng(foundLatitude,foundLongitude);
+        return new LatLng(foundLatitude, foundLongitude);
     }
 
 
     public static boolean containsEncounteredId(List<Pokemon> c, long enconunteredId) {
-        for(Pokemon pokemon : c) {
-            if(pokemon.getId()== enconunteredId) {
+        for (Pokemon pokemon : c) {
+            if (pokemon.getId() == enconunteredId) {
                 return true;
             }
         }
         return false;
     }
 
-    public void setUpData(){
 
-        mPokemonsMap.put("1","Bulbasaur");
-        mPokemonsMap.put("2","Ivysaur");
-        mPokemonsMap.put("3","Venusaur");
-        mPokemonsMap.put("4","Charmander");
-        mPokemonsMap.put("5","Charmeleon");
-        mPokemonsMap.put("6","Charizard");
-        mPokemonsMap.put("7","Squirtle");
-        mPokemonsMap.put("8","Wartortle");
-        mPokemonsMap.put("9","Blastoise");
-        mPokemonsMap.put("10","Caterpie");
-        mPokemonsMap.put("11","Metapod");
-        mPokemonsMap.put("12","Butterfree");
-        mPokemonsMap.put("13","Weedle");
-        mPokemonsMap.put("14","Kakuna");
-        mPokemonsMap.put("15","Beedrill");
-        mPokemonsMap.put("16","Pidgey");
-        mPokemonsMap.put("17","Pidgeotto");
-        mPokemonsMap.put("18","Pidgeot");
-        mPokemonsMap.put("19","Rattata");
-        mPokemonsMap.put("20","Raticate");
-        mPokemonsMap.put("21","Spearow");
-        mPokemonsMap.put("22","Fearow");
-        mPokemonsMap.put("23","Ekans");
-        mPokemonsMap.put("24","Arbok");
-        mPokemonsMap.put("25","Pikachu");
-        mPokemonsMap.put("26","Raichu");
-        mPokemonsMap.put("27","Sandshrew");
-        mPokemonsMap.put("28","Sandslash");
-        mPokemonsMap.put("29","Nidoran♀");
-        mPokemonsMap.put("30","Nidorina");
-        mPokemonsMap.put("31","Nidoqueen");
-        mPokemonsMap.put("32","Nidoran♂");
-        mPokemonsMap.put("33","Nidorino");
-        mPokemonsMap.put("34","Nidoking");
-        mPokemonsMap.put("35","Clefairy");
-        mPokemonsMap.put("36","Clefable");
-        mPokemonsMap.put("37","Vulpix");
-        mPokemonsMap.put("38","Ninetales");
-        mPokemonsMap.put("39","Jigglypuff");
-        mPokemonsMap.put("40","Wigglytuff");
-        mPokemonsMap.put("41","Zubat");
-        mPokemonsMap.put("42","Golbat");
-        mPokemonsMap.put("43","Oddish");
-        mPokemonsMap.put("44","Gloom");
-        mPokemonsMap.put("45","Vileplume");
-        mPokemonsMap.put("46","Paras");
-        mPokemonsMap.put("47","Parasect");
-        mPokemonsMap.put("48","Venonat");
-        mPokemonsMap.put("49","Venomoth");
-        mPokemonsMap.put("50","Diglett");
-        mPokemonsMap.put("51","Dugtrio");
-        mPokemonsMap.put("52","Meowth");
-        mPokemonsMap.put("53","Persian");
-        mPokemonsMap.put("54","Psyduck");
-        mPokemonsMap.put("55","Golduck");
-        mPokemonsMap.put("56","Mankey");
-        mPokemonsMap.put("57","Primeape");
-        mPokemonsMap.put("58","Growlithe");
-        mPokemonsMap.put("59","Arcanine");
-        mPokemonsMap.put("60","Poliwag");
-        mPokemonsMap.put("61","Poliwhirl");
-        mPokemonsMap.put("62","Poliwrath");
-        mPokemonsMap.put("63","Abra");
-        mPokemonsMap.put("64","Kadabra");
-        mPokemonsMap.put("65","Alakazam");
-        mPokemonsMap.put("66","Machop");
-        mPokemonsMap.put("67","Machoke");
-        mPokemonsMap.put("68","Machamp");
-        mPokemonsMap.put("69","Bellsprout");
-        mPokemonsMap.put("70","Weepinbell");
-        mPokemonsMap.put("71","Victreebel");
-        mPokemonsMap.put("72","Tentacool");
-        mPokemonsMap.put("73","Tentacruel");
-        mPokemonsMap.put("74","Geodude");
-        mPokemonsMap.put("75","Graveler");
-        mPokemonsMap.put("76","Golem");
-        mPokemonsMap.put("77","Ponyta");
-        mPokemonsMap.put("78","Rapidash");
-        mPokemonsMap.put("79","Slowpoke");
-        mPokemonsMap.put("80","Slowbro");
-        mPokemonsMap.put("81","Magnemite");
-        mPokemonsMap.put("82","Magneton");
-        mPokemonsMap.put("83","Farfetch'd");
-        mPokemonsMap.put("84","Doduo");
-        mPokemonsMap.put("85","Dodrio");
-        mPokemonsMap.put("86","Seel");
-        mPokemonsMap.put("87","Dewgong");
-        mPokemonsMap.put("88","Grimer");
-        mPokemonsMap.put("89","Muk");
-        mPokemonsMap.put("90","Shellder");
-        mPokemonsMap.put("91","Cloyster");
-        mPokemonsMap.put("92","Gastly");
-        mPokemonsMap.put("93","Haunter");
-        mPokemonsMap.put("94","Gengar");
-        mPokemonsMap.put("95","Onix");
-        mPokemonsMap.put("96","Drowzee");
-        mPokemonsMap.put("97","Hypno");
-        mPokemonsMap.put("98","Krabby");
-        mPokemonsMap.put("99","Kingler");
-        mPokemonsMap.put("100","Voltorb");
-        mPokemonsMap.put("101","Electrode");
-        mPokemonsMap.put("102","Exeggcute");
-        mPokemonsMap.put("103","Exeggutor");
-        mPokemonsMap.put("104","Cubone");
-        mPokemonsMap.put("105","Marowak");
-        mPokemonsMap.put("106","Hitmonlee");
-        mPokemonsMap.put("107","Hitmonchan");
-        mPokemonsMap.put("108","Lickitung");
-        mPokemonsMap.put("109","Koffing");
-        mPokemonsMap.put("110","Weezing");
-        mPokemonsMap.put("111","Rhyhorn");
-        mPokemonsMap.put("112","Rhydon");
-        mPokemonsMap.put("113","Chansey");
-        mPokemonsMap.put("114","Tangela");
-        mPokemonsMap.put("115","Kangaskhan");
-        mPokemonsMap.put("116","Horsea");
-        mPokemonsMap.put("117","Seadra");
-        mPokemonsMap.put("118","Goldeen");
-        mPokemonsMap.put("119","Seaking");
-        mPokemonsMap.put("120","Staryu");
-        mPokemonsMap.put("121","Starmie");
-        mPokemonsMap.put("122","Mr. Mime");
-        mPokemonsMap.put("123","Scyther");
-        mPokemonsMap.put("124","Jynx");
-        mPokemonsMap.put("125","Electabuzz");
-        mPokemonsMap.put("126","Magmar");
-        mPokemonsMap.put("127","Pinsir");
-        mPokemonsMap.put("128","Tauros");
-        mPokemonsMap.put("129","Magikarp");
-        mPokemonsMap.put("130","Gyarados");
-        mPokemonsMap.put("131","Lapras");
-        mPokemonsMap.put("132","Ditto");
-        mPokemonsMap.put("133","Eevee");
-        mPokemonsMap.put("134","Vaporeon");
-        mPokemonsMap.put("135","Jolteon");
-        mPokemonsMap.put("136","Flareon");
-        mPokemonsMap.put("137","Porygon");
-        mPokemonsMap.put("138","Omanyte");
-        mPokemonsMap.put("139","Omastar");
-        mPokemonsMap.put("140","Kabuto");
-        mPokemonsMap.put("141","Kabutops");
-        mPokemonsMap.put("142","Aerodactyl");
-        mPokemonsMap.put("143","Snorlax");
-        mPokemonsMap.put("144","Articuno");
-        mPokemonsMap.put("145","Zapdos");
-        mPokemonsMap.put("146","Moltres");
-        mPokemonsMap.put("147","Dratini");
-        mPokemonsMap.put("148","Dragonair");
-        mPokemonsMap.put("149","Dragonite");
-        mPokemonsMap.put("150","Mewtwo");
-        mPokemonsMap.put("151","Mew");
+    public void createSharedPreferences(){
+
+        SharedPreferences prefs_user = mContext.getSharedPreferences(Constants.PREFS_POKEWHERE, mContext.MODE_PRIVATE);
+        SharedPreferences.Editor editor= prefs_user.edit();
+
+        editor.putString(Constants.KEY_PREF_REFRESH_TOKEN, refreshToken);
+
+        editor.commit();
+
+    }
+
+    private String getRefreshToken(){
+
+        SharedPreferences prefs_mexcult = mContext.getSharedPreferences(Constants.PREFS_POKEWHERE, mContext.MODE_PRIVATE);
+        String provisional_state = prefs_mexcult.getString(Constants.KEY_PREF_REFRESH_TOKEN, "");
+
+        return provisional_state;
+    }
+
+    public void setUpData() {
+
+        mPokemonsMap.put("1", "Bulbasaur");
+        mPokemonsMap.put("2", "Ivysaur");
+        mPokemonsMap.put("3", "Venusaur");
+        mPokemonsMap.put("4", "Charmander");
+        mPokemonsMap.put("5", "Charmeleon");
+        mPokemonsMap.put("6", "Charizard");
+        mPokemonsMap.put("7", "Squirtle");
+        mPokemonsMap.put("8", "Wartortle");
+        mPokemonsMap.put("9", "Blastoise");
+        mPokemonsMap.put("10", "Caterpie");
+        mPokemonsMap.put("11", "Metapod");
+        mPokemonsMap.put("12", "Butterfree");
+        mPokemonsMap.put("13", "Weedle");
+        mPokemonsMap.put("14", "Kakuna");
+        mPokemonsMap.put("15", "Beedrill");
+        mPokemonsMap.put("16", "Pidgey");
+        mPokemonsMap.put("17", "Pidgeotto");
+        mPokemonsMap.put("18", "Pidgeot");
+        mPokemonsMap.put("19", "Rattata");
+        mPokemonsMap.put("20", "Raticate");
+        mPokemonsMap.put("21", "Spearow");
+        mPokemonsMap.put("22", "Fearow");
+        mPokemonsMap.put("23", "Ekans");
+        mPokemonsMap.put("24", "Arbok");
+        mPokemonsMap.put("25", "Pikachu");
+        mPokemonsMap.put("26", "Raichu");
+        mPokemonsMap.put("27", "Sandshrew");
+        mPokemonsMap.put("28", "Sandslash");
+        mPokemonsMap.put("29", "Nidoran♀");
+        mPokemonsMap.put("30", "Nidorina");
+        mPokemonsMap.put("31", "Nidoqueen");
+        mPokemonsMap.put("32", "Nidoran♂");
+        mPokemonsMap.put("33", "Nidorino");
+        mPokemonsMap.put("34", "Nidoking");
+        mPokemonsMap.put("35", "Clefairy");
+        mPokemonsMap.put("36", "Clefable");
+        mPokemonsMap.put("37", "Vulpix");
+        mPokemonsMap.put("38", "Ninetales");
+        mPokemonsMap.put("39", "Jigglypuff");
+        mPokemonsMap.put("40", "Wigglytuff");
+        mPokemonsMap.put("41", "Zubat");
+        mPokemonsMap.put("42", "Golbat");
+        mPokemonsMap.put("43", "Oddish");
+        mPokemonsMap.put("44", "Gloom");
+        mPokemonsMap.put("45", "Vileplume");
+        mPokemonsMap.put("46", "Paras");
+        mPokemonsMap.put("47", "Parasect");
+        mPokemonsMap.put("48", "Venonat");
+        mPokemonsMap.put("49", "Venomoth");
+        mPokemonsMap.put("50", "Diglett");
+        mPokemonsMap.put("51", "Dugtrio");
+        mPokemonsMap.put("52", "Meowth");
+        mPokemonsMap.put("53", "Persian");
+        mPokemonsMap.put("54", "Psyduck");
+        mPokemonsMap.put("55", "Golduck");
+        mPokemonsMap.put("56", "Mankey");
+        mPokemonsMap.put("57", "Primeape");
+        mPokemonsMap.put("58", "Growlithe");
+        mPokemonsMap.put("59", "Arcanine");
+        mPokemonsMap.put("60", "Poliwag");
+        mPokemonsMap.put("61", "Poliwhirl");
+        mPokemonsMap.put("62", "Poliwrath");
+        mPokemonsMap.put("63", "Abra");
+        mPokemonsMap.put("64", "Kadabra");
+        mPokemonsMap.put("65", "Alakazam");
+        mPokemonsMap.put("66", "Machop");
+        mPokemonsMap.put("67", "Machoke");
+        mPokemonsMap.put("68", "Machamp");
+        mPokemonsMap.put("69", "Bellsprout");
+        mPokemonsMap.put("70", "Weepinbell");
+        mPokemonsMap.put("71", "Victreebel");
+        mPokemonsMap.put("72", "Tentacool");
+        mPokemonsMap.put("73", "Tentacruel");
+        mPokemonsMap.put("74", "Geodude");
+        mPokemonsMap.put("75", "Graveler");
+        mPokemonsMap.put("76", "Golem");
+        mPokemonsMap.put("77", "Ponyta");
+        mPokemonsMap.put("78", "Rapidash");
+        mPokemonsMap.put("79", "Slowpoke");
+        mPokemonsMap.put("80", "Slowbro");
+        mPokemonsMap.put("81", "Magnemite");
+        mPokemonsMap.put("82", "Magneton");
+        mPokemonsMap.put("83", "Farfetch'd");
+        mPokemonsMap.put("84", "Doduo");
+        mPokemonsMap.put("85", "Dodrio");
+        mPokemonsMap.put("86", "Seel");
+        mPokemonsMap.put("87", "Dewgong");
+        mPokemonsMap.put("88", "Grimer");
+        mPokemonsMap.put("89", "Muk");
+        mPokemonsMap.put("90", "Shellder");
+        mPokemonsMap.put("91", "Cloyster");
+        mPokemonsMap.put("92", "Gastly");
+        mPokemonsMap.put("93", "Haunter");
+        mPokemonsMap.put("94", "Gengar");
+        mPokemonsMap.put("95", "Onix");
+        mPokemonsMap.put("96", "Drowzee");
+        mPokemonsMap.put("97", "Hypno");
+        mPokemonsMap.put("98", "Krabby");
+        mPokemonsMap.put("99", "Kingler");
+        mPokemonsMap.put("100", "Voltorb");
+        mPokemonsMap.put("101", "Electrode");
+        mPokemonsMap.put("102", "Exeggcute");
+        mPokemonsMap.put("103", "Exeggutor");
+        mPokemonsMap.put("104", "Cubone");
+        mPokemonsMap.put("105", "Marowak");
+        mPokemonsMap.put("106", "Hitmonlee");
+        mPokemonsMap.put("107", "Hitmonchan");
+        mPokemonsMap.put("108", "Lickitung");
+        mPokemonsMap.put("109", "Koffing");
+        mPokemonsMap.put("110", "Weezing");
+        mPokemonsMap.put("111", "Rhyhorn");
+        mPokemonsMap.put("112", "Rhydon");
+        mPokemonsMap.put("113", "Chansey");
+        mPokemonsMap.put("114", "Tangela");
+        mPokemonsMap.put("115", "Kangaskhan");
+        mPokemonsMap.put("116", "Horsea");
+        mPokemonsMap.put("117", "Seadra");
+        mPokemonsMap.put("118", "Goldeen");
+        mPokemonsMap.put("119", "Seaking");
+        mPokemonsMap.put("120", "Staryu");
+        mPokemonsMap.put("121", "Starmie");
+        mPokemonsMap.put("122", "Mr. Mime");
+        mPokemonsMap.put("123", "Scyther");
+        mPokemonsMap.put("124", "Jynx");
+        mPokemonsMap.put("125", "Electabuzz");
+        mPokemonsMap.put("126", "Magmar");
+        mPokemonsMap.put("127", "Pinsir");
+        mPokemonsMap.put("128", "Tauros");
+        mPokemonsMap.put("129", "Magikarp");
+        mPokemonsMap.put("130", "Gyarados");
+        mPokemonsMap.put("131", "Lapras");
+        mPokemonsMap.put("132", "Ditto");
+        mPokemonsMap.put("133", "Eevee");
+        mPokemonsMap.put("134", "Vaporeon");
+        mPokemonsMap.put("135", "Jolteon");
+        mPokemonsMap.put("136", "Flareon");
+        mPokemonsMap.put("137", "Porygon");
+        mPokemonsMap.put("138", "Omanyte");
+        mPokemonsMap.put("139", "Omastar");
+        mPokemonsMap.put("140", "Kabuto");
+        mPokemonsMap.put("141", "Kabutops");
+        mPokemonsMap.put("142", "Aerodactyl");
+        mPokemonsMap.put("143", "Snorlax");
+        mPokemonsMap.put("144", "Articuno");
+        mPokemonsMap.put("145", "Zapdos");
+        mPokemonsMap.put("146", "Moltres");
+        mPokemonsMap.put("147", "Dratini");
+        mPokemonsMap.put("148", "Dragonair");
+        mPokemonsMap.put("149", "Dragonite");
+        mPokemonsMap.put("150", "Mewtwo");
+        mPokemonsMap.put("151", "Mew");
 
     }
 }

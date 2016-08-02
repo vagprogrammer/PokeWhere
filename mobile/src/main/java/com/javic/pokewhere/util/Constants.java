@@ -5,6 +5,8 @@ package com.javic.pokewhere.util;
  */
 public class Constants {
 
+
+
     public static final String TAG = "FETCH_ADDRESS";
     public static final int SUCCESS_RESULT = 0;
     public static final int FAILURE_RESULT = 1;
@@ -22,4 +24,9 @@ public class Constants {
 
     public static final int ACTION_OPEN_DRAWER = 0;
     public static final int ACTION_CLOSE_DRAWER = 1;
+
+
+    // Preferencias
+    public static final String PREFS_POKEWHERE="prefs_pokewhere";
+    public static final  String KEY_PREF_REFRESH_TOKEN= "pref_refresh_token";
 }
