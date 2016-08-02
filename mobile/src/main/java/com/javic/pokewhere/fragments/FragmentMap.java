@@ -28,6 +28,8 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.android.volley.Request;
@@ -55,6 +57,11 @@ import com.javic.pokewhere.app.AppController;
 import com.javic.pokewhere.models.Pokemon;
 import com.javic.pokewhere.services.FetchAddressIntentService;
 import com.javic.pokewhere.util.Constants;
+import com.pokegoapi.api.PokemonGo;
+import com.pokegoapi.api.map.pokemon.CatchablePokemon;
+import com.pokegoapi.auth.GoogleUserCredentialProvider;
+import com.pokegoapi.exceptions.LoginFailedException;
+import com.pokegoapi.exceptions.RemoteServerException;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -68,6 +75,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+
+import okhttp3.OkHttpClient;
 
 public class FragmentMap extends Fragment implements
         OnMapReadyCallback, GoogleMap.OnCameraChangeListener, GoogleApiClient.ConnectionCallbacks,
@@ -101,6 +111,15 @@ public class FragmentMap extends Fragment implements
     private FloatingActionButton mGetPokemonsButton;
     private ImageView mUserMarker;
 
+
+    private EditText mEditText;
+    private Button mButton;
+    private String refreshToken;
+
+    private OkHttpClient http = new OkHttpClient();
+    private GoogleUserCredentialProvider provider;
+    private PokemonGo go;
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -132,8 +151,10 @@ public class FragmentMap extends Fragment implements
         super.onCreate(savedInstanceState);
 
         MapsInitializer.initialize(mContext);
-        setUpData();
+
         mResultReceiver = new AddressResultReceiver(new Handler());
+
+        getGoogleCode();
 
         // First we need to check availability of play services
         if (checkPlayServices()){
@@ -189,6 +210,17 @@ public class FragmentMap extends Fragment implements
         mSearchView = (FloatingSearchView) mView.findViewById(R.id.floating_search_view);
         mUserMarker = (ImageView) mView.findViewById(R.id.user_marker);
         mGetPokemonsButton = (FloatingActionButton) mView.findViewById(R.id.fab);
+        mEditText = (EditText) mView.findViewById(R.id.editText);
+        mButton = (Button) mView.findViewById(R.id.button);
+
+        setUpData();
+
+        mButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                coonectWithPokemonGO();
+            }
+        });
 
         setUpSearchView();
         if (mapView != null) {
@@ -684,11 +716,71 @@ public class FragmentMap extends Fragment implements
                 mUserMarker.setVisibility(View.VISIBLE);
 
                 mGetPokemonsButton.setVisibility(View.VISIBLE);
+
                 mGetPokemonsButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        getPokemons(String.valueOf(userPosition.latitude)+"/"+String.valueOf(userPosition.longitude));
+                        // getPokemons(String.valueOf(userPosition.latitude)+"/"+String.valueOf(userPosition.longitude));
 
+                        mPokemons.clear();
+
+                        try {
+                            Log.i(TAG, go.getPlayerProfile().getPlayerData().getUsername());
+
+                            for (int i=0; i<500;i++){
+                                LatLng ltn= getLocation(userPosition.longitude,userPosition.latitude ,2000);
+                                go.setLocation(ltn.latitude,ltn.longitude ,1);
+
+
+
+                                List<CatchablePokemon> chablePokemons = go.getMap().getCatchablePokemon();
+
+                                for (CatchablePokemon pokemon:chablePokemons) {
+
+
+                                    Pokemon poke = new Pokemon();
+                                    poke.setId(pokemon.getEncounterId());
+                                    //pokemon.setData(feedObj.getString("data"));
+                                    poke.setExpiration_time(pokemon.getExpirationTimestampMs());
+                                    poke.setPokemonId(pokemon.getPokemonId().getNumber());
+                                    poke.setPokemonName(mPokemonsMap.get(String.valueOf(poke.getPokemonId())));
+                                    poke.setLatitude(pokemon.getLatitude());
+                                    poke.setLongitude(pokemon.getLongitude());
+
+
+                                    if (!containsEncounteredId(mPokemons, poke.getId())){
+                                        mPokemons.add(poke);
+                                        Log.i(TAG, String.valueOf(poke.getPokemonName()));
+                                    }
+
+
+                                    //Log.i(TAG, String.valueOf(poke.getPokemonName()));
+
+
+                                    /*if (!mPokemons.isEmpty()){
+                                        // notify data changes to list adapater
+                                        drawPokemons();
+                                    }
+                                    else{
+                                        showMessage(getString(R.string.message_json_request_empty));
+                                    }*/
+                                }
+
+                            }
+
+                            if (!mPokemons.isEmpty()){
+                                // notify data changes to list adapater
+                                drawPokemons();
+                            }
+                            else{
+                                showMessage(getString(R.string.message_json_request_empty));
+                            }
+
+                        } catch (LoginFailedException e) {
+                            e.printStackTrace();
+                        } catch (RemoteServerException e) {
+                            e.printStackTrace();
+                        }
                     }
                 });
             }
@@ -701,6 +793,89 @@ public class FragmentMap extends Fragment implements
         SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
         String reportDate = df.format(d);
         return reportDate;
+    }
+
+    public void getGoogleCode(){
+
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+
+                    // instanciate a provider, it will give an url
+                    provider = new GoogleUserCredentialProvider(http);
+
+                    // in this url, you will get a code for the google account that is logged
+                    Log.i(TAG, "Please go to " + provider.LOGIN_URL);
+                    Log.i(TAG,"Enter authorisation code:");
+
+                } catch (LoginFailedException | RemoteServerException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+
+    }
+
+
+    public void coonectWithPokemonGO(){
+
+        new Thread(new Runnable() {
+            public void run() {
+                //Aquí ejecutamos nuestras tareas costosas
+
+                try {
+                    // we should be able to login with this token
+                    provider.login(mEditText.getText().toString());
+
+                    Log.i(TAG,"Refresh token:" + provider.getRefreshToken());
+
+                    refreshToken= provider.getRefreshToken();
+
+                    go = new PokemonGo(provider, http);
+
+                } catch (LoginFailedException | RemoteServerException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+
+    }
+
+
+    public static LatLng getLocation(double x0, double y0, int radius) {
+        Random random = new Random();
+
+        // Convert radius from meters to degrees
+        double radiusInDegrees = radius / 111000f;
+
+        double u = random.nextDouble();
+        double v = random.nextDouble();
+        double w = radiusInDegrees * Math.sqrt(u);
+        double t = 2 * Math.PI * v;
+        double x = w * Math.cos(t);
+        double y = w * Math.sin(t);
+
+        // Adjust the x-coordinate for the shrinking of the east-west distances
+        double new_x = x / Math.cos(y0);
+
+        double foundLongitude = new_x + x0;
+        double foundLatitude = y + y0;
+
+        Log.i(TAG,"Longitude: " + foundLongitude + "  Latitude: " + foundLatitude );
+
+        return new LatLng(foundLatitude,foundLongitude);
+    }
+
+
+    public static boolean containsEncounteredId(List<Pokemon> c, long enconunteredId) {
+        for(Pokemon pokemon : c) {
+            if(pokemon.getId()== enconunteredId) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void setUpData(){
