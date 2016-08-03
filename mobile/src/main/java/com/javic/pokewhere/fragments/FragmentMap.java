@@ -59,7 +59,9 @@ import com.javic.pokewhere.models.Pokemon;
 import com.javic.pokewhere.services.FetchAddressIntentService;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
+import com.pokegoapi.api.map.Point;
 import com.pokegoapi.api.map.pokemon.CatchablePokemon;
+import com.pokegoapi.api.map.pokemon.NearbyPokemon;
 import com.pokegoapi.auth.GoogleUserCredentialProvider;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
@@ -77,6 +79,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
 
@@ -155,8 +158,6 @@ public class FragmentMap extends Fragment implements
 
         mResultReceiver = new AddressResultReceiver(new Handler());
 
-        getGoogleCode();
-
         // First we need to check availability of play services
         if (checkPlayServices()) {
             // Building the GoogleApi client
@@ -198,6 +199,9 @@ public class FragmentMap extends Fragment implements
 
         }
 
+        if (provider==null){
+            getGoogleCode();
+        }
 
     }
 
@@ -428,8 +432,6 @@ public class FragmentMap extends Fragment implements
 
     public void drawPokemons() {
 
-        mGoogleMap.clear();
-
         AssetManager assetManager = mContext.getAssets();
 
         for (Pokemon pokemon : mPokemons) {
@@ -464,6 +466,7 @@ public class FragmentMap extends Fragment implements
 
 
     public void drawLocation(LatLng position){
+
         mGoogleMap.addMarker(new MarkerOptions()
                 .position(new LatLng(position.latitude, position.longitude)));
     }
@@ -674,7 +677,7 @@ public class FragmentMap extends Fragment implements
 
                         mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userPosition, Constants.USER_ZOOM));
 
-                        getPokemons(String.valueOf(userPosition.latitude) + "/" + String.valueOf(userPosition.longitude));
+                        //getPokemons(String.valueOf(userPosition.latitude) + "/" + String.valueOf(userPosition.longitude));
 
 
                     } catch (Exception e) {
@@ -715,25 +718,29 @@ public class FragmentMap extends Fragment implements
                         // getPokemons(String.valueOf(userPosition.latitude)+"/"+String.valueOf(userPosition.longitude));
 
                         mPokemons.clear();
+                        mGoogleMap.clear();
 
                         try {
                             Log.i(TAG, go.getPlayerProfile().getPlayerData().getUsername());
 
-                            for (int i = 0; i < 100; i++) {
-                                LatLng ltn = getLocation(userPosition.longitude, userPosition.latitude, 1000);
+                            for (int i = 0; i < 6; i++) {
+                                LatLng ltn = getLocation(userPosition.longitude, userPosition.latitude, 500);
 
                                 drawLocation(ltn);
 
-                                go.setLocation(ltn.latitude, ltn.longitude, 1);
+                                /*try {
+                                    Thread.sleep(10000);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }*/
 
+                                for (int j=0; j<10; j++){
 
-                                for (int j = 0; j < 20; j++) {
-
-
+                                    go.setLocation(ltn.latitude, ltn.longitude, 1);
                                     List<CatchablePokemon> chablePokemons = go.getMap().getCatchablePokemon();
 
-                                    for (CatchablePokemon pokemon : chablePokemons) {
 
+                                    for (CatchablePokemon pokemon : chablePokemons) {
 
                                         Pokemon poke = new Pokemon();
                                         poke.setId(pokemon.getEncounterId());
@@ -744,25 +751,12 @@ public class FragmentMap extends Fragment implements
                                         poke.setLatitude(pokemon.getLatitude());
                                         poke.setLongitude(pokemon.getLongitude());
 
-
                                         if (!containsEncounteredId(mPokemons, poke.getId())) {
                                             mPokemons.add(poke);
-                                            Log.i(TAG, String.valueOf(poke.getPokemonName()));
+                                            Log.i(TAG, poke.getPokemonName());
                                         }
 
-
-                                        //Log.i(TAG, String.valueOf(poke.getPokemonName()));
-
-
-                                    /*if (!mPokemons.isEmpty()){
-                                        // notify data changes to list adapater
-                                        drawPokemons();
                                     }
-                                    else{
-                                        showMessage(getString(R.string.message_json_request_empty));
-                                    }*/
-                                    }
-
                                 }
 
                             }
@@ -802,9 +796,15 @@ public class FragmentMap extends Fragment implements
                     // instanciate a provider, it will give an url
                     provider = new GoogleUserCredentialProvider(http);
 
-                    // in this url, you will get a code for the google account that is logged
-                    Log.i(TAG, "Please go to " + provider.LOGIN_URL);
-                    Log.i(TAG, "Enter authorisation code:");
+                    if (getRefreshToken().equalsIgnoreCase("")){
+                        // in this url, you will get a code for the google account that is logged
+                        Log.i(TAG, "Please go to " + provider.LOGIN_URL);
+                        showMessage("Enter authorisation code:");
+                    }
+                    else{
+                        conectWithPokemonGO();
+                    }
+
 
                 } catch (LoginFailedException | RemoteServerException e) {
                     e.printStackTrace();
@@ -825,7 +825,7 @@ public class FragmentMap extends Fragment implements
                 try {
 
 
-                    provider.login(mEditText.getText().toString());
+                    /*provider.login(mEditText.getText().toString());
 
                     Log.i(TAG, "Refresh token:" + provider.getRefreshToken());
 
@@ -833,31 +833,31 @@ public class FragmentMap extends Fragment implements
 
                     createSharedPreferences();
 
-                    go = new PokemonGo(provider, http);
+                    go = new PokemonGo(provider, http);*/
 
 
-                    /*if (getRefreshToken().equalsIgnoreCase("")){
+                    if (getRefreshToken().equalsIgnoreCase("")){
                         // we should be able to login with this token
                         provider.login(mEditText.getText().toString());
 
-                        Log.i(TAG, "Refresh token:" + provider.getRefreshToken());
-
                         refreshToken = provider.getRefreshToken();
 
-                        createSharedPreferences();
+                        Log.i(TAG, "Refresh token:" + refreshToken);
+
+                        createRefreshToken(refreshToken);
 
                         go = new PokemonGo(provider, http);
                     }
                     else{
                         // we should be able to login with this token
-                        provider.login(getRefreshToken());
+                        //provider.login(getRefreshToken());
 
-                        Log.i(TAG, "Refresh token:" + provider.getRefreshToken());
+                        Log.i(TAG, "Refresh token:" + getRefreshToken());
 
-                        refreshToken = provider.getRefreshToken();
+                        go = new PokemonGo(new GoogleUserCredentialProvider(http, getRefreshToken()), http);
 
-                        go = new PokemonGo(provider, http);
-                    }*/
+                        showMessage("Conectado...");
+                    }
 
 
                 } catch (LoginFailedException | RemoteServerException e) {
@@ -905,7 +905,7 @@ public class FragmentMap extends Fragment implements
     }
 
 
-    public void createSharedPreferences(){
+    public void createRefreshToken(String refreshToken){
 
         SharedPreferences prefs_user = mContext.getSharedPreferences(Constants.PREFS_POKEWHERE, mContext.MODE_PRIVATE);
         SharedPreferences.Editor editor= prefs_user.edit();
@@ -919,9 +919,9 @@ public class FragmentMap extends Fragment implements
     private String getRefreshToken(){
 
         SharedPreferences prefs_mexcult = mContext.getSharedPreferences(Constants.PREFS_POKEWHERE, mContext.MODE_PRIVATE);
-        String provisional_state = prefs_mexcult.getString(Constants.KEY_PREF_REFRESH_TOKEN, "");
+        String refreshToken = prefs_mexcult.getString(Constants.KEY_PREF_REFRESH_TOKEN, "");
 
-        return provisional_state;
+        return refreshToken;
     }
 
     public void setUpData() {
