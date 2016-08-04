@@ -59,9 +59,7 @@ import com.javic.pokewhere.models.Pokemon;
 import com.javic.pokewhere.services.FetchAddressIntentService;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
-import com.pokegoapi.api.map.Point;
 import com.pokegoapi.api.map.pokemon.CatchablePokemon;
-import com.pokegoapi.api.map.pokemon.NearbyPokemon;
 import com.pokegoapi.auth.GoogleUserCredentialProvider;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
@@ -79,7 +77,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
 
@@ -196,7 +193,6 @@ public class FragmentMap extends Fragment implements
                 }
 
             }
-
         }
 
         if (provider==null){
@@ -596,7 +592,7 @@ public class FragmentMap extends Fragment implements
 
     public void setUpSearchView() {
 
-/*        //this shows the top left circular progress
+/*       //this shows the top left circular progress
         //you can call it where ever you want, but
         //it makes sense to do it when loading something in
         //the background.
@@ -728,11 +724,11 @@ public class FragmentMap extends Fragment implements
 
                                 drawLocation(ltn);
 
-                                /*try {
+                                try {
                                     Thread.sleep(10000);
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
-                                }*/
+                                }
 
                                 for (int j=0; j<10; j++){
 
@@ -805,7 +801,6 @@ public class FragmentMap extends Fragment implements
                         conectWithPokemonGO();
                     }
 
-
                 } catch (LoginFailedException | RemoteServerException e) {
                     e.printStackTrace();
                 }
@@ -820,21 +815,7 @@ public class FragmentMap extends Fragment implements
 
         new Thread(new Runnable() {
             public void run() {
-                //Aquí ejecutamos nuestras tareas costosas
-
                 try {
-
-
-                    /*provider.login(mEditText.getText().toString());
-
-                    Log.i(TAG, "Refresh token:" + provider.getRefreshToken());
-
-                    refreshToken = provider.getRefreshToken();
-
-                    createSharedPreferences();
-
-                    go = new PokemonGo(provider, http);*/
-
 
                     if (getRefreshToken().equalsIgnoreCase("")){
                         // we should be able to login with this token

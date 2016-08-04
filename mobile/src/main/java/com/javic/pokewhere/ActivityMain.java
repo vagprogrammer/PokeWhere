@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
@@ -27,11 +28,11 @@ import com.javic.pokewhere.util.Constants;
 public class ActivityMain extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, FragmentMap.OnFragmentInteractionListener{
 
-
     private static final String TAG = ActivityMain.class.getSimpleName();
     private static final int MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE = 100;
 
-    FragmentMap fragmentMap;
+    private FragmentMap mFragmentMap;
+    private Bundle mExtras;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +40,12 @@ public class ActivityMain extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        mExtras = getIntent().getExtras();
+
+        if (mExtras!=null){
+            showMessage("Welcome" + mExtras.getString(Constants.EXTRA_USERNAME_KEY));
+        }
 
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -81,6 +88,13 @@ public class ActivityMain extends AppCompatActivity
         //First start (Inbox Fragment)
         setFragment(0);
         navigationView.getMenu().getItem(0).setChecked(true);
+    }
+
+    public void showMessage(String message) {
+
+        Snackbar.make(getWindow().getDecorView().getRootView(), message, Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
+
     }
 
     @Override
@@ -159,11 +173,11 @@ public class ActivityMain extends AppCompatActivity
                 fragmentManager = getSupportFragmentManager();
                 fragmentTransaction = fragmentManager.beginTransaction();
 
-                if (fragmentMap==null){
-                    fragmentMap = FragmentMap.newInstance();
+                if (mFragmentMap==null){
+                    mFragmentMap = FragmentMap.newInstance();
                 }
 
-                fragmentTransaction.replace(R.id.content_fragment, fragmentMap);
+                fragmentTransaction.replace(R.id.content_fragment, mFragmentMap);
                 fragmentTransaction.commit();
 
                 break;

@@ -29,4 +29,7 @@ public class Constants {
     // Preferencias
     public static final String PREFS_POKEWHERE="prefs_pokewhere";
     public static final  String KEY_PREF_REFRESH_TOKEN= "pref_refresh_token";
+
+    //Activities extras
+    public static final String EXTRA_USERNAME_KEY="extra_username_key";
 }
