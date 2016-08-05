@@ -2,31 +2,22 @@ package com.javic.pokewhere;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.app.LoaderManager.LoaderCallbacks;
-
-import android.content.CursorLoader;
-import android.content.Loader;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.AsyncTask;
-
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -100,7 +91,6 @@ public class ActivityLogin extends AppCompatActivity{
         mPasswordView = (EditText) findViewById(R.id.password);
 
         final Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        final Button mGoogleSignInButton = (Button) findViewById(R.id.email_sign_in_with_google_acount_button);
 
         mEmailView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -125,11 +115,11 @@ public class ActivityLogin extends AppCompatActivity{
                 if(charSequence.length() != 0){
                     mPasswordView.setEnabled(true);
                     mEmailSignInButton.setEnabled(true);
-                    mGoogleSignInButton.setEnabled(false);
+
                 }else {
                     mPasswordView.setEnabled(false);
                     mEmailSignInButton.setEnabled(false);
-                    mGoogleSignInButton.setEnabled(true);
+
                 }
 
             }
@@ -158,12 +148,6 @@ public class ActivityLogin extends AppCompatActivity{
             }
         });
 
-        mGoogleSignInButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                attemptLogin();
-            }
-        });
     }
 
     @Override
@@ -273,7 +257,7 @@ public class ActivityLogin extends AppCompatActivity{
 
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
-        return email.contains("@");
+        return email.contains("@") || email.contains("VAGTEST");
     }
 
     private boolean isPasswordValid(String password) {
@@ -465,7 +449,7 @@ public class ActivityLogin extends AppCompatActivity{
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_test_user) {
 
-            mEmailView.setText("vagtest987@gmail.com");
+            mEmailView.setText("VAGTEST");
             mPasswordView.setText("308073438");
             mPasswordView.requestFocus();
 
