@@ -8,27 +8,27 @@
     android:fitsSystemWindows="true"
     tools:context="com.javic.pokewhere.ActivitySelectAccount">
 
+<FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/login_title"
-        android:layout_width="match_parent"
+    <!-- Login progress -->
+    <ProgressBar
+        android:id="@+id/login_progress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="22dp"
-        android:paddingRight="10dp"
-        android:paddingLeft="10dp"
-        android:gravity="center_horizontal"
-        android:text="POKEWHERE"
-        android:textColor="#d67601"
-        android:textSize="25sp"
-        android:textStyle="bold" />
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
 
     <RelativeLayout
+        android:id="@+id/login_form"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/login_title"
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
-        android:background="#fff"
+        android:background="@color/color_blanco"
         android:elevation="4dp"
         android:layout_gravity="center"
         android:padding="20dp">
@@ -53,11 +53,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="22dp"
-                android:background="#d67601"
+                android:background="@color/color_title_login"
                 android:text="GOOGLE"
                 android:textAllCaps="false"
                 android:textStyle="bold"
-                android:textColor="#fff"
+                android:textColor="@color/color_blanco"
                 android:textSize="18sp" />
 
             <TextView
@@ -72,15 +72,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="22dp"
-                android:background="#d67601"
+                android:background="@color/color_title_login"
                 android:text="CLUB DE ENTRENADORES POKÉMON"
                 android:textAllCaps="false"
                 android:textStyle="bold"
-                android:textColor="#fff"
+                android:textColor="@color/color_blanco"
                 android:textSize="13sp" />
         </LinearLayout>
 
 
     </RelativeLayout>
+
+</FrameLayout>
 
 </android.support.design.widget.CoordinatorLayout>

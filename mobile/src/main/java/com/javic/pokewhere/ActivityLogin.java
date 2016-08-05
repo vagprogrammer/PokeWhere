@@ -28,7 +28,9 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
@@ -57,21 +59,17 @@ public class ActivityLogin extends AppCompatActivity{
     private static final int REQUEST_READ_CONTACTS = 0;
 
     private OkHttpClient httpClient = new OkHttpClient();
-    private GoogleUserCredentialProvider provider;
     private PokemonGo go;
-
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "vagprogrammer@gmail.com:test", "4321pruebapg@gmail.com:918273645"
-    };
 
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-    private UserLoginTask mAuthTask = null;
+    private UserLoginTask mAuthTask= null;
+
+    /**
+     * Keep track of the login task to ensure we can cancel it if requested.
+     */
+    private UserLoginTask mContactsTask = null;
 
     // UI references.
     private AutoCompleteTextView mEmailView;
@@ -86,11 +84,12 @@ public class ActivityLogin extends AppCompatActivity{
         // Set up the login form.
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
-
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         mPasswordView = (EditText) findViewById(R.id.password);
 
         final Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
+
+        final ImageButton mBackButton = (ImageButton) findViewById(R.id.back_button);
 
         mEmailView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -106,9 +105,10 @@ public class ActivityLogin extends AppCompatActivity{
 
         mEmailView.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
 
-            }
+            @Override
+            public void afterTextChanged(Editable editable) {}
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -121,11 +121,6 @@ public class ActivityLogin extends AppCompatActivity{
                     mEmailSignInButton.setEnabled(false);
 
                 }
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
 
             }
         });
@@ -148,6 +143,13 @@ public class ActivityLogin extends AppCompatActivity{
             }
         });
 
+        mBackButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed();
+            }
+        });
+
     }
 
     @Override
@@ -158,18 +160,36 @@ public class ActivityLogin extends AppCompatActivity{
 
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if(mAuthTask!=null){
+
+            mAuthTask.cancel(true);
+            Toast.makeText(ActivityLogin.this, getString(R.string.error_login), Toast.LENGTH_SHORT).show();
+        }
+
+        if(mContactsTask!=null){
+            mContactsTask.cancel(true);
+        }
+    }
+
+
     private void populateAutoComplete() {
         if (!mayRequestContacts()) {
             return;
         }
 
-        addEmailsToAutoComplete(getEmails());
+        new ContactsTask().execute();
     }
 
     private boolean mayRequestContacts() {
+
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return true;
         }
+
         if (checkSelfPermission(READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
             return true;
         }
@@ -301,67 +321,6 @@ public class ActivityLogin extends AppCompatActivity{
         }
     }
 
-    private void addEmailsToAutoComplete(List<String> emailAddressCollection) {
-        //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
-        ArrayAdapter<String> adapter;
-
-        if (emailAddressCollection.size()>0){
-            adapter =
-                    new ArrayAdapter<>(ActivityLogin.this,
-                            android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
-        }
-        else{
-            adapter =
-                    new ArrayAdapter<>(ActivityLogin.this,
-                            android.R.layout.simple_dropdown_item_1line, getEmails());
-        }
-
-        mEmailView.setAdapter(adapter);
-    }
-
-
-    public ArrayList<String> getEmails(){
-        //ArrayList<String> names = new ArrayList<String>();
-        ArrayList<String> emails = new ArrayList<String>();
-        ContentResolver cr = getContentResolver();
-        Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,null, null, null, null);
-
-        if (cur.getCount() > 0) {
-            while (cur.moveToNext()) {
-                String id = cur.getString(cur.getColumnIndex(ContactsContract.Contacts._ID));
-                Cursor cur1 = cr.query(
-                        ContactsContract.CommonDataKinds.Email.CONTENT_URI, null,
-                        ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?",
-                        new String[]{id}, null);
-
-                while (cur1.moveToNext()) {
-                    //to get the contact names
-                    //String name=cur1.getString(cur1.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-                    //Log.e("Name :", name);
-
-                    //to get the contact emails
-                    String email = cur1.getString(cur1.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
-                    //Log.i(TAG, "Email: "+email);
-                    if(email!=null){
-                        emails.add(email);
-                    }
-                }
-                cur1.close();
-            }
-        }
-        return emails;
-    }
-
-    public void createRefreshToken(String refreshToken){
-
-        SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
-        SharedPreferences.Editor editor= prefs_user.edit();
-
-        editor.putString(Constants.KEY_PREF_REFRESH_TOKEN, refreshToken);
-
-        editor.commit();
-
-    }
     /**
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
@@ -380,21 +339,6 @@ public class ActivityLogin extends AppCompatActivity{
         @Override
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
-
-            /*try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                return false;
-            }
-
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
-            }*/
 
             try {
                 go = new PokemonGo(new PtcCredentialProvider(httpClient,mEmail, mPassword),httpClient);
@@ -415,6 +359,7 @@ public class ActivityLogin extends AppCompatActivity{
             showProgress(false);
 
             if (success) {
+                saveCredentials(mEmail, mPassword);
                 Intent intent = new Intent(ActivityLogin.this, ActivityMain.class);
                 intent.putExtra(Constants.EXTRA_USERNAME_KEY, userName);
                 startActivity(intent);
@@ -432,32 +377,77 @@ public class ActivityLogin extends AppCompatActivity{
     }
 
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_test, menu);
-        return true;
-    }
+    /**
+     * Represents an asynchronous get user contacts task used to suggest emails to
+     * the user.
+     */
+    public class ContactsTask extends AsyncTask<Void, Void, ArrayList<String>> {
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        @Override
+        protected ArrayList<String> doInBackground(Void... params) {
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_test_user) {
+            //ArrayList<String> names = new ArrayList<String>();
+            ArrayList<String> emails = new ArrayList<String>();
+            ContentResolver cr = getContentResolver();
+            Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,null, null, null, null);
 
-            mEmailView.setText("VAGTEST");
-            mPasswordView.setText("308073438");
-            mPasswordView.requestFocus();
+            if (cur.getCount() > 0) {
+                while (cur.moveToNext()) {
+                    String id = cur.getString(cur.getColumnIndex(ContactsContract.Contacts._ID));
+                    Cursor cur1 = cr.query(
+                            ContactsContract.CommonDataKinds.Email.CONTENT_URI, null,
+                            ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?",
+                            new String[]{id}, null);
 
-            return true;
+                    while (cur1.moveToNext()) {
+                        //to get the contact names
+                        //String name=cur1.getString(cur1.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                        //Log.e("Name :", name);
+
+                        //to get the contact emails
+                        String email = cur1.getString(cur1.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
+                        //Log.i(TAG, "Email: "+email);
+                        if(email!=null){
+                            emails.add(email);
+                        }
+                    }
+                    cur1.close();
+                }
+            }
+            cur.close();
+
+            return emails;
         }
 
-        return super.onOptionsItemSelected(item);
+        @Override
+        protected void onPostExecute(ArrayList<String> emails) {
+            mContactsTask = null;
+
+            //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
+            ArrayAdapter<String> adapter= new ArrayAdapter<>(ActivityLogin.this,
+                                android.R.layout.simple_dropdown_item_1line, emails);
+
+
+            mEmailView.setAdapter(adapter);
+        }
+
+        @Override
+        protected void onCancelled() {
+            mContactsTask = null;
+        }
     }
 
+
+    public void saveCredentials(String userEmail, String userPass){
+
+        SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
+        SharedPreferences.Editor editor= prefs_user.edit();
+
+        editor.putString(Constants.KEY_PREF_USER_EMAIL, userEmail);
+        editor.putString(Constants.KEY_PREF_USER_PASS, userPass);
+
+        editor.commit();
+
+    }
 }
 

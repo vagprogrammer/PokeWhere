@@ -9,8 +9,10 @@
     <color name="color_degradado_end_color">#E3F6CE</color>
     <color name="color_background_stroke_user_profile">#585858</color>
     <color name="color_background_user_profile">#0B3861</color>
-    <color name="color_title_login">#FFC107</color>
+    <color name="color_title_login">#d67601</color>
     <color name="color_background_login">#5fb0c9</color>
+
+
 
 
 

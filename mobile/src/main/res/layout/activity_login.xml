@@ -80,6 +80,7 @@
                         android:singleLine="true" />
                 </android.support.design.widget.TextInputLayout>
 
+                <!--android:drawableLeft="@drawable/ic_profle_circled"-->
                 <!--android:drawableTint="#FF4081"-->
 
                 <android.support.design.widget.TextInputLayout
@@ -102,6 +103,7 @@
                         android:enabled="false" />
                 </android.support.design.widget.TextInputLayout>
 
+                <!--android:drawableLeft="@drawable/ic_locked_circled"-->
                 <!--android:drawableTint="#FF4081"-->
 
                 <TextView
@@ -136,8 +138,9 @@
             android:layout_centerHorizontal="true"
             android:layout_marginTop="16dp"
             android:background="@drawable/user_profile_image_background"
+            android:src="@drawable/ic_trainer"
             android:elevation="4dp"
-            android:src="@drawable/ic_trainer" />
+             />
 
     </RelativeLayout>
 
