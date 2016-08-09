@@ -31,37 +31,35 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="@string/google_maps_key_secretaria" />
-
+            android:value="@string/google_maps_key" />
 
         <activity
             android:name=".ActivitySelectAccount"
             android:theme="@style/AppTheme.NoActionBar">
-
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
         </activity>
-
         <activity
             android:name=".ActivityLogin"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-
-        <activity
-            android:name=".ActivityMain"
             android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".ActivityDashboard"
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <service
             android:name=".services.FetchAddressIntentService"
             android:exported="false" />
-
         <service
             android:name=".services.ServiceFloatingMap"
             android:exported="false" />
 
+        <activity
+            android:name=".ActivitySplashScreen"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

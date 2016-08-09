@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
+
     signingConfigs {
     }
     compileSdkVersion 24
@@ -34,13 +35,16 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     wearApp project(':wear')
     testCompile 'junit:junit:4.12'
+    compile 'com.pokegoapi:PokeGOAPI-library:0.4.0'
     compile 'com.android.support:appcompat-v7:24.1.1'
-    compile 'com.google.android.gms:play-services:9.2.1'
+    compile 'com.google.android.gms:play-services:9.4.0'
     compile 'com.android.support:design:24.1.1'
     compile 'com.android.support:support-v4:24.1.1'
     compile 'com.android.support:multidex:1.0.1'
     compile 'com.android.volley:volley:1.0.0'
     compile 'com.github.recruit-lifestyle:FloatingView:1.7'
     compile 'com.github.arimorty:floatingsearchview:2.0.2'
-    compile project(':library-all')
+    compile 'com.google.android.gms:play-services-ads:9.4.0'
+    compile 'com.google.android.gms:play-services-auth:9.4.0'
+    compile 'com.google.android.gms:play-services-gcm:9.4.0'
 }

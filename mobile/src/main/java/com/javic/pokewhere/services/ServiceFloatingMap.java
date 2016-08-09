@@ -15,7 +15,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
-import com.javic.pokewhere.ActivityMain;
+import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.R;
 
 import java.lang.ref.WeakReference;
@@ -124,7 +124,7 @@ public class ServiceFloatingMap extends Service implements FloatingViewListener 
         builder.setCategory(NotificationCompat.CATEGORY_SERVICE);
 
         // PendingIntent
-        final Intent notifyIntent = new Intent(this, ActivityMain.class);
+        final Intent notifyIntent = new Intent(this, ActivityDashboard.class);
         PendingIntent notifyPendingIntent = PendingIntent.getActivity(this, 0, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(notifyPendingIntent);
 

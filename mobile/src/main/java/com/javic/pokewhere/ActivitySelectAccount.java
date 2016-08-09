@@ -5,7 +5,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -14,28 +13,33 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.gms.common.AccountPicker;
+import com.javic.pokewhere.app.AppController;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.auth.GoogleUserCredentialProvider;
-import com.pokegoapi.auth.PtcCredentialProvider;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
+import java.util.HashMap;
 
 import okhttp3.OkHttpClient;
-
-import static android.Manifest.permission.READ_CONTACTS;
 
 public class ActivitySelectAccount extends AppCompatActivity implements View.OnClickListener {
 
@@ -48,10 +52,23 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
 
     //https://accounts.google.com/o/oauth2/auth?client_id=848232511240-73ri3t7plvk96pj4f85uj8otdat2alem.apps.googleusercontent.com&redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&response_type=code&scope=openid%20email%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email
     // https://accounts.google.com/o/oauth2/auth?client_id=848232511240-73ri3t7plvk96pj4f85uj8otdat2alem.apps.googleusercontent.com
+
+    //ya29.Clw4AzZdef9wnDzR2OKZ0gyagB099YxNUoiQpQJGMvc104LBHCk477FpcrStMRz2IycOeN8_MPjYcmejpzTFPCB1VS0lajh9kgtttPva2ll3g48v8vXO43cPsUqjSQ
+
+    /*code=ya29.Clw4AzZdef9wnDzR2OKZ0gyagB099YxNUoiQpQJGMvc104LBHCk477FpcrStMRz2IycOeN8_MPjYcmejpzTFPCB1VS0lajh9kgtttPva2ll3g48v8vXO43cPsUqjSQ&
+    client_id=848232511240-73ri3t7plvk96pj4f85uj8otdat2alem.apps.googleusercontent.com&
+    redirect_uri=https://oauth2.example.com/code&
+    grant_type=authorization_code*/
+
     private View mProgressView;
     private View mLoginFormView;
+
     private String mEmail;
+    private String mParamRefreshToken;
+
     private String mUserName;
+    private int mUserTeam;
+    private int mUserLevel;
 
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
@@ -147,6 +164,9 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
             try {
 
                 token = GoogleAuthUtil.getToken(mActivity, mEmail, mScope);
+                makePostRequest();
+                // makePostRequest2();
+
             } catch (UserRecoverableAuthException userRecoverableException) {
                 // GooglePlayServices.apk is either old, disabled, or not present
                 // so we need to show the user some UI in the activity to recover.
@@ -171,11 +191,15 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
 
                     provider.login(token);
 
-                    saveRefreshToken(provider.getRefreshToken());
+                    mParamRefreshToken = provider.getRefreshToken();
+
+                    saveRefreshToken(mParamRefreshToken);
 
                     PokemonGo go = new PokemonGo(provider, httpClient);
 
-                    mUserName = go.getPlayerProfile().getPlayerData().getUsername();
+                   /* mUserName = go.getPlayerProfile().getPlayerData().getUsername();
+                    mUserTeam = go.getPlayerProfile().getPlayerData().getTeamValue();
+                    mUserLevel = go.getPlayerProfile().getStats().getLevel();*/
 
                 } catch (LoginFailedException | RemoteServerException e) {
                     e.printStackTrace();
@@ -194,9 +218,13 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
 
             if (success) {
 
-                Intent intent = new Intent(ActivitySelectAccount.this, ActivityMain.class);
-                intent.putExtra(Constants.EXTRA_USERNAME_KEY, mUserName);
+                //saveUserData(mUserName, mUserTeam, mUserLevel);
+
+                /*Intent intent = new Intent(ActivitySelectAccount.this, ActivityDashboard.class);
+                intent.putExtra(Constants.ARG_REFRESHTOKEN, mParamRefreshToken);
                 startActivity(intent);
+
+                finish();*/
             } else {
                 showMessage(getString(R.string.message_json_request_error));
             }
@@ -258,6 +286,19 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
 
     }
 
+    public void saveUserData(String userName, int userTeam, int userLevel){
+
+        SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
+        SharedPreferences.Editor editor= prefs_user.edit();
+
+        editor.putString(Constants.KEY_PREF_USER_NAME_KEY, userName);
+        editor.putInt(Constants.KEY_PREF_USER_TEAM_KEY, userTeam);
+        editor.putInt(Constants.KEY_PREF_USER_LEVEL_KEY, userLevel);
+
+        editor.commit();
+
+    }
+
     public boolean isDeviceOnline() {
 
         // get Connectivity Manager object to check connection
@@ -283,6 +324,45 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
         return false;
     }
 
+    private void makePostRequest() {
+
+
+        final String URL = "https://www.googleapis.com/oauth2/v4/token";
+
+        // Post params to be sent to the server
+        HashMap<String, String> params = new HashMap<String, String>();
+        params.put("code", "ya29.Clw4AzZdef9wnDzR2OKZ0gyagB099YxNUoiQpQJGMvc104LBHCk477FpcrStMRz2IycOeN8_MPjYcmejpzTFPCB1VS0lajh9kgtttPva2ll3g48v8vXO43cPsUqjSQ");
+        params.put("client_id", "848232511240-73ri3t7plvk96pj4f85uj8otdat2alem.apps.googleusercontent.com");
+        params.put("redirect_uri", "urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob");
+        params.put("grant_type", "authorization_code");
+        params.put("access_type", "offline");
+
+        JsonObjectRequest req = new JsonObjectRequest(URL, new JSONObject(params),
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            Log.i(TAG, "Response:%n " + response.toString(4));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Log.i(TAG, "Error:%n " + e.toString());
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e("Error: ", error.getMessage());
+            }
+        });
+
+
+        // add the request object to the queue to be executed
+        // Adding request to volley request queue
+        AppController.getInstance().addToRequestQueue(req);
+        //ApplicationController.getInstance().addToRequestQueue(req);
+
+    }
+
     public void showMessage(String message) {
 
         Snackbar.make(mLoginFormView, R.string.message_json_request_error, Snackbar.LENGTH_INDEFINITE)
@@ -304,7 +384,8 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
         switch (view.getId()){
             case R.id.email_sign_in_button:
                 startActivity(new Intent(this, ActivityLogin.class));
-            break;
+                finish();
+                break;
 
             case R.id.google_sign_in_button:
                 getUsername();
@@ -313,3 +394,4 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
 
     }
 }
+

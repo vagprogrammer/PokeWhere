@@ -4,10 +4,12 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,11 +21,10 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -34,13 +35,11 @@ import android.widget.Toast;
 
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
-import com.pokegoapi.auth.GoogleUserCredentialProvider;
 import com.pokegoapi.auth.PtcCredentialProvider;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import okhttp3.OkHttpClient;
 
@@ -129,6 +128,7 @@ public class ActivityLogin extends AppCompatActivity{
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id ==  EditorInfo.IME_ACTION_DONE) {
+
                     attemptLogin();
                     return true;
                 }
@@ -233,6 +233,10 @@ public class ActivityLogin extends AppCompatActivity{
             return;
         }
 
+        //HIde the Keyboard
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
+                InputMethodManager.RESULT_UNCHANGED_SHOWN);
         // Reset errors.
         mEmailView.setError(null);
         mPasswordView.setError(null);
@@ -269,9 +273,16 @@ public class ActivityLogin extends AppCompatActivity{
         } else {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
-            showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
-            mAuthTask.execute((Void) null);
+
+            if (isDeviceOnline()){
+                showProgress(true);
+                mAuthTask = new UserLoginTask(email, password);
+                mAuthTask.execute((Void) null);
+            }
+            else {
+                Toast.makeText(this, R.string.not_online, Toast.LENGTH_LONG).show();
+            }
+
         }
     }
 
@@ -330,6 +341,9 @@ public class ActivityLogin extends AppCompatActivity{
         private final String mEmail;
         private final String mPassword;
         private String userName;
+        private int userTeam;
+        private int userLevel;
+
 
         UserLoginTask(String email, String password) {
             mEmail = email;
@@ -342,7 +356,11 @@ public class ActivityLogin extends AppCompatActivity{
 
             try {
                 go = new PokemonGo(new PtcCredentialProvider(httpClient,mEmail, mPassword),httpClient);
+
                 userName = go.getPlayerProfile().getPlayerData().getUsername();
+                userTeam = go.getPlayerProfile().getPlayerData().getTeamValue();
+                userLevel = go.getPlayerProfile().getStats().getLevel();
+
                 return true;
             } catch (LoginFailedException e) {
                 e.printStackTrace();
@@ -359,10 +377,16 @@ public class ActivityLogin extends AppCompatActivity{
             showProgress(false);
 
             if (success) {
-                saveCredentials(mEmail, mPassword);
-                Intent intent = new Intent(ActivityLogin.this, ActivityMain.class);
-                intent.putExtra(Constants.EXTRA_USERNAME_KEY, userName);
+                saveUserCredentials(mEmail, mPassword);
+                saveUserData(userName, userTeam, userLevel);
+
+                Intent intent = new Intent(ActivityLogin.this, ActivityDashboard.class);
+                intent.putExtra(Constants.ARG_USER, mEmail);
+                intent.putExtra(Constants.ARG_PASS, mPassword);
+
                 startActivity(intent);
+
+                finish();
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                 mPasswordView.requestFocus();
@@ -376,6 +400,32 @@ public class ActivityLogin extends AppCompatActivity{
         }
     }
 
+
+
+    public boolean isDeviceOnline() {
+
+        // get Connectivity Manager object to check connection
+        ConnectivityManager connec =
+                (ConnectivityManager) getSystemService(getBaseContext().CONNECTIVITY_SERVICE);
+
+        // Check for network connections
+        if (connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.CONNECTED ||
+                connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.CONNECTING ||
+                connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.CONNECTING ||
+                connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.CONNECTED) {
+
+
+            return true;
+
+        } else if (
+                connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.DISCONNECTED ||
+                        connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.DISCONNECTED) {
+
+
+            return false;
+        }
+        return false;
+    }
 
     /**
      * Represents an asynchronous get user contacts task used to suggest emails to
@@ -438,7 +488,7 @@ public class ActivityLogin extends AppCompatActivity{
     }
 
 
-    public void saveCredentials(String userEmail, String userPass){
+    public void saveUserCredentials(String userEmail, String userPass){
 
         SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
         SharedPreferences.Editor editor= prefs_user.edit();
@@ -449,5 +499,22 @@ public class ActivityLogin extends AppCompatActivity{
         editor.commit();
 
     }
+
+    public void saveUserData(String userName, int userTeam, int userLevel){
+
+        SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
+        SharedPreferences.Editor editor= prefs_user.edit();
+
+        editor.putString(Constants.KEY_PREF_USER_NAME_KEY, userName);
+        editor.putInt(Constants.KEY_PREF_USER_TEAM_KEY, userTeam);
+        editor.putInt(Constants.KEY_PREF_USER_LEVEL_KEY, userLevel);
+
+        editor.commit();
+
+    }
+
+
+
+
 }
 

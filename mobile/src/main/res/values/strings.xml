@@ -38,6 +38,7 @@
     <string name="message_json_request_succes_2">pokemons a tu alrededor, atrápalos a todos!</string>
     <string name="message_json_request_empty">Por ahora no hay ningún pokémon cerca, vuelve a intentarlo más tarde!</string>
     <string name="message_json_request_error">Ha ocurrido un error, vuelve a intentarlo más tarde!</string>
+    <string name="message_snackbar_searching_text">Buscando pokémons...</string>
 
 
     <string name="text_hint_searchbar">Indicar ubicación, ej. Santa Monica Pier,CA...</string>
@@ -58,6 +59,10 @@
     <string name="action_snack_intentarlo_ahora">Inténtarlo ahora</string>
     <string name="pick_account">Es necesario que selecciones una cuenta</string>
     <string name="not_online">Por favor verifica tu conexión a internet</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_activity_splash_screen">Splash Screen</string>
 
 
 </resources>

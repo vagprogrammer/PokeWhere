@@ -2,10 +2,10 @@ package com.javic.pokewhere.fragments;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -13,6 +13,8 @@ import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
@@ -29,8 +31,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.android.volley.Request;
@@ -61,6 +61,7 @@ import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.map.pokemon.CatchablePokemon;
 import com.pokegoapi.auth.GoogleUserCredentialProvider;
+import com.pokegoapi.auth.PtcCredentialProvider;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
 
@@ -86,13 +87,18 @@ public class FragmentMap extends Fragment implements
 
     private static final String TAG = FragmentMap.class.getSimpleName();
 
+    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+    private String mParamUser;
+    private String mParamPass;
+    private String mParamRefreshToken;
+
+
     public static final int PERMISSION_ACCESS_COARSE_LOCATION = 0;
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
     public static final int ALERT_ADDRESS_RESULT_RECIVER = 0;
     public static final int ALERT_PERMISSION_DENNIED = 1;
 
     private Context mContext;
-
     private OnFragmentInteractionListener mListener;
 
     // Google client to interact with Google API
@@ -101,10 +107,8 @@ public class FragmentMap extends Fragment implements
     private AddressResultReceiver mResultReceiver;
     private LatLng userPosition;
 
-    private Map<String, String> mPokemonsMap = new HashMap<String, String>();
-    private List<Pokemon> mPokemons = new ArrayList<>();
 
-
+    // FragmentMap UI
     private View mView;
     private GoogleMap mGoogleMap;
     private MapView mapView;
@@ -112,21 +116,21 @@ public class FragmentMap extends Fragment implements
     private FloatingActionButton mGetPokemonsButton;
     private ImageView mUserMarker;
 
-
-    private EditText mEditText;
-    private Button mButton;
-    private String refreshToken;
-
-    private OkHttpClient http = new OkHttpClient();
-    private GoogleUserCredentialProvider provider;
+    // API PokemonGO
+    private OkHttpClient httpClient = new OkHttpClient();
     private PokemonGo go;
+    private PokemonsTask mpokemonTask;
+    private Map<String, String> mPokemonsMap = new HashMap<String, String>();
+    private List<Pokemon> mPokemons = new ArrayList<>();
+
+    Snackbar mSnackBar;
 
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
      * to the activity and potentially other fragments contained in that
      * activity.
-     * <p>
+     * <p/>
      * See the Android Training lesson <a href=
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
@@ -141,15 +145,49 @@ public class FragmentMap extends Fragment implements
         // Required empty public constructor
     }
 
+    /**
+     * @param paramUser User.
+     * @param paramPass Password.
+     * @return A new instance of fragment FragmentMap.
+     */
     // TODO: Rename and change types and number of parameters
-    public static FragmentMap newInstance() {
+    public static FragmentMap newInstance(String paramUser, String paramPass) {
         FragmentMap fragment = new FragmentMap();
+        Bundle args = new Bundle();
+        args.putString(Constants.ARG_USER, paramUser);
+        args.putString(Constants.ARG_PASS, paramPass);
+        fragment.setArguments(args);
         return fragment;
     }
+
+
+    /**
+     * @param paramRefreshToken Google token.
+     * @return A new instance of fragment FragmentMap.
+     */
+    // TODO: Rename and change types and number of parameters
+    public static FragmentMap newInstance(String paramRefreshToken) {
+        FragmentMap fragment = new FragmentMap();
+        Bundle args = new Bundle();
+        args.putString(Constants.ARG_REFRESHTOKEN, paramRefreshToken);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (getArguments() != null) {
+
+            if (getArguments().getString(Constants.ARG_REFRESHTOKEN) != null) {
+                mParamRefreshToken = getArguments().getString(Constants.ARG_REFRESHTOKEN);
+            } else {
+                mParamUser = getArguments().getString(Constants.ARG_USER);
+                mParamPass = getArguments().getString(Constants.ARG_PASS);
+            }
+        }
 
         MapsInitializer.initialize(mContext);
 
@@ -171,6 +209,16 @@ public class FragmentMap extends Fragment implements
         return mView;
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if (mpokemonTask != null) {
+            if (mpokemonTask.getStatus() == AsyncTask.Status.RUNNING) {
+                mpokemonTask.cancel(true);
+            }
+        }
+    }
 
     @Override
     public void onResume() {
@@ -195,8 +243,8 @@ public class FragmentMap extends Fragment implements
             }
         }
 
-        if (provider==null){
-            getGoogleCode();
+        if (go == null) {
+            connectWithPokemonGO();
         }
 
     }
@@ -209,19 +257,11 @@ public class FragmentMap extends Fragment implements
         mSearchView = (FloatingSearchView) mView.findViewById(R.id.floating_search_view);
         mUserMarker = (ImageView) mView.findViewById(R.id.user_marker);
         mGetPokemonsButton = (FloatingActionButton) mView.findViewById(R.id.fab);
-        mEditText = (EditText) mView.findViewById(R.id.editText);
-        mButton = (Button) mView.findViewById(R.id.button);
 
         setUpData();
 
-        mButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                conectWithPokemonGO();
-            }
-        });
-
         setUpSearchView();
+
         if (mapView != null) {
             // Initialise the MapView
             mapView.onCreate(null);
@@ -334,16 +374,20 @@ public class FragmentMap extends Fragment implements
                 pokemon.setLongitude(feedObj.getDouble("longitude"));
                 //pokemon.setUid(feedObj.getString("uid"));
                 //pokemon.setIs_alive(feedObj.getBoolean("is_alive"));
-
                 mPokemons.add(pokemon);
 
-                Log.i(TAG, String.valueOf(pokemon.getPokemonName()));
+
+                if (!containsEncounteredId(mPokemons, pokemon.getId())) {
+                    mPokemons.add(pokemon);
+                    Log.i(TAG, pokemon.getPokemonName());
+
+                    drawPokemon(pokemon);
+                }
+
             }
 
-            if (!mPokemons.isEmpty()) {
+            if (mPokemons.isEmpty()) {
                 // notify data changes to list adapater
-                drawPokemons();
-            } else {
                 showMessage(getString(R.string.message_json_request_empty));
             }
 
@@ -425,43 +469,39 @@ public class FragmentMap extends Fragment implements
         }
     }
 
+    public void drawPokemon(Pokemon pokemon) {
 
-    public void drawPokemons() {
+        Log.i(TAG, pokemon.getPokemonName());
 
         AssetManager assetManager = mContext.getAssets();
 
-        for (Pokemon pokemon : mPokemons) {
-            try {
-                InputStream is = null;
+        try {
+            InputStream is = null;
 
-                if (pokemon.getPokemonId() < 10) {
-                    is = assetManager.open(String.valueOf("00" + pokemon.getPokemonId()) + ".png");
-                } else if (pokemon.getPokemonId() < 100) {
-                    is = assetManager.open(String.valueOf("0" + pokemon.getPokemonId()) + ".png");
-                } else {
-                    is = assetManager.open(String.valueOf(pokemon.getPokemonId()) + ".png");
-                }
-
-                Bitmap bitmap = BitmapFactory.decodeStream(is);
-
-                mGoogleMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(pokemon.getLatitude(), pokemon.getLongitude()))
-                        .title(pokemon.getPokemonName())
-                        .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
-                        .snippet(createDate(pokemon.getExpiration_time()))
-                );
-
-            } catch (IOException e) {
-                Log.e(TAG, e.getMessage());
+            if (pokemon.getPokemonId() < 10) {
+                is = assetManager.open(String.valueOf("00" + pokemon.getPokemonId()) + ".png");
+            } else if (pokemon.getPokemonId() < 100) {
+                is = assetManager.open(String.valueOf("0" + pokemon.getPokemonId()) + ".png");
+            } else {
+                is = assetManager.open(String.valueOf(pokemon.getPokemonId()) + ".png");
             }
 
-            showMessage(getString(R.string.message_json_request_succes_1) + " " + String.valueOf(mPokemons.size()) + " " + getString(R.string.message_json_request_succes_2));
-        }
+            Bitmap bitmap = BitmapFactory.decodeStream(is);
 
+            mGoogleMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(pokemon.getLatitude(), pokemon.getLongitude()))
+                    .title(pokemon.getPokemonName())
+                    .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
+                    .snippet(createDate(pokemon.getExpiration_time()))
+            );
+
+        } catch (IOException e) {
+            Log.e(TAG, e.getMessage());
+        }
     }
 
 
-    public void drawLocation(LatLng position){
+    public void drawLocation(LatLng position) {
 
         mGoogleMap.addMarker(new MarkerOptions()
                 .position(new LatLng(position.latitude, position.longitude)));
@@ -590,6 +630,134 @@ public class FragmentMap extends Fragment implements
         dialog.show();
     }
 
+    /**
+     * Represents an asynchronous get pokemons
+     * with a location.
+     */
+    public class PokemonsTask extends AsyncTask<Void, Pokemon, Boolean> {
+
+        LatLng ltln;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            mPokemons.clear();
+            mGoogleMap.clear();
+
+            mGetPokemonsButton.setVisibility(View.INVISIBLE);
+            mSearchView.showProgress();
+
+            mSnackBar = Snackbar.make(mView, R.string.message_snackbar_searching_text, Snackbar.LENGTH_INDEFINITE)
+                    .setAction(R.string.location_alert_neg_btn, new View.OnClickListener() {
+                        @Override
+                        @TargetApi(Build.VERSION_CODES.M)
+                        public void onClick(View v) {
+                                if (mpokemonTask!=null){
+                                    mpokemonTask.cancel(true);
+                                }
+                        }
+                    });
+
+            mSnackBar.show();
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+            try {
+                for (int i = 0; i < 12; i++) {
+
+                    if(isCancelled())
+                        break;
+
+                    LatLng ltn = getLocation(userPosition.longitude, userPosition.latitude, 150);
+
+                    ltln = ltn;
+
+                    go.setLocation(ltn.latitude, ltn.longitude, 1);
+
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+
+                    //Collection<Pokestop> pokeStops = go.getMap().getMapObjects().getPokestops();
+
+                    List<CatchablePokemon> chablePokemons = go.getMap().getCatchablePokemon();
+
+                    for (CatchablePokemon pokemon : chablePokemons) {
+
+                        Pokemon poke = new Pokemon();
+                        poke.setId(pokemon.getEncounterId());
+                        poke.setExpiration_time(pokemon.getExpirationTimestampMs());
+                        poke.setPokemonId(pokemon.getPokemonId().getNumber());
+                        poke.setPokemonName(mPokemonsMap.get(String.valueOf(poke.getPokemonId())));
+                        poke.setLatitude(pokemon.getLatitude());
+                        poke.setLongitude(pokemon.getLongitude());
+
+                        if (!containsEncounteredId(mPokemons, poke.getId())) {
+                            mPokemons.add(poke);
+                            publishProgress(poke);
+                        }
+
+                    }
+
+
+                }
+
+            } catch (LoginFailedException e) {
+                e.printStackTrace();
+            } catch (RemoteServerException e) {
+                e.printStackTrace();
+            }
+
+            return false;
+        }
+
+        @Override
+        protected void onProgressUpdate(Pokemon... pokemon) {
+            super.onProgressUpdate(pokemon);
+
+            drawLocation(ltln);
+
+            drawPokemon(pokemon[0]);
+        }
+
+        @Override
+        protected void onPostExecute(Boolean succes) {
+            mpokemonTask = null;
+            mGetPokemonsButton.setVisibility(View.VISIBLE);
+            mSearchView.hideProgress();
+
+            mSnackBar.dismiss();
+
+            if (!mPokemons.isEmpty()) {
+                showMessage(getString(R.string.message_json_request_succes_1) + " " + String.valueOf(mPokemons.size()) + " " + getString(R.string.message_json_request_succes_2));
+            } else {
+                showMessage(getString(R.string.message_json_request_empty));
+            }
+
+        }
+
+        @Override
+        protected void onCancelled() {
+            mpokemonTask = null;
+
+            mGetPokemonsButton.setVisibility(View.VISIBLE);
+
+            if (mSnackBar!=null){
+                mSnackBar.dismiss();
+            }
+
+            if (mSearchView!=null){
+                mSearchView.hideProgress();
+            }
+        }
+    }
+
     public void setUpSearchView() {
 
 /*       //this shows the top left circular progress
@@ -661,7 +829,6 @@ public class FragmentMap extends Fragment implements
                 // Determine whether a Geocoder is available.
                 if (!Geocoder.isPresent()) {
                     showMessage(getString(R.string.no_geocoder_available));
-                    return;
                 } else {
                     Geocoder gc = new Geocoder(mContext);
 
@@ -704,73 +871,9 @@ public class FragmentMap extends Fragment implements
                 mGoogleMap.getUiSettings().setCompassEnabled(false);
                 mGoogleMap.setOnCameraChangeListener(this);
 
+                mSearchView.setVisibility(View.VISIBLE);
                 mUserMarker.setVisibility(View.VISIBLE);
 
-                mGetPokemonsButton.setVisibility(View.VISIBLE);
-
-                mGetPokemonsButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        // getPokemons(String.valueOf(userPosition.latitude)+"/"+String.valueOf(userPosition.longitude));
-
-                        mPokemons.clear();
-                        mGoogleMap.clear();
-
-                        try {
-                            Log.i(TAG, go.getPlayerProfile().getPlayerData().getUsername());
-
-                            for (int i = 0; i < 6; i++) {
-                                LatLng ltn = getLocation(userPosition.longitude, userPosition.latitude, 500);
-
-                                drawLocation(ltn);
-
-                                try {
-                                    Thread.sleep(10000);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-
-                                for (int j=0; j<10; j++){
-
-                                    go.setLocation(ltn.latitude, ltn.longitude, 1);
-                                    List<CatchablePokemon> chablePokemons = go.getMap().getCatchablePokemon();
-
-
-                                    for (CatchablePokemon pokemon : chablePokemons) {
-
-                                        Pokemon poke = new Pokemon();
-                                        poke.setId(pokemon.getEncounterId());
-                                        //pokemon.setData(feedObj.getString("data"));
-                                        poke.setExpiration_time(pokemon.getExpirationTimestampMs());
-                                        poke.setPokemonId(pokemon.getPokemonId().getNumber());
-                                        poke.setPokemonName(mPokemonsMap.get(String.valueOf(poke.getPokemonId())));
-                                        poke.setLatitude(pokemon.getLatitude());
-                                        poke.setLongitude(pokemon.getLongitude());
-
-                                        if (!containsEncounteredId(mPokemons, poke.getId())) {
-                                            mPokemons.add(poke);
-                                            Log.i(TAG, poke.getPokemonName());
-                                        }
-
-                                    }
-                                }
-
-                            }
-
-                            if (!mPokemons.isEmpty()) {
-                                // notify data changes to list adapater
-                                drawPokemons();
-                            } else {
-                                showMessage(getString(R.string.message_json_request_empty));
-                            }
-
-                        } catch (LoginFailedException e) {
-                            e.printStackTrace();
-                        } catch (RemoteServerException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
             }
 
         }
@@ -783,22 +886,43 @@ public class FragmentMap extends Fragment implements
         return reportDate;
     }
 
-    public void getGoogleCode() {
+    public void connectWithPokemonGO() {
 
         new Thread(new Runnable() {
             public void run() {
                 try {
 
-                    // instanciate a provider, it will give an url
-                    provider = new GoogleUserCredentialProvider(http);
-
-                    if (getRefreshToken().equalsIgnoreCase("")){
-                        // in this url, you will get a code for the google account that is logged
-                        Log.i(TAG, "Please go to " + provider.LOGIN_URL);
-                        showMessage("Enter authorisation code:");
+                    if (mParamRefreshToken == null) {
+                        //User is logged in with username and password
+                        go = new PokemonGo(new PtcCredentialProvider(httpClient, mParamUser, mParamPass), httpClient);
+                    } else {
+                        //User is logged in with Google Account
+                        go = new PokemonGo(new GoogleUserCredentialProvider(httpClient, mParamRefreshToken), httpClient);
                     }
-                    else{
-                        conectWithPokemonGO();
+
+                    /*String userName = go.getPlayerProfile().getPlayerData().getUsername();
+
+                    showMessage("Bienvenido: " + userName);*/
+
+                    if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                //Your code to run in GUI thread here
+                                mGetPokemonsButton.setVisibility(View.VISIBLE);
+
+                                mGetPokemonsButton.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+
+                                        mpokemonTask = new PokemonsTask();
+                                        mpokemonTask.execute();
+                                    }
+                                });
+                            }
+                        });
+
                     }
 
                 } catch (LoginFailedException | RemoteServerException e) {
@@ -809,47 +933,6 @@ public class FragmentMap extends Fragment implements
 
 
     }
-
-
-    public void conectWithPokemonGO() {
-
-        new Thread(new Runnable() {
-            public void run() {
-                try {
-
-                    if (getRefreshToken().equalsIgnoreCase("")){
-                        // we should be able to login with this token
-                        provider.login(mEditText.getText().toString());
-
-                        refreshToken = provider.getRefreshToken();
-
-                        Log.i(TAG, "Refresh token:" + refreshToken);
-
-                        createRefreshToken(refreshToken);
-
-                        go = new PokemonGo(provider, http);
-                    }
-                    else{
-                        // we should be able to login with this token
-                        //provider.login(getRefreshToken());
-
-                        Log.i(TAG, "Refresh token:" + getRefreshToken());
-
-                        go = new PokemonGo(new GoogleUserCredentialProvider(http, getRefreshToken()), http);
-
-                        showMessage("Conectado...");
-                    }
-
-
-                } catch (LoginFailedException | RemoteServerException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-
-
-    }
-
 
     public static LatLng getLocation(double x0, double y0, int radius) {
         Random random = new Random();
@@ -885,25 +968,6 @@ public class FragmentMap extends Fragment implements
         return false;
     }
 
-
-    public void createRefreshToken(String refreshToken){
-
-        SharedPreferences prefs_user = mContext.getSharedPreferences(Constants.PREFS_POKEWHERE, mContext.MODE_PRIVATE);
-        SharedPreferences.Editor editor= prefs_user.edit();
-
-        editor.putString(Constants.KEY_PREF_REFRESH_TOKEN, refreshToken);
-
-        editor.commit();
-
-    }
-
-    private String getRefreshToken(){
-
-        SharedPreferences prefs_mexcult = mContext.getSharedPreferences(Constants.PREFS_POKEWHERE, mContext.MODE_PRIVATE);
-        String refreshToken = prefs_mexcult.getString(Constants.KEY_PREF_REFRESH_TOKEN, "");
-
-        return refreshToken;
-    }
 
     public void setUpData() {
 
