@@ -21,25 +21,25 @@
     <string name="address_found">Address founded</string>
     <string name="no_geocoder_available">Geocoder is not aviable</string>
 
-
+    <!-- Fragment Map -->
     <string name="location_alert_title">Error al obtener ubicación</string>
     <string name="location_alert_message">PokeWhere no pudo obtener tu ubicación, intentalo nuevamente o muevete por el mapa</string>
     <string name="location_alert_pos_btn">Inténtalo de nuevo</string>
     <string name="location_alert_neg_btn">Cancelar</string>
     <string name="location_alert_error">Ah currido un error, por favor intentalo más tarde!</string>
 
+    <string name="permission_access_coarse_location">Access location permission is needed for providing get pokemons.</string>
+    <string name="action_snack_permission_access_coarse_location">Aceptar permiso</string>
 
     <string name="permission_alert_title">Servicios de ubicación desactivados</string>
     <string name="permission_alert_message">Para el correcto funcionamiento de la aplicación, es necesario que los servicios de ubicación esten activados, puedes activarlos desde los Settings de la aplicación</string>
     <string name="open_location_settings">Activar Servicios de Ubicación</string>
-
 
     <string name="message_json_request_succes_1">¡Hemos encontrado</string>
     <string name="message_json_request_succes_2">pokemons a tu alrededor, atrápalos a todos!</string>
     <string name="message_json_request_empty">Por ahora no hay ningún pokémon cerca, vuelve a intentarlo más tarde!</string>
     <string name="message_json_request_error">Ha ocurrido un error, vuelve a intentarlo más tarde!</string>
     <string name="message_snackbar_searching_text">Buscando pokémons...</string>
-
 
     <string name="text_hint_searchbar">Indicar ubicación, ej. Santa Monica Pier,CA...</string>
 
@@ -55,7 +55,7 @@
     <string name="error_incorrect_password">¡La contraseña es incorrecta!</string>
     <string name="error_field_required">Este campo es necesario</string>
     <string name="error_login">Intentalo de nuevo más tarde</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email suggestions."</string>
+    <string name="permission_rationale">Contacts permissions are needed for providing email suggestions.</string>
     <string name="action_snack_intentarlo_ahora">Inténtarlo ahora</string>
     <string name="pick_account">Es necesario que selecciones una cuenta</string>
     <string name="not_online">Por favor verifica tu conexión a internet</string>
