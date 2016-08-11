@@ -357,6 +357,12 @@ public class ActivityLogin extends AppCompatActivity{
             try {
                 go = new PokemonGo(new PtcCredentialProvider(httpClient,mEmail, mPassword),httpClient);
 
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
                 userName = go.getPlayerProfile().getPlayerData().getUsername();
                 userTeam = go.getPlayerProfile().getPlayerData().getTeamValue();
                 userLevel = go.getPlayerProfile().getStats().getLevel();

@@ -460,23 +460,21 @@ public class FragmentMap extends Fragment implements
 
     public void drawPokeStop(PokeStop pokestop)  {
 
-        //Log.i(TAG, pokestop.getName());
-
         int resourceId;
 
 
-        resourceId= R.drawable.ic_pokestop;
+        //resourceId= R.drawable.ic_pokestop;
 
-            /*if (!pokestop.getHasLure()) {
+            if (!pokestop.getHasLure()) {
                 resourceId= R.drawable.ic_pokestop;
             }
             else{
                 resourceId= R.drawable.ic_pokestope_lucky;
-            }*/
+            }
 
             mGoogleMap.addMarker(new MarkerOptions()
                     .position(new LatLng(pokestop.getLatitude(), pokestop.getLongitude()))
-                    //.title(pokestop.getName())
+                    .title(pokestop.getName())
                     .icon(BitmapDescriptorFactory.fromResource(resourceId))
                     //.snippet(pokestop.getDescription())
             );
@@ -620,23 +618,55 @@ public class FragmentMap extends Fragment implements
                         e.printStackTrace();
                     }
 
+                    Collection<Pokestop> pokeStops=null;
 
-                    Collection<Pokestop> pokeStops = go.getMap().getMapObjects().getPokestops();
+                    if(mPokeStops!=null){
 
-                    for (Pokestop pkStop : pokeStops) {
+                        if(mPokeStops.size()<35){
+                            pokeStops = go.getMap().getMapObjects().getPokestops();
+                        }
 
-                        PokeStop pokeStop = new PokeStop();
-                        pokeStop.setId(pkStop.getId());
+                    }
+                    else{
+                        pokeStops = go.getMap().getMapObjects().getPokestops();
+                    }
 
-                        //pokeStop.setName(pkStop.getDetails().getName());
-                        //pokeStop.setHasLure(pkStop.hasLure());
-                        //pokeStop.setDescription(pkStop.getDetails().getDescription());
-                        //pokeStop.setDistance(pkStop.getDistance());
 
-                        Object obj = pokeStop;
-                        if (!containsEncounteredPokeStopId(mPokeStops, pokeStop.getId())) {
-                            mPokeStops.add(pokeStop);
-                            publishProgress(obj);
+                    if (pokeStops!=null){
+
+                        for (Pokestop pkStop : pokeStops) {
+
+                            Boolean isEncountered;
+
+                            PokeStop pokeStop = new PokeStop();
+                            pokeStop.setId(pkStop.getId());
+
+                            isEncountered = containsEncounteredPokeStopId(mPokeStops, pokeStop.getId());
+
+                            pokeStop.setLatitude(pkStop.getLatitude());
+                            pokeStop.setLongitude(pkStop.getLongitude());
+
+                            if (!isEncountered){
+
+                                try {
+                                    Thread.sleep(500);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+
+                                pokeStop.setHasLure(pkStop.hasLure());
+                                pokeStop.setName(pkStop.getDetails().getName());
+                                //pokeStop.setDescription(pkStop.getDetails().getDescription());
+                                //pokeStop.setDistance(pkStop.getDistance());
+
+                                Object obj = pokeStop;
+                                if (!containsEncounteredPokeStopId(mPokeStops, pokeStop.getId())) {
+                                    mPokeStops.add(pokeStop);
+                                    publishProgress(obj);
+                                }
+                            }
+
+
                         }
 
                     }
@@ -676,20 +706,23 @@ public class FragmentMap extends Fragment implements
         @Override
         protected void onProgressUpdate(Object... object) {
 
+            super.onProgressUpdate(object);
+
             if (object[0] instanceof Pokemon){
                 drawPokemon((Pokemon) object[0]);
-            }
+            }else
 
             if (object[0] instanceof LatLng){
 
                 drawLocation((LatLng) object[0]);
-            }
-
+            } else
 
             if (object[0] instanceof PokeStop){
 
                 drawPokeStop((PokeStop) object[0]);
             }
+
+
         }
 
         @Override

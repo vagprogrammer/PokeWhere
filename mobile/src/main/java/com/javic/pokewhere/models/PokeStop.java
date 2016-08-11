@@ -6,6 +6,7 @@ package com.javic.pokewhere.models;
 public class PokeStop {
 
     private String id;
+    private String type;
     private String name;
     private String description;
     private Boolean hasLure;
@@ -20,6 +21,7 @@ public class PokeStop {
 
     public PokeStop(){
         //Empty constructor
+        hasLure = false;
     }
 
 
