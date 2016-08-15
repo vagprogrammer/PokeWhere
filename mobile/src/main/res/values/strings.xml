@@ -27,6 +27,7 @@
     <string name="location_alert_pos_btn">Inténtalo de nuevo</string>
     <string name="location_alert_neg_btn">Cancelar</string>
     <string name="location_alert_error">Ah currido un error, por favor intentalo más tarde!</string>
+    <string name="snack_bar_neg_btn">Detener</string>
 
     <string name="permission_access_coarse_location">Access location permission is needed for providing get pokemons.</string>
     <string name="action_snack_permission_access_coarse_location">Aceptar permiso</string>
