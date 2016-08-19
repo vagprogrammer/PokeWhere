@@ -3,7 +3,7 @@ package com.javic.pokewhere.models;
 /**
  * Created by vagprogrammer on 27/07/16.
  */
-public class Pokemon {
+public class LocalPokemon {
 
 
     private long id;
@@ -17,7 +17,7 @@ public class Pokemon {
     private Boolean is_alive;
 
 
-    public Pokemon() {
+    public LocalPokemon() {
 
     }
 

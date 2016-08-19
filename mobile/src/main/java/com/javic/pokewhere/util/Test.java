@@ -48,7 +48,7 @@ public class Test {
             for (int i = 0; i < feedArray.length(); i++) {
                 JSONObject feedObj = (JSONObject) feedArray.get(i);
 
-                Pokemon pokemon = new Pokemon();
+                LocalPokemon pokemon = new LocalPokemon();
                 pokemon.setId(feedObj.getLong("id"));
                 //pokemon.setData(feedObj.getString("data"));
                 pokemon.setExpiration_time(feedObj.getLong("expiration_time"));
