@@ -50,13 +50,14 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.javic.pokewhere.R;
+import com.javic.pokewhere.models.LocalPokeStop;
 import com.javic.pokewhere.models.LocalPokemon;
-import com.javic.pokewhere.models.PokeStop;
-import com.javic.pokewhere.models.Gym;
+import com.javic.pokewhere.models.LocalGym;
 import com.javic.pokewhere.services.FetchAddressIntentService;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 
+import com.pokegoapi.api.gym.Gym;
 import com.pokegoapi.api.map.fort.Pokestop;
 import com.pokegoapi.api.map.pokemon.CatchablePokemon;
 import com.pokegoapi.auth.GoogleUserCredentialProvider;
@@ -122,9 +123,9 @@ public class FragmentMap extends Fragment implements
     private GymsTask mGymsTask;
 
     private Map<String, String> mPokemonsMap = new HashMap<String, String>();
-    private List<LocalPokemon> mOPokemons = new ArrayList<>();
-    private List<PokeStop> mPokeStops = new ArrayList<>();
-    private List<Gym> mGyms = new ArrayList<>();
+    private List<LocalPokemon> mLocalPokemons = new ArrayList<>();
+    private List<LocalPokeStop> mLocalPokeStops = new ArrayList<>();
+    private List<LocalGym> mLocalGyms = new ArrayList<>();
 
     Snackbar mSnackBar;
 
@@ -273,7 +274,7 @@ public class FragmentMap extends Fragment implements
 
             }
         }
-        if (mGoogleMap!=null){
+        if (mGoogleMap != null) {
 
             if (!mayRequestLocation()) {
                 return;
@@ -286,19 +287,19 @@ public class FragmentMap extends Fragment implements
     public void onPause() {
         super.onPause();
 
-        if (FragmentMap.isEnabled!=null){
+        if (FragmentMap.isEnabled != null) {
             if (FragmentMap.isEnabled) {
                 FragmentMap.isEnabled = false;
             }
         }
 
-        if (mSnackBar!=null && mSearchView!=null && mGetPokemonsButton!=null){
+        if (mSnackBar != null && mSearchView != null && mGetPokemonsButton != null) {
             mGetPokemonsButton.setVisibility(View.VISIBLE);
             mSnackBar.dismiss();
             mSearchView.hideProgress();
         }
 
-        if (mGoogleMap!=null){
+        if (mGoogleMap != null) {
 
             if (!mayRequestLocation()) {
                 return;
@@ -505,7 +506,7 @@ public class FragmentMap extends Fragment implements
         }
     }
 
-    public void drawPokeStop(PokeStop pokestop) {
+    public void drawPokeStop(LocalPokeStop pokestop) {
 
         int resourceId;
 
@@ -516,32 +517,37 @@ public class FragmentMap extends Fragment implements
         }
 
         mGoogleMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(pokestop.getLatitude(), pokestop.getLongitude()))
-                        .title(pokestop.getName())
-                        .icon(BitmapDescriptorFactory.fromResource(resourceId))
-                        .snippet(pokestop.getDescription())
+                .position(new LatLng(pokestop.getLatitude(), pokestop.getLongitude()))
+                .title(pokestop.getName())
+                .icon(BitmapDescriptorFactory.fromResource(resourceId))
+                .snippet(pokestop.getDescription())
         );
     }
 
-    public void drawGym(Gym gym) {
+    public void drawGym(LocalGym localGym) {
 
-        int team;
+        int icon_gym;
 
-       /* switch (team){
-            case 0:
-                break;
+        switch (localGym.getTeam()) {
             case 1:
+                icon_gym= R.drawable.ic_gym_team_yellow;
                 break;
             case 2:
+                icon_gym= R.drawable.ic_gym_team_blue;
                 break;
-
-        }*/
+            case 3:
+                icon_gym= R.drawable.ic_gym_team_red;
+                break;
+            default:
+                icon_gym= R.drawable.ic_gym_team_white;
+                break;
+        }
 
         mGoogleMap.addMarker(new MarkerOptions()
-                .position(new LatLng(gym.getLatitude(), gym.getLongitude()))
-                .title(gym.getName())
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
-                .snippet(gym.getDescription())
+                .position(new LatLng(localGym.getLatitude(), localGym.getLongitude()))
+                .title(localGym.getName())
+                .icon(BitmapDescriptorFactory.fromResource(icon_gym))
+                .snippet(localGym.getDescription())
         );
     }
 
@@ -643,17 +649,26 @@ public class FragmentMap extends Fragment implements
             }
         }
 
-         if (mPokemonTask == null) {
+        if (mPokemonTask == null) {
             mPokemonTask = new PokemonsTask(true);
 
-             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                 mPokemonTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-             } else {
-                 mPokemonTask.execute();
-             }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                mPokemonTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            } else {
+                mPokemonTask.execute();
+            }
 
         }
 
+        if (mGymsTask == null) {
+            mGymsTask = new GymsTask(true);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                mGymsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            } else {
+                mGymsTask.execute();
+            }
+        }
 
         mSnackBar = Snackbar.make(mView, R.string.message_snackbar_searching_text, Snackbar.LENGTH_INDEFINITE)
                 .setAction(R.string.snack_bar_neg_btn, new View.OnClickListener() {
@@ -673,7 +688,7 @@ public class FragmentMap extends Fragment implements
         mGetPokemonsButton.setVisibility(View.GONE);
         mSnackBar.show();
         mSearchView.showProgress();
-        
+
     }
 
     /**
@@ -689,7 +704,7 @@ public class FragmentMap extends Fragment implements
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            mOPokemons.clear();
+            mLocalPokemons.clear();
 
         }
 
@@ -701,10 +716,9 @@ public class FragmentMap extends Fragment implements
             try {
                 while (FragmentMap.isEnabled) {
 
-                    if (ltn==null){
+                    if (ltn == null) {
                         ltn = new LatLng(userPosition.longitude, userPosition.latitude);
-                    }
-                    else{
+                    } else {
                         ltn = getLocation(userPosition.longitude, userPosition.latitude, 200);
                     }
 
@@ -722,8 +736,8 @@ public class FragmentMap extends Fragment implements
                         poke.setLatitude(pokemon.getLatitude());
                         poke.setLongitude(pokemon.getLongitude());
 
-                        if (!containsEncounteredId(mOPokemons, poke.getId())) {
-                            mOPokemons.add(poke);
+                        if (!containsEncounteredPokemonId(mLocalPokemons, poke.getId())) {
+                            mLocalPokemons.add(poke);
                             publishProgress(poke);
                         }
 
@@ -744,7 +758,7 @@ public class FragmentMap extends Fragment implements
 
             super.onProgressUpdate(localPokemon);
 
-                drawPokemon(localPokemon[0]);
+            drawPokemon(localPokemon[0]);
         }
 
         @Override
@@ -764,12 +778,12 @@ public class FragmentMap extends Fragment implements
      * Represents an asynchronous get poke stops
      * with a location.
      */
-    public class PokeStopsTask extends AsyncTask<Void, PokeStop, Boolean> {
+    public class PokeStopsTask extends AsyncTask<Void, LocalPokeStop, Boolean> {
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            mPokeStops.clear();
+            mLocalPokeStops.clear();
         }
 
         PokeStopsTask(Boolean isEnabled) {
@@ -791,36 +805,26 @@ public class FragmentMap extends Fragment implements
 
                     if (pokeStops != null) {
 
-                        for (int i=0; i<pokeStops.size(); i++){
+                        for (Pokestop pkStop: pokeStops) {
 
-                            if (i >15){
-                                break;
-                            }
+                            LocalPokeStop localPokeStop = new LocalPokeStop();
+                            localPokeStop.setId(pkStop.getId());
+                            Boolean isEncountered = containsEncounteredPokeStopId(mLocalPokeStops, localPokeStop.getId());
 
-                            Pokestop pkStop = pokeStops.get(i);
-
-                            Boolean isEncountered;
-
-                            PokeStop pokeStop = new PokeStop();
-                            pokeStop.setId(pkStop.getId());
-
-                            isEncountered = containsEncounteredPokeStopId(mPokeStops, pokeStop.getId());
-
-                            pokeStop.setLatitude(pkStop.getLatitude());
-                            pokeStop.setLongitude(pkStop.getLongitude());
+                            localPokeStop.setLatitude(pkStop.getLatitude());
+                            localPokeStop.setLongitude(pkStop.getLongitude());
 
                             if (!isEncountered) {
 
-                                sleep(500);
-                                pokeStop.setHasLure(pkStop.hasLure());
-                                pokeStop.setName(pkStop.getDetails().getName());
-                                pokeStop.setDescription(pkStop.getDetails().getDescription());
-                                //pokeStop.setDistance(pkStop.getDistance());
+                                sleep(1000);
+                                localPokeStop.setHasLure(pkStop.hasLure());
+                                localPokeStop.setName(pkStop.getDetails().getName());
+                                localPokeStop.setDescription(pkStop.getDetails().getDescription());
+                                //localPokeStop.setDistance(pkStop.getDistance());
 
-                                if (!containsEncounteredPokeStopId(mPokeStops, pokeStop.getId())) {
-                                    mPokeStops.add(pokeStop);
-                                    publishProgress(pokeStop);
-                                }
+                                mLocalPokeStops.add(localPokeStop);
+                                publishProgress(localPokeStop);
+
                             }
 
                         }
@@ -839,10 +843,10 @@ public class FragmentMap extends Fragment implements
         }
 
         @Override
-        protected void onProgressUpdate(PokeStop... pokeStop) {
+        protected void onProgressUpdate(LocalPokeStop... localPokeStop) {
 
-            super.onProgressUpdate(pokeStop);
-            drawPokeStop(pokeStop[0]);
+            super.onProgressUpdate(localPokeStop);
+            drawPokeStop(localPokeStop[0]);
 
         }
 
@@ -866,12 +870,12 @@ public class FragmentMap extends Fragment implements
      * Represents an asynchronous get Gyms
      * with a location.
      */
-    public class GymsTask extends AsyncTask<Void, Gym, Boolean> {
+    public class GymsTask extends AsyncTask<Void, LocalGym, Boolean> {
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            mGyms.clear();
+            mLocalGyms.clear();
 
         }
 
@@ -889,11 +893,30 @@ public class FragmentMap extends Fragment implements
                     LatLng ltn = getLocation(userPosition.longitude, userPosition.latitude, 200);
                     go.setLocation(ltn.latitude, ltn.longitude, 1);
                     sleep(5000);
-                    List<com.pokegoapi.api.gym.Gym> gyms = new ArrayList<>(go.getMap().getGyms());
+                    List<Gym> gyms = new ArrayList<>(go.getMap().getGyms());
 
                     if (gyms != null) {
 
-                        for (com.pokegoapi.api.gym.Gym gym: gyms) {
+                        for (Gym gym : gyms) {
+                            LocalGym localGym = new LocalGym();
+                            localGym.setId(gym.getId());
+
+                            Boolean isEncountered = containsEncounteredGymId(mLocalGyms, localGym.getId());
+
+                            if (!isEncountered) {
+
+                                sleep(500);
+                                localGym.setName(gym.getName());
+                                localGym.setTeam(gym.getOwnedByTeam().getNumber());
+                                localGym.setInBattle(gym.getIsInBattle());
+                                localGym.setPoints(gym.getPoints());
+                                localGym.setLatitude(gym.getLatitude());
+                                localGym.setLongitude(gym.getLongitude());
+                                localGym.setDescription(gym.getDescription());
+
+                                mLocalGyms.add(localGym);
+                                publishProgress(localGym);
+                            }
 
                         }
 
@@ -911,10 +934,10 @@ public class FragmentMap extends Fragment implements
         }
 
         @Override
-        protected void onProgressUpdate(Gym... gym) {
+        protected void onProgressUpdate(LocalGym... localGym) {
 
-            super.onProgressUpdate(gym);
-            drawGym(gym[0]);
+            super.onProgressUpdate(localGym);
+            drawGym(localGym[0]);
 
         }
 
@@ -1191,7 +1214,7 @@ public class FragmentMap extends Fragment implements
         return new LatLng(foundLatitude, foundLongitude);
     }
 
-    public static boolean containsEncounteredId(List<LocalPokemon> c, long enconunteredId) {
+    public static boolean containsEncounteredPokemonId(List<LocalPokemon> c, long enconunteredId) {
         for (LocalPokemon OPokemon : c) {
             if (OPokemon.getId() == enconunteredId) {
                 return true;
@@ -1200,9 +1223,18 @@ public class FragmentMap extends Fragment implements
         return false;
     }
 
-    public static boolean containsEncounteredPokeStopId(List<PokeStop> c, String enconunteredId) {
-        for (PokeStop pokeStop : c) {
-            if (pokeStop.getId().equals(enconunteredId)) {
+    public static boolean containsEncounteredPokeStopId(List<LocalPokeStop> c, String enconunteredId) {
+        for (LocalPokeStop localPokeStop : c) {
+            if (localPokeStop.getId().equals(enconunteredId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean containsEncounteredGymId(List<LocalGym> c, String enconunteredGymId) {
+        for (LocalGym localGym : c) {
+            if (localGym.getId().equals(enconunteredGymId)) {
                 return true;
             }
         }
@@ -1365,7 +1397,7 @@ public class FragmentMap extends Fragment implements
 
     }
 
-    public void sleep(long millis){
+    public void sleep(long millis) {
         try {
             Thread.sleep(millis);
         } catch (InterruptedException e) {

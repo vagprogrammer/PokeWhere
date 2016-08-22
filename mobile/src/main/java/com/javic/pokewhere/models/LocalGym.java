@@ -3,7 +3,7 @@ package com.javic.pokewhere.models;
 /**
  * Created by vagprogrammer on 15/08/16.
  */
-public class Gym {
+public class LocalGym {
 
     private String id;
     private String name;
@@ -14,7 +14,7 @@ public class Gym {
     private double latitude;
     private double longitude;
 
-    public Gym() {
+    public LocalGym() {
 
     }
 

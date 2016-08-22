@@ -3,7 +3,7 @@ package com.javic.pokewhere.models;
 /**
  * Created by franciscojimenezjimenez on 09/08/16.
  */
-public class PokeStop {
+public class LocalPokeStop {
 
     private String id;
     private String type;
@@ -19,7 +19,7 @@ public class PokeStop {
 
 
 
-    public PokeStop(){
+    public LocalPokeStop(){
         //Empty constructor
         hasLure = false;
     }

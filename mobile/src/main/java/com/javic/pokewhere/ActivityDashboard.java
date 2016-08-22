@@ -106,7 +106,7 @@ public class ActivityDashboard extends AppCompatActivity
                 mNavHeaderImage.setImageResource(R.drawable.ic_team_red);
                 break;
             default:
-                mNavHeaderImage.setImageResource(R.drawable.ic_team_white);
+                mNavHeaderImage.setImageResource(R.drawable.ic_gym_team_white);
                 break;
         }
 
