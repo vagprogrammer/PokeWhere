@@ -288,7 +288,7 @@ public class ActivityLogin extends AppCompatActivity{
 
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
-        return email.contains("@") || email.contains("VAGTEST");
+        return email.contains("@") || email.contains("vagtest123");
     }
 
     private boolean isPasswordValid(String password) {
