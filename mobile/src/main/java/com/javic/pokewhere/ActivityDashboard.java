@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -25,6 +26,13 @@ import android.widget.TextView;
 import com.javic.pokewhere.fragments.FragmentMap;
 import com.javic.pokewhere.services.ServiceFloatingMap;
 import com.javic.pokewhere.util.Constants;
+import com.pokegoapi.api.PokemonGo;
+import com.pokegoapi.auth.GoogleUserCredentialProvider;
+import com.pokegoapi.auth.PtcCredentialProvider;
+import com.pokegoapi.exceptions.LoginFailedException;
+import com.pokegoapi.exceptions.RemoteServerException;
+
+import okhttp3.OkHttpClient;
 
 public class ActivityDashboard extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, FragmentMap.OnFragmentInteractionListener {
@@ -44,13 +52,23 @@ public class ActivityDashboard extends AppCompatActivity
     private String mUserLevel;
 
 
+    // API PokemonGO
+    private OkHttpClient httpClient = new OkHttpClient();
+    private PokemonGo go;
+
+
+    // Activity UI
+    private View mView;
     private TextView mNavHeaderTitle, mNavHeaderSubtitle;
     private ImageView mNavHeaderImage;
+    private Snackbar mSnackBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mView = findViewById(R.id.layout_main_content);
 
         //Get elemtns of UI
         //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -303,6 +321,78 @@ public class ActivityDashboard extends AppCompatActivity
         }
     }
 
+
+    public void connectWithPokemonGO() {
+
+        if (isDeviceOnline()){
+            new Thread(new Runnable() {
+                public void run() {
+                    try {
+
+                        if (mParamRefreshToken == null) {
+                            //User is logged in with username and password
+                            go = new PokemonGo(new PtcCredentialProvider(httpClient, mParamUser, mParamPass), httpClient);
+                        } else {
+                            //User is logged in with Google Account
+                            go = new PokemonGo(new GoogleUserCredentialProvider(httpClient, mParamRefreshToken), httpClient);
+                        }
+
+                        if (go!= null){
+
+                        }
+                        else{
+
+                        }
+
+                    } catch (LoginFailedException | RemoteServerException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        }
+        else{
+
+        }
+
+    }
+
+
+    public boolean isDeviceOnline() {
+
+        // get Connectivity Manager object to check connection
+        ConnectivityManager connec =
+                (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+
+        // Check for network connections
+        if (connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.CONNECTED ||
+                connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.CONNECTING ||
+                connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.CONNECTING ||
+                connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.CONNECTED) {
+
+
+            return true;
+
+        } else if (
+                connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.DISCONNECTED ||
+                        connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.DISCONNECTED) {
+
+
+            return false;
+        }
+        return false;
+    }
+
+    public void showSnackBar(String snacKMessage, String buttonTitle){
+
+        mSnackBar = Snackbar.make(mView, snacKMessage, Snackbar.LENGTH_INDEFINITE)
+                .setAction(buttonTitle, new View.OnClickListener() {
+                    @Override
+                    @TargetApi(Build.VERSION_CODES.M)
+                    public void onClick(View v) {
+
+                    }
+                });
+    }
     private String getPref(String KEY_PREF) {
 
         SharedPreferences prefsPokeWhere = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);

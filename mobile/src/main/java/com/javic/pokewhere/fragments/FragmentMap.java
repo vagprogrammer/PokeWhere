@@ -50,13 +50,12 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.javic.pokewhere.R;
+import com.javic.pokewhere.models.LocalGym;
 import com.javic.pokewhere.models.LocalPokeStop;
 import com.javic.pokewhere.models.LocalPokemon;
-import com.javic.pokewhere.models.LocalGym;
 import com.javic.pokewhere.services.FetchAddressIntentService;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
-
 import com.pokegoapi.api.gym.Gym;
 import com.pokegoapi.api.map.fort.Pokestop;
 import com.pokegoapi.api.map.pokemon.CatchablePokemon;
@@ -65,16 +64,17 @@ import com.pokegoapi.auth.PtcCredentialProvider;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
 
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
 
@@ -86,16 +86,10 @@ public class FragmentMap extends Fragment implements
 
     private static final String TAG = FragmentMap.class.getSimpleName();
 
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private String mParamUser;
-    private String mParamPass;
-    private String mParamRefreshToken;
-
+    private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
 
     public static final int ALERT_ADDRESS_RESULT_RECIVER = 0;
     public static final int REQUEST_PERMISSION_ACCESS_COARSE_LOCATION = 1;
-
-    private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
 
     private Context mContext;
     private OnFragmentInteractionListener mListener;
@@ -103,9 +97,7 @@ public class FragmentMap extends Fragment implements
     // Google client to interact with Google API
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
-    private AddressResultReceiver mResultReceiver;
     private LatLng userPosition;
-
 
     // FragmentMap UI
     private View mView;
@@ -116,8 +108,7 @@ public class FragmentMap extends Fragment implements
     private ImageView mUserMarker;
 
     // API PokemonGO
-    private OkHttpClient httpClient = new OkHttpClient();
-    private PokemonGo go;
+    private static PokemonGo mPokemonGo;
     private PokemonsTask mPokemonTask;
     private PokeStopsTask mPokeStopsTask;
     private GymsTask mGymsTask;
@@ -152,31 +143,19 @@ public class FragmentMap extends Fragment implements
     }
 
     /**
-     * @param paramUser User.
-     * @param paramPass Password.
+     * @param
      * @return A new instance of fragment FragmentMap.
      */
-    // TODO: Rename and change types and number of parameters
-    public static FragmentMap newInstance(String paramUser, String paramPass) {
+    public static FragmentMap newInstance(PokemonGo pokemonGo) {
         FragmentMap fragment = new FragmentMap();
-        Bundle args = new Bundle();
-        args.putString(Constants.ARG_USER, paramUser);
+
+        /*Bundle args = new Bundle();
+        args.putParcelable(Constants.ARG_USER, pokemonGo);
         args.putString(Constants.ARG_PASS, paramPass);
-        fragment.setArguments(args);
-        return fragment;
-    }
+        fragment.setArguments(pokemonGo);*/
 
+        mPokemonGo = pokemonGo;
 
-    /**
-     * @param paramRefreshToken Google token.
-     * @return A new instance of fragment FragmentMap.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static FragmentMap newInstance(String paramRefreshToken) {
-        FragmentMap fragment = new FragmentMap();
-        Bundle args = new Bundle();
-        args.putString(Constants.ARG_REFRESHTOKEN, paramRefreshToken);
-        fragment.setArguments(args);
         return fragment;
     }
 
@@ -185,22 +164,12 @@ public class FragmentMap extends Fragment implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments() != null) {
-
-            if (getArguments().getString(Constants.ARG_REFRESHTOKEN) != null) {
-                mParamRefreshToken = getArguments().getString(Constants.ARG_REFRESHTOKEN);
-            } else {
-                mParamUser = getArguments().getString(Constants.ARG_USER);
-                mParamPass = getArguments().getString(Constants.ARG_PASS);
-            }
-        }
-
         MapsInitializer.initialize(mContext);
 
-        mResultReceiver = new AddressResultReceiver(new Handler());
 
         // First we need to check availability of play services
         if (checkPlayServices()) {
+
             // Building the GoogleApi client
             buildGoogleApiClient();
         }
@@ -351,16 +320,11 @@ public class FragmentMap extends Fragment implements
     @Override
     public void onMapReady(GoogleMap googleMap) {
         MapsInitializer.initialize(mContext);
+
         mGoogleMap = googleMap;
 
         if (!mayRequestLocation()) {
             return;
-        }
-
-        if (go == null) {
-            if (isDeviceOnline()) {
-                connectWithPokemonGO();
-            }
         }
 
         setUpGoogleMap();
@@ -441,11 +405,6 @@ public class FragmentMap extends Fragment implements
         if (requestCode == REQUEST_PERMISSION_ACCESS_COARSE_LOCATION) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-                if (go == null) {
-                    if (isDeviceOnline()) {
-                        connectWithPokemonGO();
-                    }
-                }
 
                 setUpGoogleMap();
                 setUpSearchView();
@@ -579,67 +538,12 @@ public class FragmentMap extends Fragment implements
                 + connectionResult.getErrorCode());
     }
 
-    protected void startIntentService() {
-        Intent intent = new Intent(mContext, FetchAddressIntentService.class);
-        intent.putExtra(Constants.RECEIVER, mResultReceiver);
-        intent.putExtra(Constants.LOCATION_DATA_EXTRA, mLastLocation);
-        mContext.startService(intent);
-    }
-
-    @SuppressLint("ParcelCreator")
-    class AddressResultReceiver extends ResultReceiver {
-
-        public AddressResultReceiver(Handler handler) {
-            super(handler);
-        }
-
-
-        @Override
-        protected void onReceiveResult(int resultCode, Bundle resultData) {
-
-            // Display the address string
-            // or an error message sent from the intent service.
-            String mAddressOutput = resultData.getString(Constants.RESULT_DATA_KEY);
-
-            // Show a toast message if an address was found.
-            if (resultCode == Constants.SUCCESS_RESULT) {
-                Log.i(TAG, getString(R.string.address_found));
-
-
-                if (resultData.getString(Constants.RESULT_DATA_KEY) != null) {
-                    String[] splited = resultData.getString(Constants.RESULT_DATA_KEY).split("\\s+");
-
-                    showMessage(splited[0]);
-
-                    mContext.stopService(new Intent(mContext, FetchAddressIntentService.class));
-                } else {
-                    //You should try to show the user to select their position
-                    showAlert(ALERT_ADDRESS_RESULT_RECIVER);
-                }
-
-            }
-
-            if (resultCode == Constants.FAILURE_RESULT) {
-                //You should try to show the user to select their position
-                showAlert(ALERT_ADDRESS_RESULT_RECIVER);
-            }
-
-        }
-    }
-
-    public void showMessage(String message) {
-
-        Snackbar.make(mView, message, Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
-
-    }
-
     /**
      * Attempts to start the search ok pokemons, gyms and pokestops.
      */
     private void attemptSearch() {
 
-        if (mPokeStopsTask == null) {
+       /* if (mPokeStopsTask == null) {
             mPokeStopsTask = new PokeStopsTask(true);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -647,7 +551,7 @@ public class FragmentMap extends Fragment implements
             } else {
                 mPokeStopsTask.execute();
             }
-        }
+        }*/
 
         if (mPokemonTask == null) {
             mPokemonTask = new PokemonsTask(true);
@@ -660,7 +564,7 @@ public class FragmentMap extends Fragment implements
 
         }
 
-        if (mGymsTask == null) {
+        /*if (mGymsTask == null) {
             mGymsTask = new GymsTask(true);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -668,7 +572,8 @@ public class FragmentMap extends Fragment implements
             } else {
                 mGymsTask.execute();
             }
-        }
+        }*/
+
 
         mSnackBar = Snackbar.make(mView, R.string.message_snackbar_searching_text, Snackbar.LENGTH_INDEFINITE)
                 .setAction(R.string.snack_bar_neg_btn, new View.OnClickListener() {
@@ -722,9 +627,9 @@ public class FragmentMap extends Fragment implements
                         ltn = getLocation(userPosition.longitude, userPosition.latitude, 200);
                     }
 
-                    go.setLocation(ltn.latitude, ltn.longitude, 1);
+                    mPokemonGo.setLocation(ltn.latitude, ltn.longitude, 1);
                     sleep(10000);
-                    List<CatchablePokemon> chablePokemons = go.getMap().getCatchablePokemon();
+                    List<CatchablePokemon> chablePokemons = mPokemonGo.getMap().getCatchablePokemon();
 
                     for (CatchablePokemon pokemon : chablePokemons) {
 
@@ -798,9 +703,9 @@ public class FragmentMap extends Fragment implements
                 while (FragmentMap.isEnabled) {
 
                     LatLng ltn = getLocation(userPosition.longitude, userPosition.latitude, 200);
-                    go.setLocation(ltn.latitude, ltn.longitude, 1);
+                    mPokemonGo.setLocation(ltn.latitude, ltn.longitude, 1);
                     sleep(5000);
-                    List<Pokestop> pokeStops = new ArrayList<>(go.getMap().getMapObjects().getPokestops());
+                    List<Pokestop> pokeStops = new ArrayList<>(mPokemonGo.getMap().getMapObjects().getPokestops());
 
 
                     if (pokeStops != null) {
@@ -891,9 +796,9 @@ public class FragmentMap extends Fragment implements
                 while (FragmentMap.isEnabled) {
 
                     LatLng ltn = getLocation(userPosition.longitude, userPosition.latitude, 200);
-                    go.setLocation(ltn.latitude, ltn.longitude, 1);
+                    mPokemonGo.setLocation(ltn.latitude, ltn.longitude, 1);
                     sleep(5000);
-                    List<Gym> gyms = new ArrayList<>(go.getMap().getGyms());
+                    List<Gym> gyms = new ArrayList<>(mPokemonGo.getMap().getGyms());
 
                     if (gyms != null) {
 
@@ -1067,6 +972,14 @@ public class FragmentMap extends Fragment implements
         }
     }
 
+
+    public void showMessage(String message) {
+
+        Snackbar.make(mView, message, Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
+
+    }
+
     public void showAlert(final int action) {
 
         String title, message, positive_btn_title, negative_btn_title;
@@ -1139,54 +1052,19 @@ public class FragmentMap extends Fragment implements
     }
 
     public static String createDate(long timestamp) {
-        Date d = new Date(timestamp * 1000);
-        SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        String reportDate = df.format(d);
-        return reportDate;
-    }
 
-    public void connectWithPokemonGO() {
+        //Fri Aug 26 19:54:06 CDT 2016
+        Date date = new Date(timestamp);
 
-        new Thread(new Runnable() {
-            public void run() {
-                try {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
 
-                    if (mParamRefreshToken == null) {
-                        //User is logged in with username and password
-                        go = new PokemonGo(new PtcCredentialProvider(httpClient, mParamUser, mParamPass), httpClient);
-                    } else {
-                        //User is logged in with Google Account
-                        go = new PokemonGo(new GoogleUserCredentialProvider(httpClient, mParamRefreshToken), httpClient);
-                    }
+        int hours = calendar.get(Calendar.HOUR_OF_DAY);
+        int minutes = calendar.get(Calendar.MINUTE);
+        int seconds = calendar.get(Calendar.SECOND);
 
-                    /*String userName = go.getPlayerProfile().getPlayerData().getUsername();
-
-                    showMessage("Bienvenido: " + userName);*/
-
-                    if (mayRequestLocation()) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                //Your code to run in GUI thread here
-                                mGetPokemonsButton.setVisibility(View.VISIBLE);
-
-                                mGetPokemonsButton.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View view) {
-
-                                        attemptSearch();
-                                    }
-                                });
-                            }
-                        });
-                    }
-
-                } catch (LoginFailedException | RemoteServerException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-
+        String time = "Desaparecerá a las: " + String.valueOf(hours)+ ":" + String.valueOf(minutes) + ":" + String.valueOf(seconds);
+        return time;
 
     }
 
