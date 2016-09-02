@@ -49,6 +49,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.models.LocalGym;
 import com.javic.pokewhere.models.LocalPokeStop;
@@ -92,7 +93,6 @@ public class FragmentMap extends Fragment implements
     public static final int REQUEST_PERMISSION_ACCESS_COARSE_LOCATION = 1;
 
     private Context mContext;
-    private OnFragmentInteractionListener mListener;
 
     // Google client to interact with Google API
     private GoogleApiClient mGoogleApiClient;
@@ -103,7 +103,7 @@ public class FragmentMap extends Fragment implements
     private View mView;
     private GoogleMap mGoogleMap;
     private MapView mapView;
-    public static FloatingSearchView mSearchView;
+    private FloatingSearchView mSearchView;
     private FloatingActionButton mGetPokemonsButton;
     private ImageView mUserMarker;
 
@@ -122,21 +122,6 @@ public class FragmentMap extends Fragment implements
 
     public static Boolean isEnabled = true;
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(int action);
-    }
-
 
     public FragmentMap() {
         // Required empty public constructor
@@ -149,11 +134,6 @@ public class FragmentMap extends Fragment implements
     public static FragmentMap newInstance(PokemonGo pokemonGo) {
         FragmentMap fragment = new FragmentMap();
 
-        /*Bundle args = new Bundle();
-        args.putParcelable(Constants.ARG_USER, pokemonGo);
-        args.putString(Constants.ARG_PASS, paramPass);
-        fragment.setArguments(pokemonGo);*/
-
         mPokemonGo = pokemonGo;
 
         return fragment;
@@ -165,7 +145,6 @@ public class FragmentMap extends Fragment implements
         super.onCreate(savedInstanceState);
 
         MapsInitializer.initialize(mContext);
-
 
         // First we need to check availability of play services
         if (checkPlayServices()) {
@@ -193,6 +172,12 @@ public class FragmentMap extends Fragment implements
         mUserMarker = (ImageView) mView.findViewById(R.id.user_marker);
         mGetPokemonsButton = (FloatingActionButton) mView.findViewById(R.id.fab);
 
+        mGetPokemonsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                attemptSearch();
+            }
+        });
         setUpData();
 
         if (mapView != null) {
@@ -209,13 +194,6 @@ public class FragmentMap extends Fragment implements
     public void onAttach(Context context) {
         super.onAttach(context);
         mContext = context;
-
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
     }
 
     @Override
@@ -278,12 +256,6 @@ public class FragmentMap extends Fragment implements
         }
     }
 
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
 
     /**
      * Creating google api client object
@@ -770,7 +742,6 @@ public class FragmentMap extends Fragment implements
 
     }
 
-
     /**
      * Represents an asynchronous get Gyms
      * with a location.
@@ -872,6 +843,8 @@ public class FragmentMap extends Fragment implements
         //process has completed
         mSearchView.hideProgress();*/
 
+        mSearchView.attachNavigationDrawerToMenuButton(ActivityDashboard.mDrawerLayout);
+
         mSearchView.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
 
             @Override
@@ -904,9 +877,6 @@ public class FragmentMap extends Fragment implements
 
                 Log.i(TAG, "onMenuOpened()");
 
-                if (mListener != null) {
-                    mListener.onFragmentInteraction(Constants.ACTION_OPEN_DRAWER);
-                }
             }
 
             @Override
@@ -969,9 +939,9 @@ public class FragmentMap extends Fragment implements
 
             mSearchView.setVisibility(View.VISIBLE);
             mUserMarker.setVisibility(View.VISIBLE);
+            mGetPokemonsButton.setVisibility(View.VISIBLE);
         }
     }
-
 
     public void showMessage(String message) {
 

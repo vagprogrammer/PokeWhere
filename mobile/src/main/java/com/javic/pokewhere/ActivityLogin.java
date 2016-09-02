@@ -288,7 +288,8 @@ public class ActivityLogin extends AppCompatActivity{
 
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
-        return email.contains("@") || email.contains("vagtest123");
+        return !email.isEmpty();
+        //return email.contains("@") || email.contains("vagtest123");
     }
 
     private boolean isPasswordValid(String password) {
@@ -387,9 +388,6 @@ public class ActivityLogin extends AppCompatActivity{
                 saveUserData(userName, userTeam, userLevel);
 
                 Intent intent = new Intent(ActivityLogin.this, ActivityDashboard.class);
-                intent.putExtra(Constants.ARG_USER, mEmail);
-                intent.putExtra(Constants.ARG_PASS, mPassword);
-
                 startActivity(intent);
 
                 finish();

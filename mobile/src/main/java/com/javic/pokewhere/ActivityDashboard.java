@@ -35,7 +35,7 @@ import com.pokegoapi.exceptions.RemoteServerException;
 import okhttp3.OkHttpClient;
 
 public class ActivityDashboard extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, FragmentMap.OnFragmentInteractionListener {
+        implements NavigationView.OnNavigationItemSelectedListener{
 
     private static final String TAG = ActivityDashboard.class.getSimpleName();
     private static final int MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE = 100;
@@ -44,17 +44,17 @@ public class ActivityDashboard extends AppCompatActivity
     private Bundle mExtras;
 
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private String mParamUser;
-    private String mParamPass;
-    private String mParamRefreshToken;
     private String mUserName;
     private String mUserTeam;
     private String mUserLevel;
 
+    private NavigationView mNavigationView;
+    public static DrawerLayout mDrawerLayout;
+    private View mHeaderView;
 
     // API PokemonGO
     private OkHttpClient httpClient = new OkHttpClient();
-    private PokemonGo go;
+    private PokemonGo mGO;
 
 
     // Activity UI
@@ -66,43 +66,23 @@ public class ActivityDashboard extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        connectWithPokemonGO();
+
         setContentView(R.layout.activity_main);
 
+        //Get elemtns of UI
         mView = findViewById(R.id.layout_main_content);
 
-        //Get elemtns of UI
-        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
+        //Navigation View
+        mNavigationView = (NavigationView) findViewById(R.id.nav_view);
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        View headerView = navigationView.getHeaderView(0);
-        //View headerView = navigationView.inflateHeaderView(R.layout.layout_nav_header_activity_main);
-
-        mNavHeaderTitle = (TextView) headerView.findViewById(R.id.nav_header_title);
-        mNavHeaderSubtitle = (TextView) headerView.findViewById(R.id.nav_header_subtitle);
-        mNavHeaderImage = (ImageView) headerView.findViewById(R.id.nav_header_image);
-
-        mExtras = getIntent().getExtras();
-
-        if (mExtras != null) {
-
-            if (mExtras.getString(Constants.ARG_REFRESHTOKEN) == null) {
-                mParamUser = mExtras.getString(Constants.ARG_USER);
-                mParamPass = mExtras.getString(Constants.ARG_PASS);
-            } else {
-                mParamRefreshToken = mExtras.getString(Constants.ARG_REFRESHTOKEN);
-            }
-        }
-        else{
-            if (getPref(Constants.KEY_PREF_REFRESH_TOKEN).equalsIgnoreCase("")){
-                mParamUser = getPref(Constants.KEY_PREF_USER_EMAIL);
-                mParamPass = getPref(Constants.KEY_PREF_USER_PASS);
-
-            }
-            else{
-                mParamRefreshToken = getPref(Constants.KEY_PREF_REFRESH_TOKEN);
-            }
-        }
+        //HeaderView of Navigation View
+        mHeaderView = mNavigationView.getHeaderView(0);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mNavHeaderTitle = (TextView) mHeaderView.findViewById(R.id.nav_header_title);
+        mNavHeaderSubtitle = (TextView) mHeaderView.findViewById(R.id.nav_header_subtitle);
+        mNavHeaderImage = (ImageView) mHeaderView.findViewById(R.id.nav_header_image);
 
         //Config UI
         mUserName = getPref(Constants.KEY_PREF_USER_NAME_KEY);
@@ -128,53 +108,13 @@ public class ActivityDashboard extends AppCompatActivity
                 break;
         }
 
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-
-        drawer.addDrawerListener(new DrawerLayout.DrawerListener() {
-            @Override
-            public void onDrawerSlide(View drawerView, float slideOffset) {
-            }
-
-            @Override
-            public void onDrawerOpened(View drawerView) {
-
-                //since the drawer might have opened as a results of
-                //a click on the left menu, we need to make sure
-                //to close it right after the drawer opens, so that
-                //it is closed when the drawer is  closed.
-                FragmentMap.mSearchView.setLeftMenuOpen(true);
-            }
-
-            @Override
-            public void onDrawerClosed(View drawerView) {
-
-                FragmentMap.mSearchView.setLeftMenuOpen(false);
-            }
-
-            @Override
-            public void onDrawerStateChanged(int newState) {
-            }
-        });
-
-        //ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        //drawer.addDrawerListener(toggle);
-        //toggle.syncState();
-
-
-        navigationView.setNavigationItemSelectedListener(this);
+        mNavigationView.setNavigationItemSelectedListener(this);
 
         //First start (Inbox Fragment)
         setFragment(0);
-        navigationView.getMenu().getItem(0).setChecked(true);
+        mNavigationView.getMenu().getItem(0).setChecked(true);
     }
 
-    public void showMessage(String message) {
-
-        Snackbar.make(getWindow().getDecorView().getRootView(), message, Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
-
-    }
 
     @Override
     public void onBackPressed() {
@@ -254,18 +194,11 @@ public class ActivityDashboard extends AppCompatActivity
                 fragmentManager = getSupportFragmentManager();
                 fragmentTransaction = fragmentManager.beginTransaction();
 
-                if (mFragmentMap == null) {
-
-                    if (mParamRefreshToken == null) {
-                        mFragmentMap = FragmentMap.newInstance(mParamUser, mParamPass);
-                    } else {
-                        mFragmentMap = FragmentMap.newInstance(mParamRefreshToken);
-                    }
-
+                if (mGO!=null){
+                    mFragmentMap = FragmentMap.newInstance(mGO);
+                    fragmentTransaction.replace(R.id.content_fragment, mFragmentMap);
+                    fragmentTransaction.commit();
                 }
-
-                fragmentTransaction.replace(R.id.content_fragment, mFragmentMap);
-                fragmentTransaction.commit();
 
                 break;
         }
@@ -304,44 +237,21 @@ public class ActivityDashboard extends AppCompatActivity
         }
     }
 
-    @Override
-    public void onFragmentInteraction(int action) {
-
-        Log.i(TAG, String.valueOf(action));
-
-        switch (action) {
-            case Constants.ACTION_OPEN_DRAWER:
-
-                DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-                if (!drawer.isDrawerOpen(GravityCompat.START)) {
-                    drawer.openDrawer(GravityCompat.START);
-                }
-
-                break;
-        }
-    }
-
 
     public void connectWithPokemonGO() {
-
         if (isDeviceOnline()){
+
             new Thread(new Runnable() {
                 public void run() {
                     try {
 
-                        if (mParamRefreshToken == null) {
-                            //User is logged in with username and password
-                            go = new PokemonGo(new PtcCredentialProvider(httpClient, mParamUser, mParamPass), httpClient);
-                        } else {
+                        if (!getPref(Constants.KEY_PREF_REFRESH_TOKEN).equalsIgnoreCase("")){
                             //User is logged in with Google Account
-                            go = new PokemonGo(new GoogleUserCredentialProvider(httpClient, mParamRefreshToken), httpClient);
-                        }
-
-                        if (go!= null){
-
+                            mGO = new PokemonGo(new GoogleUserCredentialProvider(httpClient, getPref(Constants.KEY_PREF_REFRESH_TOKEN)), httpClient);
                         }
                         else{
-
+                            //User is logged in with username and password
+                            mGO = new PokemonGo(new PtcCredentialProvider(httpClient, getPref(Constants.KEY_PREF_USER_EMAIL), getPref(Constants.KEY_PREF_USER_PASS)), httpClient);
                         }
 
                     } catch (LoginFailedException | RemoteServerException e) {
@@ -349,9 +259,10 @@ public class ActivityDashboard extends AppCompatActivity
                     }
                 }
             }).start();
+
         }
         else{
-
+            showSnackBar("No hay conexión a Internet", "Conectar");
         }
 
     }
@@ -392,16 +303,18 @@ public class ActivityDashboard extends AppCompatActivity
 
                     }
                 });
+
+        mSnackBar.show();
     }
+
     private String getPref(String KEY_PREF) {
 
         SharedPreferences prefsPokeWhere = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
 
-        if(KEY_PREF.equalsIgnoreCase(Constants.KEY_PREF_USER_TEAM_KEY)|| KEY_PREF.equalsIgnoreCase(Constants.KEY_PREF_USER_LEVEL_KEY)){
+        if(KEY_PREF.equalsIgnoreCase(Constants.KEY_PREF_USER_TEAM_KEY) || KEY_PREF.equalsIgnoreCase(Constants.KEY_PREF_USER_LEVEL_KEY)){
             String pref = String.valueOf(prefsPokeWhere.getInt(KEY_PREF, -1));
             return  pref;
         }else{
-
             String pref = prefsPokeWhere.getString(KEY_PREF, "");
             return  pref;
 
