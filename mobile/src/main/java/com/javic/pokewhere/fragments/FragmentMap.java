@@ -1,6 +1,8 @@
 package com.javic.pokewhere.fragments;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -14,6 +16,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -50,6 +53,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.javic.pokewhere.ActivityDashboard;
+import com.javic.pokewhere.OnFragmentCreatedViewListener;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.models.LocalGym;
 import com.javic.pokewhere.models.LocalPokeStop;
@@ -85,8 +89,9 @@ public class FragmentMap extends Fragment implements
         OnMapReadyCallback, GoogleMap.OnCameraChangeListener, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String TAG = FragmentMap.class.getSimpleName();
+    private OnFragmentCreatedViewListener mListener;
 
+    private static final String TAG = FragmentMap.class.getSimpleName();
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
 
     public static final int ALERT_ADDRESS_RESULT_RECIVER = 0;
@@ -118,7 +123,8 @@ public class FragmentMap extends Fragment implements
     private List<LocalPokeStop> mLocalPokeStops = new ArrayList<>();
     private List<LocalGym> mLocalGyms = new ArrayList<>();
 
-    Snackbar mSnackBar;
+    private Snackbar mSnackBar;
+    private Snackbar mSnackBarPermisions;
 
     public static Boolean isEnabled = true;
 
@@ -143,16 +149,9 @@ public class FragmentMap extends Fragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         MapsInitializer.initialize(mContext);
 
-        // First we need to check availability of play services
-        if (checkPlayServices()) {
-
-            // Building the GoogleApi client
-            buildGoogleApiClient();
-        }
-
+        setUpData();
     }
 
     @Override
@@ -178,22 +177,43 @@ public class FragmentMap extends Fragment implements
                 attemptSearch();
             }
         });
-        setUpData();
 
-        if (mapView != null) {
-            // Initialise the MapView
-            mapView.onCreate(null);
-            mapView.onResume();
-            // Set the map ready callback to receive the GoogleMap object
-            mapView.getMapAsync(this);
+        // First we need to check availability of play services
+        if (checkPlayServices()) {
+
+            // Building the GoogleApi client
+            buildGoogleApiClient();
+
+            //Biulding the GoogleMap
+            if (mapView != null) {
+                // Initialise the MapView
+                mapView.onCreate(null);
+                mapView.onResume();
+
+                // Set the map ready callback to receive the GoogleMap object
+                mapView.getMapAsync(this);
+            }
         }
-
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         mContext = context;
+
+        if (context instanceof OnFragmentCreatedViewListener) {
+            mListener = (OnFragmentCreatedViewListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentCreatedViewListener");
+        }
+    }
+
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
     }
 
     @Override
@@ -201,27 +221,32 @@ public class FragmentMap extends Fragment implements
         // TODO Auto-generated method stub
         super.onResume();
 
-        // Check availability of play services
-        if (checkPlayServices()) {
-            // Building the GoogleApi client
-            if (mGoogleApiClient == null) {
+        //First we need to check if the GoogleMap was not created in OnCreate
+        if (mGoogleMap==null){
 
-                if (!mGoogleApiClient.isConnecting() || !mGoogleApiClient.isConnected()) {
+            // We need to check availability of play services
+            if (checkPlayServices()) {
+
+                if (mGoogleApiClient==null){
+                    // Building the GoogleApi client
                     buildGoogleApiClient();
                 }
-            } else {
 
-                if (mLastLocation != null) {
-                    userPosition = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-                    mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userPosition, Constants.USER_ZOOM));
-                } else {
-                    Log.i(TAG, "We can't center the map");
-                    //getLocation();
+
+                //Biulding the GoogleMap
+                if (mapView != null) {
+                    // Initialise the MapView
+                    mapView.onCreate(null);
+                    mapView.onResume();
+
+                    // Set the map ready callback to receive the GoogleMap object
+                    mapView.getMapAsync(this);
                 }
-
             }
         }
-        if (mGoogleMap != null) {
+
+        //GoogleMap exist
+        else{
 
             if (!mayRequestLocation()) {
                 return;
@@ -266,8 +291,6 @@ public class FragmentMap extends Fragment implements
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API).build();
-
-        mGoogleApiClient.connect();
     }
 
     /**
@@ -295,12 +318,12 @@ public class FragmentMap extends Fragment implements
 
         mGoogleMap = googleMap;
 
-        if (!mayRequestLocation()) {
-            return;
-        }
-
         setUpGoogleMap();
         setUpSearchView();
+
+        mListener.onFragmentCreatedViewStatus(true);
+
+        mGoogleApiClient.connect();
 
     }
 
@@ -316,28 +339,23 @@ public class FragmentMap extends Fragment implements
     /**
      * Method to display the location on UI
      */
-    private void getLocation() {
+    private void getUserLocation() {
 
         if (!mayRequestLocation()) {
+
+            userPosition = new LatLng(34.0089919, -118.4996126);
+            mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userPosition, Constants.USER_ZOOM));
+
             return;
         }
 
-        mLastLocation = LocationServices.FusedLocationApi
-                .getLastLocation(mGoogleApiClient);
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
         if (mLastLocation != null) {
 
             userPosition = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-
             mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userPosition, Constants.USER_ZOOM));
 
-            // Determine whether a Geocoder is available.
-                /*if (!Geocoder.isPresent()) {
-                    Toast.makeText(mContext, R.string.no_geocoder_available,
-                            Toast.LENGTH_LONG).show();
-                    return;
-                }
-                startIntentService();*/
         } else {
             showAlert(ALERT_ADDRESS_RESULT_RECIVER);
         }
@@ -347,22 +365,40 @@ public class FragmentMap extends Fragment implements
     private boolean mayRequestLocation() {
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+
+            if (!mGoogleMap.isMyLocationEnabled()){
+                mGoogleMap.setMyLocationEnabled(true);
+            }
+
             return true;
         }
 
         if (ContextCompat.checkSelfPermission(mContext, ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            if (!mGoogleMap.isMyLocationEnabled()){
+                mGoogleMap.setMyLocationEnabled(true);
+            }
             return true;
         }
 
         if (shouldShowRequestPermissionRationale(ACCESS_COARSE_LOCATION)) {
-            Snackbar.make(mView, R.string.permission_access_coarse_location, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(R.string.action_snack_permission_access_coarse_location, new View.OnClickListener() {
-                        @Override
-                        @TargetApi(Build.VERSION_CODES.M)
-                        public void onClick(View v) {
-                            requestPermissions(new String[]{ACCESS_COARSE_LOCATION}, REQUEST_PERMISSION_ACCESS_COARSE_LOCATION);
-                        }
-                    }).show();
+
+            if (mSnackBarPermisions==null){
+                mSnackBarPermisions = Snackbar.make(mView, R.string.permission_access_coarse_location, Snackbar.LENGTH_INDEFINITE)
+                        .setAction(R.string.action_snack_permission_access_coarse_location, new View.OnClickListener() {
+                            @Override
+                            @TargetApi(Build.VERSION_CODES.M)
+                            public void onClick(View v) {
+                                requestPermissions(new String[]{ACCESS_COARSE_LOCATION}, REQUEST_PERMISSION_ACCESS_COARSE_LOCATION);
+                            }
+                        });
+
+            }
+            else{
+                if (!mSnackBarPermisions.isShown()){
+                    mSnackBarPermisions.show();
+                }
+            }
+
         } else {
             requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_PERMISSION_ACCESS_COARSE_LOCATION);
         }
@@ -377,31 +413,7 @@ public class FragmentMap extends Fragment implements
         if (requestCode == REQUEST_PERMISSION_ACCESS_COARSE_LOCATION) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-
-                setUpGoogleMap();
-                setUpSearchView();
-
-                // Check availability of play services
-                if (checkPlayServices()) {
-                    // Building the GoogleApi client
-                    if (mGoogleApiClient == null) {
-
-                        if (!mGoogleApiClient.isConnecting() || !mGoogleApiClient.isConnected()) {
-                            buildGoogleApiClient();
-                        }
-                    } else {
-
-                        if (mLastLocation != null) {
-                            userPosition = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-                            mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userPosition, Constants.USER_ZOOM));
-                        } else {
-                            Log.i(TAG, "We can't center the map");
-                            getLocation();
-                        }
-
-                    }
-                }
-
+                getUserLocation();
             }
         }
     }
@@ -496,7 +508,7 @@ public class FragmentMap extends Fragment implements
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         // Once connected with google api, get the location
-        getLocation();
+        getUserLocation();
     }
 
     @Override
@@ -861,10 +873,16 @@ public class FragmentMap extends Fragment implements
             public void onActionMenuItemSelected(MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.action_location:
+
+                        if (!mayRequestLocation()) {
+                            return;
+                        }
+
                         View myLocationButton = ((View) mView.findViewById(Integer.parseInt("1")).getParent())
                                 .findViewById(Integer.parseInt("2"));
 
                         myLocationButton.performClick();
+
                         break;
                 }
             }
@@ -931,11 +949,10 @@ public class FragmentMap extends Fragment implements
         if (mGoogleMap != null) {
 
             mGoogleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
-            mGoogleMap.setMyLocationEnabled(true);
             mGoogleMap.getUiSettings().setZoomControlsEnabled(true);
             mGoogleMap.getUiSettings().setCompassEnabled(false);
             mGoogleMap.setOnCameraChangeListener(this);
-            mGoogleMap.setPadding(0, 0, 0, 150);
+            //mGoogleMap.setPadding(0, 0, 0, 150);
 
             mSearchView.setVisibility(View.VISIBLE);
             mUserMarker.setVisibility(View.VISIBLE);
@@ -976,7 +993,7 @@ public class FragmentMap extends Fragment implements
                 // TODO Auto-generated method stub
 
                 if (action == 0) {
-                    getLocation();
+                    getUserLocation();
                 } else {
                     Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                     mContext.startActivity(myIntent);
@@ -1252,4 +1269,5 @@ public class FragmentMap extends Fragment implements
             e.printStackTrace();
         }
     }
+
 }

@@ -11,6 +11,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
     <!-- TODO: Update blank fragment layout -->
     <com.google.android.gms.maps.MapView
         android:id="@+id/map"
@@ -24,7 +25,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:src="@drawable/ic_location_2"
-        android:visibility="gone"/>
+        android:visibility="visible"
+        android:paddingBottom="60dp"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
@@ -51,7 +53,6 @@
         app:floatingSearch_dimBackground="true"
         app:floatingSearch_close_search_on_keyboard_dismiss="true"
         android:visibility="invisible"/>
-
 </FrameLayout>
 
 </android.support.design.widget.CoordinatorLayout>

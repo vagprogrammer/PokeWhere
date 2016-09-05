@@ -1,5 +1,7 @@
 package com.javic.pokewhere;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Intent;
@@ -35,7 +37,7 @@ import com.pokegoapi.exceptions.RemoteServerException;
 import okhttp3.OkHttpClient;
 
 public class ActivityDashboard extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener{
+        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentCreatedViewListener{
 
     private static final String TAG = ActivityDashboard.class.getSimpleName();
     private static final int MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE = 100;
@@ -59,6 +61,8 @@ public class ActivityDashboard extends AppCompatActivity
 
     // Activity UI
     private View mView;
+    private View mProgressView;
+    private View mContainerFormView;
     private TextView mNavHeaderTitle, mNavHeaderSubtitle;
     private ImageView mNavHeaderImage;
     private Snackbar mSnackBar;
@@ -66,13 +70,12 @@ public class ActivityDashboard extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        connectWithPokemonGO();
-
         setContentView(R.layout.activity_main);
 
         //Get elemtns of UI
         mView = findViewById(R.id.layout_main_content);
+        mContainerFormView = mView.findViewById(R.id.container_form);
+        mProgressView = mView.findViewById(R.id.login_progress);
 
         //Navigation View
         mNavigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -110,9 +113,7 @@ public class ActivityDashboard extends AppCompatActivity
 
         mNavigationView.setNavigationItemSelectedListener(this);
 
-        //First start (Inbox Fragment)
-        setFragment(0);
-        mNavigationView.getMenu().getItem(0).setChecked(true);
+        connectWithPokemonGO();
     }
 
 
@@ -162,6 +163,9 @@ public class ActivityDashboard extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
+
+        //Showing the progress
+        showProgress(true);
 
         if (id == R.id.nav_camera) {
             // Handle the camera action
@@ -241,6 +245,8 @@ public class ActivityDashboard extends AppCompatActivity
     public void connectWithPokemonGO() {
         if (isDeviceOnline()){
 
+            showProgress(true);
+
             new Thread(new Runnable() {
                 public void run() {
                     try {
@@ -248,11 +254,26 @@ public class ActivityDashboard extends AppCompatActivity
                         if (!getPref(Constants.KEY_PREF_REFRESH_TOKEN).equalsIgnoreCase("")){
                             //User is logged in with Google Account
                             mGO = new PokemonGo(new GoogleUserCredentialProvider(httpClient, getPref(Constants.KEY_PREF_REFRESH_TOKEN)), httpClient);
+
                         }
                         else{
                             //User is logged in with username and password
                             mGO = new PokemonGo(new PtcCredentialProvider(httpClient, getPref(Constants.KEY_PREF_USER_EMAIL), getPref(Constants.KEY_PREF_USER_PASS)), httpClient);
                         }
+
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+
+                                if (mGO!=null){
+                                    //First start (Inbox Fragment)
+                                    setFragment(0);
+                                    mNavigationView.getMenu().getItem(0).setChecked(true);
+                                }
+                                else{
+                                    showSnackBar("No pudimos conectar con Pokemon GO", "Reintentar");
+                                }
+                            }
+                        });
 
                     } catch (LoginFailedException | RemoteServerException e) {
                         e.printStackTrace();
@@ -267,6 +288,41 @@ public class ActivityDashboard extends AppCompatActivity
 
     }
 
+    /**
+     * Shows the progress UI and hides the login form.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    private void showProgress(final boolean show) {
+        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
+        // for very easy animations. If available, use these APIs to fade-in
+        // the progress spinner.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+            mContainerFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+            mContainerFormView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    mContainerFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+                }
+            });
+
+            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            mProgressView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+                }
+            });
+        } else {
+            // The ViewPropertyAnimator APIs are not available, so simply show
+            // and hide the relevant UI components.
+            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            mContainerFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
+    }
 
     public boolean isDeviceOnline() {
 
@@ -295,16 +351,15 @@ public class ActivityDashboard extends AppCompatActivity
 
     public void showSnackBar(String snacKMessage, String buttonTitle){
 
-        mSnackBar = Snackbar.make(mView, snacKMessage, Snackbar.LENGTH_INDEFINITE)
-                .setAction(buttonTitle, new View.OnClickListener() {
-                    @Override
-                    @TargetApi(Build.VERSION_CODES.M)
-                    public void onClick(View v) {
+            mSnackBar = Snackbar.make(mView, snacKMessage, Snackbar.LENGTH_INDEFINITE)
+                    .setAction(buttonTitle, new View.OnClickListener() {
+                        @Override
+                        @TargetApi(Build.VERSION_CODES.M)
+                        public void onClick(View v) {
 
-                    }
-                });
+                        }
+                    });
 
-        mSnackBar.show();
     }
 
     private String getPref(String KEY_PREF) {
@@ -331,5 +386,12 @@ public class ActivityDashboard extends AppCompatActivity
         editor.putString(Constants.KEY_PREF_REFRESH_TOKEN, "");
 
         editor.commit();
+    }
+
+    @Override
+    public void onFragmentCreatedViewStatus(Boolean status) {
+        if (status){
+            showProgress(false);
+        }
     }
 }

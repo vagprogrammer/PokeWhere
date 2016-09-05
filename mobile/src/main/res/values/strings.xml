@@ -13,6 +13,7 @@
     <string name="action_test_user">Test User</string>
     <string name="action_voice_rec">action voice rec</string>
     <string name="action_location">action location</string>
+    <string name="action_filter">action filter</string>
 
     <!-- User Location -->
     <string name="service_not_available">El Servicio no está disponible</string>
