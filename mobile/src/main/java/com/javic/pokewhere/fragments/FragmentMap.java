@@ -247,11 +247,9 @@ public class FragmentMap extends Fragment implements
 
         //GoogleMap exist
         else{
-
             if (!mayRequestLocation()) {
                 return;
             }
-            mGoogleMap.setMyLocationEnabled(true);
         }
     }
 
@@ -273,11 +271,10 @@ public class FragmentMap extends Fragment implements
 
         if (mGoogleMap != null) {
 
-            if (!mayRequestLocation()) {
-                return;
+            if (ContextCompat.checkSelfPermission(mContext, ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                mGoogleMap.setMyLocationEnabled(false);
             }
 
-            mGoogleMap.setMyLocationEnabled(false);
         }
     }
 
@@ -349,7 +346,9 @@ public class FragmentMap extends Fragment implements
             return;
         }
 
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (ContextCompat.checkSelfPermission(mContext, ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        }
 
         if (mLastLocation != null) {
 
@@ -374,7 +373,9 @@ public class FragmentMap extends Fragment implements
         }
 
         if (ContextCompat.checkSelfPermission(mContext, ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            if (!mGoogleMap.isMyLocationEnabled()){
+
+            if (!mGoogleMap.isMyLocationEnabled())
+            {
                 mGoogleMap.setMyLocationEnabled(true);
             }
             return true;
@@ -407,8 +408,7 @@ public class FragmentMap extends Fragment implements
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
 
         if (requestCode == REQUEST_PERMISSION_ACCESS_COARSE_LOCATION) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -418,30 +418,30 @@ public class FragmentMap extends Fragment implements
         }
     }
 
-    public void drawPokemon(LocalPokemon OPokemon) {
+    public void drawPokemon(LocalPokemon localPokemon) {
 
-        Log.i(TAG, OPokemon.getPokemonName());
+        Log.i(TAG, localPokemon.getPokemonName());
 
         AssetManager assetManager = mContext.getAssets();
 
         try {
             InputStream is = null;
 
-            if (OPokemon.getPokemonId() < 10) {
-                is = assetManager.open(String.valueOf("00" + OPokemon.getPokemonId()) + ".png");
-            } else if (OPokemon.getPokemonId() < 100) {
-                is = assetManager.open(String.valueOf("0" + OPokemon.getPokemonId()) + ".png");
+            if (localPokemon.getPokemonId() < 10) {
+                is = assetManager.open(String.valueOf("00" + localPokemon.getPokemonId()) + ".png");
+            } else if (localPokemon.getPokemonId() < 100) {
+                is = assetManager.open(String.valueOf("0" + localPokemon.getPokemonId()) + ".png");
             } else {
-                is = assetManager.open(String.valueOf(OPokemon.getPokemonId()) + ".png");
+                is = assetManager.open(String.valueOf(localPokemon.getPokemonId()) + ".png");
             }
 
             Bitmap bitmap = BitmapFactory.decodeStream(is);
 
             mGoogleMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(OPokemon.getLatitude(), OPokemon.getLongitude()))
-                    .title(OPokemon.getPokemonName())
+                    .position(new LatLng(localPokemon.getLatitude(), localPokemon.getLongitude()))
+                    .title(localPokemon.getPokemonName())
                     .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
-                    .snippet(createDate(OPokemon.getExpiration_time()))
+                    .snippet(createDate(localPokemon.getExpiration_time()))
             );
 
         } catch (IOException e) {
@@ -586,6 +586,8 @@ public class FragmentMap extends Fragment implements
      */
     public class PokemonsTask extends AsyncTask<Void, LocalPokemon, Boolean> {
 
+
+
         PokemonsTask(Boolean isEnabled) {
             FragmentMap.isEnabled = isEnabled;
         }
@@ -610,6 +612,7 @@ public class FragmentMap extends Fragment implements
                     } else {
                         ltn = getLocation(userPosition.longitude, userPosition.latitude, 200);
                     }
+
 
                     mPokemonGo.setLocation(ltn.latitude, ltn.longitude, 1);
                     sleep(10000);
@@ -875,14 +878,13 @@ public class FragmentMap extends Fragment implements
                     case R.id.action_location:
 
                         if (!mayRequestLocation()) {
-                            return;
+                            break;
+                        }else {
+                            View myLocationButton = ((View) mView.findViewById(Integer.parseInt("1")).getParent())
+                                    .findViewById(Integer.parseInt("2"));
+
+                            myLocationButton.performClick();
                         }
-
-                        View myLocationButton = ((View) mView.findViewById(Integer.parseInt("1")).getParent())
-                                .findViewById(Integer.parseInt("2"));
-
-                        myLocationButton.performClick();
-
                         break;
                 }
             }
@@ -1055,7 +1057,7 @@ public class FragmentMap extends Fragment implements
 
     }
 
-    public static LatLng getLocation(double x0, double y0, int radius) {
+    public LatLng getLocation(double x0, double y0, int radius) {
         Random random = new Random();
 
         // Convert radius from meters to degrees
@@ -1076,7 +1078,16 @@ public class FragmentMap extends Fragment implements
 
         Log.i(TAG, "Longitude: " + foundLongitude + "  Latitude: " + foundLatitude);
 
-        return new LatLng(foundLatitude, foundLongitude);
+        final LatLng foundLocation= new LatLng(foundLatitude, foundLongitude);
+
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                drawLocation(foundLocation);
+            }
+        });
+
+        return foundLocation;
     }
 
     public static boolean containsEncounteredPokemonId(List<LocalPokemon> c, long enconunteredId) {

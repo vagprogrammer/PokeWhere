@@ -16,6 +16,14 @@ android {
         // Enabling multidex support.
         multiDexEnabled true
     }
+
+    dexOptions
+            {
+                incremental false
+                javaMaxHeapSize "2048M"
+                preDexLibraries = false
+            }//end dexOptions
+
     buildTypes {
         release {
             minifyEnabled false
