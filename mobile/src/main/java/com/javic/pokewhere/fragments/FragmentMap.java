@@ -1,9 +1,6 @@
 package com.javic.pokewhere.fragments;
 
 import android.Manifest;
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,12 +13,9 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.ConnectivityManager;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.ResultReceiver;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -29,6 +23,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -53,25 +48,21 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.javic.pokewhere.ActivityDashboard;
-import com.javic.pokewhere.OnFragmentCreatedViewListener;
+import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.models.LocalGym;
 import com.javic.pokewhere.models.LocalPokeStop;
 import com.javic.pokewhere.models.LocalPokemon;
-import com.javic.pokewhere.services.FetchAddressIntentService;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.gym.Gym;
 import com.pokegoapi.api.map.fort.Pokestop;
 import com.pokegoapi.api.map.pokemon.CatchablePokemon;
-import com.pokegoapi.auth.GoogleUserCredentialProvider;
-import com.pokegoapi.auth.PtcCredentialProvider;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -79,9 +70,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
-import okhttp3.OkHttpClient;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 
@@ -392,7 +380,7 @@ public class FragmentMap extends Fragment implements
                                 requestPermissions(new String[]{ACCESS_COARSE_LOCATION}, REQUEST_PERMISSION_ACCESS_COARSE_LOCATION);
                             }
                         });
-
+                mSnackBarPermisions.show();
             }
             else{
                 if (!mSnackBarPermisions.isShown()){
@@ -412,10 +400,23 @@ public class FragmentMap extends Fragment implements
 
         if (requestCode == REQUEST_PERMISSION_ACCESS_COARSE_LOCATION) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
                 getUserLocation();
             }
+        }else{
+            if (mSnackBarPermisions==null){
+                mSnackBarPermisions = Snackbar.make(mView, R.string.permission_access_coarse_location, Snackbar.LENGTH_INDEFINITE)
+                        .setAction(R.string.action_snack_permission_access_coarse_location, new View.OnClickListener() {
+                            @Override
+                            @TargetApi(Build.VERSION_CODES.M)
+                            public void onClick(View v) {
+                                requestPermissions(new String[]{ACCESS_COARSE_LOCATION}, REQUEST_PERMISSION_ACCESS_COARSE_LOCATION);
+                            }
+                        });
+
+            }
         }
+
+
     }
 
     public void drawPokemon(LocalPokemon localPokemon) {
@@ -858,7 +859,17 @@ public class FragmentMap extends Fragment implements
         //process has completed
         mSearchView.hideProgress();*/
 
-        mSearchView.attachNavigationDrawerToMenuButton(ActivityDashboard.mDrawerLayout);
+        mSearchView.setOnFocusChangeListener(new FloatingSearchView.OnFocusChangeListener() {
+            @Override
+            public void onFocus() {
+                mGetPokemonsButton.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onFocusCleared() {
+                mGetPokemonsButton.setVisibility(View.VISIBLE);
+            }
+        });
 
         mSearchView.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
 
@@ -886,6 +897,12 @@ public class FragmentMap extends Fragment implements
                             myLocationButton.performClick();
                         }
                         break;
+                    case R.id.action_start_service:
+                        mListener.onFragmentActionPerform(Constants.ACTION_START_SERVICE);
+                        break;
+                    default:
+                        Log.i(TAG, "Action Default");
+                        break;
                 }
             }
         });
@@ -896,7 +913,6 @@ public class FragmentMap extends Fragment implements
             public void onMenuOpened() {
 
                 Log.i(TAG, "onMenuOpened()");
-
             }
 
             @Override
@@ -944,6 +960,8 @@ public class FragmentMap extends Fragment implements
 
             }
         });
+
+        mSearchView.attachNavigationDrawerToMenuButton(ActivityDashboard.mDrawerLayout);
     }
 
     public void setUpGoogleMap() {

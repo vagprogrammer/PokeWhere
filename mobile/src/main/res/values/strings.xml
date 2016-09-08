@@ -9,11 +9,11 @@
 
     <!-- Menu actions -->
     <string name="action_settings">Settings</string>
-    <string name="action_start_service">Flotante</string>
+    <string name="action_start_service">Ver en segundo plano</string>
     <string name="action_test_user">Test User</string>
     <string name="action_voice_rec">action voice rec</string>
-    <string name="action_location">action location</string>
-    <string name="action_filter">action filter</string>
+    <string name="action_location">Ir a mi ubicación</string>
+    <string name="action_filter">Filtrar </string>
 
     <!-- User Location -->
     <string name="service_not_available">El Servicio no está disponible</string>

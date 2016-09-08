@@ -26,6 +26,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.javic.pokewhere.fragments.FragmentMap;
+import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
 import com.javic.pokewhere.services.ServiceFloatingMap;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
@@ -37,11 +38,11 @@ import com.pokegoapi.exceptions.RemoteServerException;
 import okhttp3.OkHttpClient;
 
 public class ActivityDashboard extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentCreatedViewListener{
+        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentCreatedViewListener {
 
     private static final String TAG = ActivityDashboard.class.getSimpleName();
-    private static final int MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE = 100;
 
+    private static final int MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE = 100;
     private FragmentMap mFragmentMap;
     private Bundle mExtras;
 
@@ -50,7 +51,7 @@ public class ActivityDashboard extends AppCompatActivity
     private String mUserTeam;
     private String mUserLevel;
 
-    private NavigationView mNavigationView;
+    public static NavigationView mNavigationView;
     public static DrawerLayout mDrawerLayout;
     private View mHeaderView;
 
@@ -112,16 +113,21 @@ public class ActivityDashboard extends AppCompatActivity
         }
 
         mNavigationView.setNavigationItemSelectedListener(this);
-
-        connectWithPokemonGO();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (mGO==null) {
+            connectWithPokemonGO();
+        }
+    }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
         }
@@ -141,7 +147,8 @@ public class ActivityDashboard extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
+
+        /*//noinspection SimplifiableIfStatement
         if (id == R.id.action_start_service) {
 
             final boolean canShow = showMapHead();
@@ -153,7 +160,7 @@ public class ActivityDashboard extends AppCompatActivity
             }
 
             return true;
-        }
+        }*/
 
         return super.onOptionsItemSelected(item);
     }
@@ -184,8 +191,7 @@ public class ActivityDashboard extends AppCompatActivity
 
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+        mDrawerLayout.closeDrawer(GravityCompat.START);
         return true;
     }
 
@@ -270,7 +276,7 @@ public class ActivityDashboard extends AppCompatActivity
                                     mNavigationView.getMenu().getItem(0).setChecked(true);
                                 }
                                 else{
-                                    showSnackBar("No pudimos conectar con Pokemon GO", "Reintentar");
+                                    showSnackBar("No pudimos conectar con Pokemon G O", "Reintentar");
                                 }
                             }
                         });
@@ -283,7 +289,7 @@ public class ActivityDashboard extends AppCompatActivity
 
         }
         else{
-            showSnackBar("No hay conexión a Internet", "Conectar");
+            showSnackBar("No hay conexión a Internet", "Ir a Configuraciones");
         }
 
     }
@@ -349,7 +355,7 @@ public class ActivityDashboard extends AppCompatActivity
         return false;
     }
 
-    public void showSnackBar(String snacKMessage, String buttonTitle){
+    public void showSnackBar(String snacKMessage, final String buttonTitle){
 
             mSnackBar = Snackbar.make(mView, snacKMessage, Snackbar.LENGTH_INDEFINITE)
                     .setAction(buttonTitle, new View.OnClickListener() {
@@ -357,8 +363,18 @@ public class ActivityDashboard extends AppCompatActivity
                         @TargetApi(Build.VERSION_CODES.M)
                         public void onClick(View v) {
 
+                            if (buttonTitle.equalsIgnoreCase("Reintentar")){
+                                connectWithPokemonGO();
+                            }
+                            else{
+                                Intent intent = new Intent(Intent.ACTION_MAIN);
+                                intent.setClassName("com.android.phone","com.android.phone.NetworkSetting");
+                                startActivity(intent);
+                            }
                         }
                     });
+
+            mSnackBar.show();
 
     }
 
@@ -392,6 +408,25 @@ public class ActivityDashboard extends AppCompatActivity
     public void onFragmentCreatedViewStatus(Boolean status) {
         if (status){
             showProgress(false);
+        }
+    }
+
+    @Override
+    public void onFragmentActionPerform(int action) {
+        switch(action){
+            case Constants.ACTION_START_SERVICE:
+                final boolean canShow = showMapHead();
+
+                if (!canShow) {
+                    // 広告トリガーのFloatingViewの表示許可設定
+                    @SuppressLint("InlinedApi")
+                    final Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + ActivityDashboard.this.getPackageName()));
+                    startActivityForResult(intent, MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE);
+                }
+
+                break;
+            default:
+                break;
         }
     }
 }

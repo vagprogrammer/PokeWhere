@@ -1,4 +1,4 @@
-package com.javic.pokewhere;
+package com.javic.pokewhere.interfaces;
 
 /**
  * Created by vagprogrammer on 03/09/16.
@@ -14,4 +14,5 @@ package com.javic.pokewhere;
 public interface OnFragmentCreatedViewListener {
 
     void onFragmentCreatedViewStatus(Boolean status);
+    void onFragmentActionPerform(int action);
 }

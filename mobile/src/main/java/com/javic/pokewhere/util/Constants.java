@@ -37,4 +37,9 @@ public class Constants {
     public static final String ARG_USER = "paramUser";
     public static final String ARG_PASS = "paramPass";
     public static final String ARG_REFRESHTOKEN = "paramRefreshToken";
+
+
+
+    //Actions
+    public static final int ACTION_START_SERVICE = 0;
 }
