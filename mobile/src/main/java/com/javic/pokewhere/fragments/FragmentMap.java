@@ -16,6 +16,7 @@ import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -46,6 +47,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
@@ -59,6 +61,7 @@ import com.pokegoapi.api.gym.Gym;
 import com.pokegoapi.api.map.fort.Pokestop;
 import com.pokegoapi.api.map.pokemon.CatchablePokemon;
 import com.pokegoapi.exceptions.LoginFailedException;
+import com.pokegoapi.exceptions.NoSuchItemException;
 import com.pokegoapi.exceptions.RemoteServerException;
 
 import java.io.IOException;
@@ -68,6 +71,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 
@@ -108,6 +112,7 @@ public class FragmentMap extends Fragment implements
 
     private Map<String, String> mPokemonsMap = new HashMap<String, String>();
     private List<LocalPokemon> mLocalPokemons = new ArrayList<>();
+    private List<Marker> mMarkers = new ArrayList();
     private List<LocalPokeStop> mLocalPokeStops = new ArrayList<>();
     private List<LocalGym> mLocalGyms = new ArrayList<>();
 
@@ -116,6 +121,7 @@ public class FragmentMap extends Fragment implements
 
     public static Boolean isEnabled = true;
 
+    private CounterToRemoveMarkers mCounterExpirationTime;
 
     public FragmentMap() {
         // Required empty public constructor
@@ -138,6 +144,8 @@ public class FragmentMap extends Fragment implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         MapsInitializer.initialize(mContext);
+
+        mCounterExpirationTime = new CounterToRemoveMarkers(60000, 10000);
 
         setUpData();
     }
@@ -210,12 +218,12 @@ public class FragmentMap extends Fragment implements
         super.onResume();
 
         //First we need to check if the GoogleMap was not created in OnCreate
-        if (mGoogleMap==null){
+        if (mGoogleMap == null) {
 
             // We need to check availability of play services
             if (checkPlayServices()) {
 
-                if (mGoogleApiClient==null){
+                if (mGoogleApiClient == null) {
                     // Building the GoogleApi client
                     buildGoogleApiClient();
                 }
@@ -234,7 +242,7 @@ public class FragmentMap extends Fragment implements
         }
 
         //GoogleMap exist
-        else{
+        else {
             if (!mayRequestLocation()) {
                 return;
             }
@@ -244,6 +252,10 @@ public class FragmentMap extends Fragment implements
     @Override
     public void onPause() {
         super.onPause();
+
+        //Finish the counter
+        mMarkers = new ArrayList<>();
+        mCounterExpirationTime.cancel();
 
         if (FragmentMap.isEnabled != null) {
             if (FragmentMap.isEnabled) {
@@ -262,7 +274,6 @@ public class FragmentMap extends Fragment implements
             if (ContextCompat.checkSelfPermission(mContext, ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 mGoogleMap.setMyLocationEnabled(false);
             }
-
         }
     }
 
@@ -353,7 +364,7 @@ public class FragmentMap extends Fragment implements
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
 
-            if (!mGoogleMap.isMyLocationEnabled()){
+            if (!mGoogleMap.isMyLocationEnabled()) {
                 mGoogleMap.setMyLocationEnabled(true);
             }
 
@@ -362,8 +373,7 @@ public class FragmentMap extends Fragment implements
 
         if (ContextCompat.checkSelfPermission(mContext, ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
-            if (!mGoogleMap.isMyLocationEnabled())
-            {
+            if (!mGoogleMap.isMyLocationEnabled()) {
                 mGoogleMap.setMyLocationEnabled(true);
             }
             return true;
@@ -371,7 +381,7 @@ public class FragmentMap extends Fragment implements
 
         if (shouldShowRequestPermissionRationale(ACCESS_COARSE_LOCATION)) {
 
-            if (mSnackBarPermisions==null){
+            if (mSnackBarPermisions == null) {
                 mSnackBarPermisions = Snackbar.make(mView, R.string.permission_access_coarse_location, Snackbar.LENGTH_INDEFINITE)
                         .setAction(R.string.action_snack_permission_access_coarse_location, new View.OnClickListener() {
                             @Override
@@ -381,9 +391,8 @@ public class FragmentMap extends Fragment implements
                             }
                         });
                 mSnackBarPermisions.show();
-            }
-            else{
-                if (!mSnackBarPermisions.isShown()){
+            } else {
+                if (!mSnackBarPermisions.isShown()) {
                     mSnackBarPermisions.show();
                 }
             }
@@ -402,8 +411,8 @@ public class FragmentMap extends Fragment implements
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getUserLocation();
             }
-        }else{
-            if (mSnackBarPermisions==null){
+        } else {
+            if (mSnackBarPermisions == null) {
                 mSnackBarPermisions = Snackbar.make(mView, R.string.permission_access_coarse_location, Snackbar.LENGTH_INDEFINITE)
                         .setAction(R.string.action_snack_permission_access_coarse_location, new View.OnClickListener() {
                             @Override
@@ -438,12 +447,16 @@ public class FragmentMap extends Fragment implements
 
             Bitmap bitmap = BitmapFactory.decodeStream(is);
 
-            mGoogleMap.addMarker(new MarkerOptions()
+            Marker mMarker = mGoogleMap.addMarker(new MarkerOptions()
                     .position(new LatLng(localPokemon.getLatitude(), localPokemon.getLongitude()))
                     .title(localPokemon.getPokemonName())
                     .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
                     .snippet(createDate(localPokemon.getExpiration_time()))
             );
+
+            mMarker.setTag(localPokemon);
+
+            mMarkers.add(mMarker);
 
         } catch (IOException e) {
             Log.e(TAG, e.getMessage());
@@ -474,16 +487,16 @@ public class FragmentMap extends Fragment implements
 
         switch (localGym.getTeam()) {
             case 1:
-                icon_gym= R.drawable.ic_gym_team_yellow;
+                icon_gym = R.drawable.ic_gym_team_yellow;
                 break;
             case 2:
-                icon_gym= R.drawable.ic_gym_team_blue;
+                icon_gym = R.drawable.ic_gym_team_blue;
                 break;
             case 3:
-                icon_gym= R.drawable.ic_gym_team_red;
+                icon_gym = R.drawable.ic_gym_team_red;
                 break;
             default:
-                icon_gym= R.drawable.ic_gym_team_white;
+                icon_gym = R.drawable.ic_gym_team_white;
                 break;
         }
 
@@ -528,38 +541,6 @@ public class FragmentMap extends Fragment implements
      */
     private void attemptSearch() {
 
-       /* if (mPokeStopsTask == null) {
-            mPokeStopsTask = new PokeStopsTask(true);
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                mPokeStopsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-            } else {
-                mPokeStopsTask.execute();
-            }
-        }*/
-
-        if (mPokemonTask == null) {
-            mPokemonTask = new PokemonsTask(true);
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                mPokemonTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-            } else {
-                mPokemonTask.execute();
-            }
-
-        }
-
-        /*if (mGymsTask == null) {
-            mGymsTask = new GymsTask(true);
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                mGymsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-            } else {
-                mGymsTask.execute();
-            }
-        }*/
-
-
         mSnackBar = Snackbar.make(mView, R.string.message_snackbar_searching_text, Snackbar.LENGTH_INDEFINITE)
                 .setAction(R.string.snack_bar_neg_btn, new View.OnClickListener() {
                     @Override
@@ -579,6 +560,40 @@ public class FragmentMap extends Fragment implements
         mSnackBar.show();
         mSearchView.showProgress();
 
+
+        if (mPokeStopsTask == null) {
+            mPokeStopsTask = new PokeStopsTask(true);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                mPokeStopsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            } else {
+                mPokeStopsTask.execute();
+            }
+        }
+
+        if (mPokemonTask == null) {
+            mPokemonTask = new PokemonsTask(true);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                mPokemonTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            } else {
+                mPokemonTask.execute();
+            }
+
+            mCounterExpirationTime.start();
+
+        }
+
+        if (mGymsTask == null) {
+            mGymsTask = new GymsTask(true);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                mGymsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            } else {
+                mGymsTask.execute();
+            }
+        }
+
     }
 
     /**
@@ -586,7 +601,6 @@ public class FragmentMap extends Fragment implements
      * with a location.
      */
     public class PokemonsTask extends AsyncTask<Void, LocalPokemon, Boolean> {
-
 
 
         PokemonsTask(Boolean isEnabled) {
@@ -636,10 +650,10 @@ public class FragmentMap extends Fragment implements
 
                     }
                 }
-            } catch (LoginFailedException e) {
-                e.printStackTrace();
-            } catch (RemoteServerException e) {
-                e.printStackTrace();
+            } catch (LoginFailedException | RemoteServerException e) {
+                // failed to login, invalid credentials, auth issue or server issue.
+                Log.e(TAG, "Failed to login or server issue: ", e);
+
             }
 
             return false;
@@ -690,15 +704,15 @@ public class FragmentMap extends Fragment implements
 
                 while (FragmentMap.isEnabled) {
 
-                    LatLng ltn = getLocation(userPosition.longitude, userPosition.latitude, 200);
-                    mPokemonGo.setLocation(ltn.latitude, ltn.longitude, 1);
-                    sleep(5000);
+                    //LatLng ltn = getLocation(userPosition.longitude, userPosition.latitude, 200);
+                    //mPokemonGo.setLocation(ltn.latitude, ltn.longitude, 1);
+                    mPokemonGo.setLocation(userPosition.latitude, userPosition.longitude, 1);
                     List<Pokestop> pokeStops = new ArrayList<>(mPokemonGo.getMap().getMapObjects().getPokestops());
 
 
                     if (pokeStops != null) {
 
-                        for (Pokestop pkStop: pokeStops) {
+                        for (Pokestop pkStop : pokeStops) {
 
                             LocalPokeStop localPokeStop = new LocalPokeStop();
                             localPokeStop.setId(pkStop.getId());
@@ -717,7 +731,6 @@ public class FragmentMap extends Fragment implements
 
                                 mLocalPokeStops.add(localPokeStop);
                                 publishProgress(localPokeStop);
-
                             }
 
                         }
@@ -782,9 +795,12 @@ public class FragmentMap extends Fragment implements
 
                 while (FragmentMap.isEnabled) {
 
-                    LatLng ltn = getLocation(userPosition.longitude, userPosition.latitude, 200);
-                    mPokemonGo.setLocation(ltn.latitude, ltn.longitude, 1);
-                    sleep(5000);
+                    //LatLng ltn = getLocation(userPosition.longitude, userPosition.latitude, 200);
+                    //mPokemonGo.setLocation(ltn.latitude, ltn.longitude, 1);
+
+                    mPokemonGo.setLocation(userPosition.latitude, userPosition.longitude, 1);
+
+
                     List<Gym> gyms = new ArrayList<>(mPokemonGo.getMap().getGyms());
 
                     if (gyms != null) {
@@ -808,6 +824,7 @@ public class FragmentMap extends Fragment implements
 
                                 mLocalGyms.add(localGym);
                                 publishProgress(localGym);
+
                             }
 
                         }
@@ -890,7 +907,7 @@ public class FragmentMap extends Fragment implements
 
                         if (!mayRequestLocation()) {
                             break;
-                        }else {
+                        } else {
                             View myLocationButton = ((View) mView.findViewById(Integer.parseInt("1")).getParent())
                                     .findViewById(Integer.parseInt("2"));
 
@@ -1070,7 +1087,7 @@ public class FragmentMap extends Fragment implements
         int minutes = calendar.get(Calendar.MINUTE);
         int seconds = calendar.get(Calendar.SECOND);
 
-        String time = "Desaparecerá a las: " + String.valueOf(hours)+ ":" + String.valueOf(minutes) + ":" + String.valueOf(seconds);
+        String time = "Desaparecerá a las: " + String.valueOf(hours) + ":" + String.valueOf(minutes) + ":" + String.valueOf(seconds);
         return time;
 
     }
@@ -1096,14 +1113,14 @@ public class FragmentMap extends Fragment implements
 
         Log.i(TAG, "Longitude: " + foundLongitude + "  Latitude: " + foundLatitude);
 
-        final LatLng foundLocation= new LatLng(foundLatitude, foundLongitude);
+        final LatLng foundLocation = new LatLng(foundLatitude, foundLongitude);
 
-        getActivity().runOnUiThread(new Runnable() {
+        /*getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 drawLocation(foundLocation);
             }
-        });
+        });*/
 
         return foundLocation;
     }
@@ -1299,4 +1316,98 @@ public class FragmentMap extends Fragment implements
         }
     }
 
+    private class CounterToRemoveMarkers extends CountDownTimer {
+
+        public CounterToRemoveMarkers(long millisInFuture, long countDownInterval) {
+            super(millisInFuture, countDownInterval);
+        }
+
+        @Override
+        public void onFinish() {
+            mCounterExpirationTime = null;
+            mCounterExpirationTime = new CounterToRemoveMarkers(60000, 10000);
+            mCounterExpirationTime.start();
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+            if (mMarkers != null) {
+                final List<Marker> mMarkersToRemove = new ArrayList<>();
+                for (Marker marker : mMarkers) {
+                    if (shouldMarkerRemove(marker.getTag())) {
+                        marker.remove();
+                        mMarkersToRemove.add(marker);
+                    }
+                }
+
+                for (Marker markerToRemove : mMarkersToRemove) {
+                    mMarkers.remove(markerToRemove);
+                }
+            }
+        }
+    }
+
+    public Boolean shouldMarkerRemove(Object object) {
+
+        if (object instanceof LocalPokeStop || object instanceof LocalGym) {
+
+            double earthRadius = 6371000; //meters
+
+            double dLat;
+            double dLng;
+            double a = 0.0f;
+
+            if (object instanceof LocalGym) {
+                dLat = Math.toRadians(((LocalGym) object).getLatitude() - userPosition.latitude);
+                dLng = Math.toRadians(((LocalGym) object).getLongitude() - userPosition.longitude);
+                a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                        Math.cos(Math.toRadians(userPosition.latitude)) * Math.cos(Math.toRadians(((LocalGym) object).getLatitude())) *
+                                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            } else if (object instanceof LocalPokeStop) {
+                dLat = Math.toRadians(((LocalPokeStop) object).getLatitude() - userPosition.latitude);
+                dLng = Math.toRadians(((LocalPokeStop) object).getLongitude() - userPosition.longitude);
+                a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                        Math.cos(Math.toRadians(userPosition.latitude)) * Math.cos(Math.toRadians(((LocalPokeStop) object).getLatitude())) *
+                                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            }
+
+
+            double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            float dist = (float) (earthRadius * c);
+
+            if (dist > 100) {
+                return true;
+            }
+
+        }
+
+        else{
+            //LOCAL POKEMON
+            //Get the local time
+            Calendar localCalendar = Calendar.getInstance(Locale.getDefault());
+            int localMinutes = localCalendar.get(Calendar.MINUTE);
+            int localSeconds = localCalendar.get(Calendar.SECOND);
+
+            //Getting the pokemon time expiration
+            Date date = new Date(((LocalPokemon)object).getExpiration_time());
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(date);
+            int expirationMinutes = calendar.get(Calendar.MINUTE);
+            int expirationSeconds = calendar.get(Calendar.SECOND);
+
+
+            int diferrenceMinutes = expirationMinutes - localMinutes;
+            int diferrenceSeconds = expirationSeconds - localSeconds;
+
+
+            if (diferrenceMinutes < 1) {
+                if (diferrenceSeconds < 10) {
+                    //removeMarker
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 }
