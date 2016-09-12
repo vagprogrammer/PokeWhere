@@ -369,10 +369,7 @@ public class ActivityLogin extends AppCompatActivity{
                 userLevel = go.getPlayerProfile().getStats().getLevel();
 
                 return true;
-            } catch (LoginFailedException e) {
-                e.printStackTrace();
-                return false;
-            } catch (RemoteServerException e) {
+            } catch (LoginFailedException | RemoteServerException e) {
                 e.printStackTrace();
                 return false;
             }

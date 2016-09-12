@@ -276,7 +276,7 @@ public class ActivityDashboard extends AppCompatActivity
                                     mNavigationView.getMenu().getItem(0).setChecked(true);
                                 }
                                 else{
-                                    showSnackBar("No pudimos conectar con Pokemon G O", "Reintentar");
+                                    showSnackBar("No pudimos conectar con Pokemon GO", "Reintentar");
                                 }
                             }
                         });

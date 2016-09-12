@@ -24,7 +24,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -50,8 +49,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.javic.pokewhere.ActivityDashboard;
-import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
 import com.javic.pokewhere.R;
+import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
 import com.javic.pokewhere.models.LocalGym;
 import com.javic.pokewhere.models.LocalPokeStop;
 import com.javic.pokewhere.models.LocalPokemon;
@@ -61,7 +60,6 @@ import com.pokegoapi.api.gym.Gym;
 import com.pokegoapi.api.map.fort.Pokestop;
 import com.pokegoapi.api.map.pokemon.CatchablePokemon;
 import com.pokegoapi.exceptions.LoginFailedException;
-import com.pokegoapi.exceptions.NoSuchItemException;
 import com.pokegoapi.exceptions.RemoteServerException;
 
 import java.io.IOException;
@@ -455,7 +453,6 @@ public class FragmentMap extends Fragment implements
             );
 
             mMarker.setTag(localPokemon);
-
             mMarkers.add(mMarker);
 
         } catch (IOException e) {
@@ -463,22 +460,25 @@ public class FragmentMap extends Fragment implements
         }
     }
 
-    public void drawPokeStop(LocalPokeStop pokestop) {
+    public void drawPokeStop(LocalPokeStop localPokeStop) {
 
         int resourceId;
 
-        if (!pokestop.getHasLure()) {
+        if (!localPokeStop.getHasLure()) {
             resourceId = R.drawable.ic_pokestop;
         } else {
             resourceId = R.drawable.ic_pokestope_lucky;
         }
 
-        mGoogleMap.addMarker(new MarkerOptions()
-                .position(new LatLng(pokestop.getLatitude(), pokestop.getLongitude()))
-                .title(pokestop.getName())
+        Marker mMarker = mGoogleMap.addMarker(new MarkerOptions()
+                .position(new LatLng(localPokeStop.getLatitude(), localPokeStop.getLongitude()))
+                .title(localPokeStop.getName())
                 .icon(BitmapDescriptorFactory.fromResource(resourceId))
-                .snippet(pokestop.getDescription())
+                .snippet(localPokeStop.getDescription())
         );
+
+        mMarker.setTag(localPokeStop);
+        mMarkers.add(mMarker);
     }
 
     public void drawGym(LocalGym localGym) {
@@ -500,12 +500,15 @@ public class FragmentMap extends Fragment implements
                 break;
         }
 
-        mGoogleMap.addMarker(new MarkerOptions()
+        Marker mMarker = mGoogleMap.addMarker(new MarkerOptions()
                 .position(new LatLng(localGym.getLatitude(), localGym.getLongitude()))
                 .title(localGym.getName())
                 .icon(BitmapDescriptorFactory.fromResource(icon_gym))
                 .snippet(localGym.getDescription())
         );
+
+        mMarker.setTag(localGym);
+        mMarkers.add(mMarker);
     }
 
     public void drawLocation(LatLng position) {
@@ -625,7 +628,7 @@ public class FragmentMap extends Fragment implements
                     if (ltn == null) {
                         ltn = new LatLng(userPosition.longitude, userPosition.latitude);
                     } else {
-                        ltn = getLocation(userPosition.longitude, userPosition.latitude, 200);
+                        ltn = getRandomeLocation(userPosition.longitude, userPosition.latitude, 200);
                     }
 
 
@@ -633,19 +636,21 @@ public class FragmentMap extends Fragment implements
                     sleep(10000);
                     List<CatchablePokemon> chablePokemons = mPokemonGo.getMap().getCatchablePokemon();
 
-                    for (CatchablePokemon pokemon : chablePokemons) {
+                    for (CatchablePokemon chablePokemon : chablePokemons) {
 
-                        LocalPokemon poke = new LocalPokemon();
-                        poke.setId(pokemon.getEncounterId());
-                        poke.setExpiration_time(pokemon.getExpirationTimestampMs());
-                        poke.setPokemonId(pokemon.getPokemonId().getNumber());
-                        poke.setPokemonName(mPokemonsMap.get(String.valueOf(poke.getPokemonId())));
-                        poke.setLatitude(pokemon.getLatitude());
-                        poke.setLongitude(pokemon.getLongitude());
+                        LocalPokemon localPokemon = new LocalPokemon();
+                        localPokemon.setId(chablePokemon.getEncounterId());
+                        localPokemon.setExpiration_time(chablePokemon.getExpirationTimestampMs());
+                        localPokemon.setPokemonId(chablePokemon.getPokemonId().getNumber());
+                        localPokemon.setPokemonName(mPokemonsMap.get(String.valueOf(localPokemon.getPokemonId())));
+                        localPokemon.setLatitude(chablePokemon.getLatitude());
+                        localPokemon.setLongitude(chablePokemon.getLongitude());
 
-                        if (!containsEncounteredPokemonId(mLocalPokemons, poke.getId())) {
-                            mLocalPokemons.add(poke);
-                            publishProgress(poke);
+                        Boolean isEncountered = containsEncounteredId(localPokemon,String.valueOf(localPokemon.getId()));
+
+                        if (!isEncountered) {
+                            mLocalPokemons.add(localPokemon);
+                            publishProgress(localPokemon);
                         }
 
                     }
@@ -716,10 +721,10 @@ public class FragmentMap extends Fragment implements
 
                             LocalPokeStop localPokeStop = new LocalPokeStop();
                             localPokeStop.setId(pkStop.getId());
-                            Boolean isEncountered = containsEncounteredPokeStopId(mLocalPokeStops, localPokeStop.getId());
-
                             localPokeStop.setLatitude(pkStop.getLatitude());
                             localPokeStop.setLongitude(pkStop.getLongitude());
+
+                            Boolean isEncountered = containsEncounteredId(localPokeStop, localPokeStop.getId());
 
                             if (!isEncountered) {
 
@@ -729,8 +734,11 @@ public class FragmentMap extends Fragment implements
                                 localPokeStop.setDescription(pkStop.getDetails().getDescription());
                                 //localPokeStop.setDistance(pkStop.getDistance());
 
-                                mLocalPokeStops.add(localPokeStop);
-                                publishProgress(localPokeStop);
+                                if (!shouldMarkerRemove(localPokeStop)){
+                                    mLocalPokeStops.add(localPokeStop);
+                                    publishProgress(localPokeStop);
+                                }
+
                             }
 
                         }
@@ -809,7 +817,7 @@ public class FragmentMap extends Fragment implements
                             LocalGym localGym = new LocalGym();
                             localGym.setId(gym.getId());
 
-                            Boolean isEncountered = containsEncounteredGymId(mLocalGyms, localGym.getId());
+                            Boolean isEncountered = containsEncounteredId(localGym,localGym.getId());
 
                             if (!isEncountered) {
 
@@ -822,8 +830,11 @@ public class FragmentMap extends Fragment implements
                                 localGym.setLongitude(gym.getLongitude());
                                 localGym.setDescription(gym.getDescription());
 
-                                mLocalGyms.add(localGym);
-                                publishProgress(localGym);
+                                if (!shouldMarkerRemove(localGym)){
+                                    mLocalGyms.add(localGym);
+                                    publishProgress(localGym);
+                                }
+
 
                             }
 
@@ -1044,7 +1055,6 @@ public class FragmentMap extends Fragment implements
             @Override
             public void onClick(DialogInterface paramDialogInterface, int paramInt) {
                 // TODO Auto-generated method stub
-                //mContext.startActivity(new Intent(mContext, ActivityEstados.class));
             }
         });
         dialog.show();
@@ -1092,7 +1102,7 @@ public class FragmentMap extends Fragment implements
 
     }
 
-    public LatLng getLocation(double x0, double y0, int radius) {
+    public LatLng getRandomeLocation(double x0, double y0, int radius) {
         Random random = new Random();
 
         // Convert radius from meters to degrees
@@ -1123,33 +1133,6 @@ public class FragmentMap extends Fragment implements
         });*/
 
         return foundLocation;
-    }
-
-    public static boolean containsEncounteredPokemonId(List<LocalPokemon> c, long enconunteredId) {
-        for (LocalPokemon OPokemon : c) {
-            if (OPokemon.getId() == enconunteredId) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static boolean containsEncounteredPokeStopId(List<LocalPokeStop> c, String enconunteredId) {
-        for (LocalPokeStop localPokeStop : c) {
-            if (localPokeStop.getId().equals(enconunteredId)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static boolean containsEncounteredGymId(List<LocalGym> c, String enconunteredGymId) {
-        for (LocalGym localGym : c) {
-            if (localGym.getId().equals(enconunteredGymId)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public void setUpData() {
@@ -1316,38 +1299,32 @@ public class FragmentMap extends Fragment implements
         }
     }
 
-    private class CounterToRemoveMarkers extends CountDownTimer {
+    public boolean containsEncounteredId(Object object, String enconunteredId){
 
-        public CounterToRemoveMarkers(long millisInFuture, long countDownInterval) {
-            super(millisInFuture, countDownInterval);
-        }
-
-        @Override
-        public void onFinish() {
-            mCounterExpirationTime = null;
-            mCounterExpirationTime = new CounterToRemoveMarkers(60000, 10000);
-            mCounterExpirationTime.start();
-        }
-
-        @Override
-        public void onTick(long millisUntilFinished) {
-            if (mMarkers != null) {
-                final List<Marker> mMarkersToRemove = new ArrayList<>();
-                for (Marker marker : mMarkers) {
-                    if (shouldMarkerRemove(marker.getTag())) {
-                        marker.remove();
-                        mMarkersToRemove.add(marker);
-                    }
+        if (object instanceof LocalPokemon){
+            for (LocalPokemon localPokemon : mLocalPokemons) {
+                if (localPokemon.getId() == Long.parseLong(enconunteredId, 10)) {
+                    return true;
                 }
-
-                for (Marker markerToRemove : mMarkersToRemove) {
-                    mMarkers.remove(markerToRemove);
+            }
+        }else if (object instanceof LocalGym){
+            for (LocalGym localGym : mLocalGyms) {
+                if (localGym.getId() == enconunteredId) {
+                    return true;
+                }
+            }
+        }else{
+            for (LocalPokeStop localPokeStop : mLocalPokeStops) {
+                if (localPokeStop.getId() == enconunteredId) {
+                    return true;
                 }
             }
         }
+
+        return false;
     }
 
-    public Boolean shouldMarkerRemove(Object object) {
+    public boolean shouldMarkerRemove(Object object) {
 
         if (object instanceof LocalPokeStop || object instanceof LocalGym) {
 
@@ -1375,7 +1352,7 @@ public class FragmentMap extends Fragment implements
             double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             float dist = (float) (earthRadius * c);
 
-            if (dist > 100) {
+            if (dist > 300) {
                 return true;
             }
 
@@ -1409,5 +1386,36 @@ public class FragmentMap extends Fragment implements
         }
 
         return false;
+    }
+
+    private class CounterToRemoveMarkers extends CountDownTimer {
+
+        public CounterToRemoveMarkers(long millisInFuture, long countDownInterval) {
+            super(millisInFuture, countDownInterval);
+        }
+
+        @Override
+        public void onFinish() {
+            mCounterExpirationTime = null;
+            mCounterExpirationTime = new CounterToRemoveMarkers(60000, 10000);
+            mCounterExpirationTime.start();
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+            if (mMarkers != null) {
+                final List<Marker> mMarkersToRemove = new ArrayList<>();
+                for (Marker marker : mMarkers) {
+                    if (shouldMarkerRemove(marker.getTag())) {
+                        marker.remove();
+                        mMarkersToRemove.add(marker);
+                    }
+                }
+
+                for (Marker markerToRemove : mMarkersToRemove) {
+                    mMarkers.remove(markerToRemove);
+                }
+            }
+        }
     }
 }
