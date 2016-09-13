@@ -49,6 +49,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.javic.pokewhere.ActivityDashboard;
+import com.javic.pokewhere.ActivityFiltros;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
 import com.javic.pokewhere.models.LocalGym;
@@ -487,13 +488,13 @@ public class FragmentMap extends Fragment implements
 
         switch (localGym.getTeam()) {
             case 1:
-                icon_gym = R.drawable.ic_gym_team_yellow;
+                icon_gym = R.drawable.ic_gym_team_red;
                 break;
             case 2:
                 icon_gym = R.drawable.ic_gym_team_blue;
                 break;
             case 3:
-                icon_gym = R.drawable.ic_gym_team_red;
+                icon_gym = R.drawable.ic_gym_team_yellow;
                 break;
             default:
                 icon_gym = R.drawable.ic_gym_team_white;
@@ -929,7 +930,8 @@ public class FragmentMap extends Fragment implements
                         mListener.onFragmentActionPerform(Constants.ACTION_START_SERVICE);
                         break;
                     default:
-                        Log.i(TAG, "Action Default");
+                        Intent intent = new Intent(mContext, ActivityFiltros.class);
+                        mContext.startActivity(intent);
                         break;
                 }
             }
