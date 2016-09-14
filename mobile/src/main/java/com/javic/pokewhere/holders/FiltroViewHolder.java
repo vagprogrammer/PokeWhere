@@ -17,7 +17,7 @@ import com.thoughtbot.expandablerecyclerview.viewholders.GroupViewHolder;
 /**
  * Created by franciscojimenezjimenez on 12/09/16.
  */
-public class FiltroViewHolder extends GroupViewHolder {
+public class FiltroViewHolder extends GroupViewHolder{
     private TextView tv;
     private ImageView img_arrow;
 

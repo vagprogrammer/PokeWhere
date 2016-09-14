@@ -488,10 +488,11 @@ public class FragmentMap extends Fragment implements
 
         switch (localGym.getTeam()) {
             case 1:
-                icon_gym = R.drawable.ic_gym_team_red;
+                icon_gym = R.drawable.ic_gym_team_blue;
+
                 break;
             case 2:
-                icon_gym = R.drawable.ic_gym_team_blue;
+                icon_gym = R.drawable.ic_gym_team_red;
                 break;
             case 3:
                 icon_gym = R.drawable.ic_gym_team_yellow;

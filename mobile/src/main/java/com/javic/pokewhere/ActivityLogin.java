@@ -510,6 +510,9 @@ public class ActivityLogin extends AppCompatActivity{
         editor.putInt(Constants.KEY_PREF_USER_TEAM_KEY, userTeam);
         editor.putInt(Constants.KEY_PREF_USER_LEVEL_KEY, userLevel);
 
+        //Pref to show all the markers in teh map <def value is true>
+        editor.putBoolean(Constants.KEY_PREF_ALL_MARKERS, true);
+
         editor.commit();
 
     }

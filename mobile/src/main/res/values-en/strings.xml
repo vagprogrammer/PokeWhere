@@ -70,12 +70,9 @@
 
 
     <!-- Strings related to Activity Filter -->
-    <string name="filtro_all_markers">MOSTRAR TODO</string>
     <string name="filtro_pokestops">POKEPARADAS</string>
-    <string name="op_normal_pokestop">Normal poke-stop</string>
-    <string name="op_lured_pokestop">Lured poke-stop</string>
-
     <string name="filtro_gyms">GIMNASIOS</string>
+
     <string name="op_blue_gym">Mystics Gyms</string>
     <string name="op_red_gym">Valors Gyms</string>
     <string name="op_yellow_gym">Instincts Gyms</string>

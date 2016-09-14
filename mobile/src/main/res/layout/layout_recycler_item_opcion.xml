@@ -2,24 +2,24 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="50dp">
+    android:layout_height="50dp"
+    android:padding="5dp">
 
     <ImageView
         android:id="@+id/img_opcion"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@mipmap/ic_launcher"
-        android:layout_weight="1"
-        android:layout_gravity="center"/>
+        android:src="@mipmap/ic_launcher"/>
 
-    <TextView
+    <CheckedTextView
         android:id="@+id/tv_opcion"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Medium Text"
-        android:layout_weight="2"
         android:gravity="center_vertical"
-        android:paddingLeft="10dp"/>
+        android:paddingLeft="10dp"
+        android:checkMark="?android:attr/listChoiceIndicatorMultiple"
+        />
 
 </LinearLayout>

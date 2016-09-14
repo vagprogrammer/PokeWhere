@@ -133,37 +133,6 @@ public class ActivityDashboard extends AppCompatActivity
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.activity_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-
-        /*//noinspection SimplifiableIfStatement
-        if (id == R.id.action_start_service) {
-
-            final boolean canShow = showMapHead();
-            if (!canShow) {
-                // 広告トリガーのFloatingViewの表示許可設定
-                @SuppressLint("InlinedApi")
-                final Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + ActivityDashboard.this.getPackageName()));
-                startActivityForResult(intent, MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE);
-            }
-
-            return true;
-        }*/
-
-        return super.onOptionsItemSelected(item);
-    }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
