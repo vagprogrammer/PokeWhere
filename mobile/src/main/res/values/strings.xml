@@ -71,6 +71,7 @@
 
     <!-- Strings related to Activity Filter -->
     <string name="filtro_all_markers">MOSTRAR TODO</string>
+    <string name="filtro_busqueda_markers">Puntos de búsqueda</string>
     <string name="filtro_pokestops">POKEPARADAS</string>
     <string name="op_normal_pokestop">Normal poke-stop</string>
     <string name="op_lured_pokestop">Lured poke-stop</string>

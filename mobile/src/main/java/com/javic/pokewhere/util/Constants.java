@@ -39,6 +39,7 @@ public class Constants {
 
     //FILTROS
     public static final String KEY_PREF_ALL_MARKERS="pref_all_markers";
+    public static final String KEY_PREF_BUSQUEDA_MARKERS="pref_busqueda_markers";
     public static final String KEY_PREF_NORMAL_POKESTOPS_MARKERS="pref_normal_pokestops";
     public static final String KEY_PREF_LURED_POKESTOPS_MARKERS="pref_lured_pokestops";
 

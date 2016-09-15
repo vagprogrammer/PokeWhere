@@ -1,5 +1,6 @@
 package com.javic.pokewhere;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -30,7 +31,7 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
     private RecyclerView mRecyclerView;
     private LinearLayoutManager mLayoutManager;
     private AdapterFiltro mAdpaterFiltro;
-    private CheckedTextView mCheckedTextView;
+    private CheckedTextView mCheckedFilterAll, mCheckedFilterBusqueda;
     private List<Filtro> mFiltros = new ArrayList<>();
 
     private Boolean mAllMarkers;
@@ -44,34 +45,62 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(" ");
 
-
         mAllMarkers = isChecked(Constants.KEY_PREF_ALL_MARKERS);
         mPrefsUser = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
         mEditor= mPrefsUser.edit();
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerview);
         mLayoutManager = new LinearLayoutManager(this);
-        mCheckedTextView = (CheckedTextView) findViewById(R.id.checked_tv);
-        mCheckedTextView.setOnClickListener(new View.OnClickListener() {
+        mCheckedFilterAll = (CheckedTextView) findViewById(R.id.checked_tv_filtro_show_all);
+        mCheckedFilterBusqueda = (CheckedTextView) findViewById(R.id.checked_tv_filtro_busqueda);
+
+
+        mCheckedFilterBusqueda.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mCheckedFilterBusqueda.isChecked())
+                {
+                    setPref(Constants.KEY_PREF_BUSQUEDA_MARKERS, false);
+
+                    if (mCheckedFilterAll.isChecked()){
+                        mCheckedFilterAll.setChecked(false);
+                        setPref(Constants.KEY_PREF_ALL_MARKERS, false);
+                    }
+                    mCheckedFilterBusqueda.setChecked(false);
+                }
+                else
+                {
+                    setPref(Constants.KEY_PREF_BUSQUEDA_MARKERS, true);
+                    mCheckedFilterBusqueda.setChecked(true);
+                }
+            }
+        });
+
+
+        mCheckedFilterAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mCheckedTextView.isChecked())
+                if (mCheckedFilterAll.isChecked())
                 {
                     setPref(Constants.KEY_PREF_ALL_MARKERS, false);
                     checkAll(false);
-                    mCheckedTextView.setChecked(false);
+                    mCheckedFilterAll.setChecked(false);
                 }
                 else
                 {
                     setPref(Constants.KEY_PREF_ALL_MARKERS, true);
                     checkAll(true);
-                    mCheckedTextView.setChecked(true);
+                    mCheckedFilterAll.setChecked(true);
                 }
             }
         });
 
+        if (isChecked(Constants.KEY_PREF_BUSQUEDA_MARKERS)){
+            mCheckedFilterBusqueda.setChecked(true);
+        }
+
         if (mAllMarkers){
-            mCheckedTextView.setChecked(true);
+            mCheckedFilterAll.setChecked(true);
         }
 
         //instantiate your adapter with the list of bands
@@ -122,6 +151,8 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
                 break;
             case R.id.action_aplicar_filtros:
                 mEditor.commit();
+                Intent intent = new Intent();
+                setResult(Constants.RESULT_CODE_OK, intent);
                 finish();
               break;
         }
@@ -205,6 +236,7 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
     }
 
     private void checkAll(Boolean check){
+
         for (Filtro filtro: mFiltros){
 
             for (int i =0; i<filtro.getItems().size();i++){
@@ -213,6 +245,20 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
 
             mAdpaterFiltro.notifyDataSetChanged();
         }
+
+        mCheckedFilterAll.setChecked(check);
+        mCheckedFilterBusqueda.setChecked(check);
+
+        setPref(Constants.KEY_PREF_ALL_MARKERS, check);
+        setPref(Constants.KEY_PREF_BUSQUEDA_MARKERS, check);
+        setPref(Constants.KEY_PREF_BLUE_GYMS_MARKERS, check);
+        setPref(Constants.KEY_PREF_RED_GYMS_MARKERS, check);
+        setPref(Constants.KEY_PREF_YELLOW_GYMS_MARKERS, check);
+        setPref(Constants.KEY_PREF_WHITE_GYMS_MARKERS, check);
+        setPref(Constants.KEY_PREF_NORMAL_POKESTOPS_MARKERS, check);
+        setPref(Constants.KEY_PREF_LURED_POKESTOPS_MARKERS, check);
+
+
     }
 
     public Boolean isChecked(String prefKey){
@@ -241,8 +287,8 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
     @Override
     public void onCheckChildCLick(View v, boolean checked, CheckedExpandableGroup group, int childIndex) {
 
-        if (mCheckedTextView.isChecked()){
-            mCheckedTextView.setChecked(false);
+        if (mCheckedFilterAll.isChecked()){
+            mCheckedFilterAll.setChecked(false);
             setPref(Constants.KEY_PREF_ALL_MARKERS, false);
         }
 

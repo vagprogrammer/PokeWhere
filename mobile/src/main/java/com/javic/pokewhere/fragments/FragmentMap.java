@@ -278,7 +278,7 @@ public class FragmentMap extends Fragment implements
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         if (requestCode==Constants.REQUEST_CODE_ACTIVITY_FILTROS && resultCode == Constants.RESULT_CODE_OK){
-
+            showMessage("Actualizar el mapa");
         }
     }
 
@@ -937,7 +937,7 @@ public class FragmentMap extends Fragment implements
                         break;
                     default:
                         Intent intent = new Intent(mContext, ActivityFiltros.class);
-                        mContext.startActivity(intent);
+                        startActivityForResult(intent, Constants.REQUEST_CODE_ACTIVITY_FILTROS);
                         break;
                 }
             }
@@ -1018,7 +1018,7 @@ public class FragmentMap extends Fragment implements
 
     public void showMessage(String message) {
 
-        Snackbar.make(mView, message, Snackbar.LENGTH_LONG)
+        Snackbar.make(mView, message, Snackbar.LENGTH_SHORT)
                 .setAction("Action", null).show();
 
     }
