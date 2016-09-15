@@ -512,6 +512,12 @@ public class ActivityLogin extends AppCompatActivity{
 
         //Pref to show all the markers in teh map <def value is true>
         editor.putBoolean(Constants.KEY_PREF_ALL_MARKERS, true);
+        editor.putBoolean(Constants.KEY_PREF_NORMAL_POKESTOPS_MARKERS, true);
+        editor.putBoolean(Constants.KEY_PREF_LURED_POKESTOPS_MARKERS, true);
+        editor.putBoolean(Constants.KEY_PREF_BLUE_GYMS_MARKERS, true);
+        editor.putBoolean(Constants.KEY_PREF_RED_GYMS_MARKERS, true);
+        editor.putBoolean(Constants.KEY_PREF_YELLOW_GYMS_MARKERS, true);
+        editor.putBoolean(Constants.KEY_PREF_WHITE_GYMS_MARKERS, true);
 
         editor.commit();
 

@@ -37,6 +37,7 @@ import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Result;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -83,10 +84,6 @@ public class FragmentMap extends Fragment implements
     private OnFragmentCreatedViewListener mListener;
 
     private static final String TAG = FragmentMap.class.getSimpleName();
-    private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
-
-    public static final int ALERT_ADDRESS_RESULT_RECIVER = 0;
-    public static final int REQUEST_PERMISSION_ACCESS_COARSE_LOCATION = 1;
 
     private Context mContext;
 
@@ -277,6 +274,14 @@ public class FragmentMap extends Fragment implements
     }
 
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode==Constants.REQUEST_CODE_ACTIVITY_FILTROS && resultCode == Constants.RESULT_CODE_OK){
+
+        }
+    }
+
     /**
      * Creating google api client object
      */
@@ -297,7 +302,7 @@ public class FragmentMap extends Fragment implements
         if (result != ConnectionResult.SUCCESS) {
             if (googleAPI.isUserResolvableError(result)) {
                 googleAPI.getErrorDialog(getActivity(), result,
-                        PLAY_SERVICES_RESOLUTION_REQUEST).show();
+                        Constants.PLAY_SERVICES_RESOLUTION_REQUEST).show();
             }
 
             return false;
@@ -354,7 +359,7 @@ public class FragmentMap extends Fragment implements
             mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userPosition, Constants.USER_ZOOM));
 
         } else {
-            showAlert(ALERT_ADDRESS_RESULT_RECIVER);
+            showAlert(Constants.ALERT_ADDRESS_RESULT_RECIVER);
         }
 
     }
@@ -386,7 +391,7 @@ public class FragmentMap extends Fragment implements
                             @Override
                             @TargetApi(Build.VERSION_CODES.M)
                             public void onClick(View v) {
-                                requestPermissions(new String[]{ACCESS_COARSE_LOCATION}, REQUEST_PERMISSION_ACCESS_COARSE_LOCATION);
+                                requestPermissions(new String[]{ACCESS_COARSE_LOCATION}, Constants.REQUEST_PERMISSION_ACCESS_COARSE_LOCATION);
                             }
                         });
                 mSnackBarPermisions.show();
@@ -397,7 +402,7 @@ public class FragmentMap extends Fragment implements
             }
 
         } else {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_PERMISSION_ACCESS_COARSE_LOCATION);
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_PERMISSION_ACCESS_COARSE_LOCATION);
         }
 
         return false;
@@ -406,7 +411,7 @@ public class FragmentMap extends Fragment implements
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
 
-        if (requestCode == REQUEST_PERMISSION_ACCESS_COARSE_LOCATION) {
+        if (requestCode == Constants.REQUEST_PERMISSION_ACCESS_COARSE_LOCATION) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getUserLocation();
             }
@@ -417,7 +422,7 @@ public class FragmentMap extends Fragment implements
                             @Override
                             @TargetApi(Build.VERSION_CODES.M)
                             public void onClick(View v) {
-                                requestPermissions(new String[]{ACCESS_COARSE_LOCATION}, REQUEST_PERMISSION_ACCESS_COARSE_LOCATION);
+                                requestPermissions(new String[]{ACCESS_COARSE_LOCATION}, Constants.REQUEST_PERMISSION_ACCESS_COARSE_LOCATION);
                             }
                         });
 
@@ -1022,7 +1027,7 @@ public class FragmentMap extends Fragment implements
 
         String title, message, positive_btn_title, negative_btn_title;
 
-        if (action == ALERT_ADDRESS_RESULT_RECIVER) {
+        if (action == Constants.ALERT_ADDRESS_RESULT_RECIVER) {
             title = mContext.getResources().getString(R.string.location_alert_title);
             message = mContext.getResources().getString(R.string.location_alert_message);
             positive_btn_title = mContext.getResources().getString(R.string.location_alert_pos_btn);

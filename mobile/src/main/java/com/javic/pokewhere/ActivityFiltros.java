@@ -31,16 +31,23 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
     private LinearLayoutManager mLayoutManager;
     private AdapterFiltro mAdpaterFiltro;
     private CheckedTextView mCheckedTextView;
+    private List<Filtro> mFiltros = new ArrayList<>();
 
-    List<Filtro> mFiltros = new ArrayList<>();
+    private Boolean mAllMarkers;
+    private SharedPreferences mPrefsUser;
+    private SharedPreferences.Editor mEditor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_filtros);
-
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(" ");
+
+
+        mAllMarkers = isChecked(Constants.KEY_PREF_ALL_MARKERS);
+        mPrefsUser = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
+        mEditor= mPrefsUser.edit();
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerview);
         mLayoutManager = new LinearLayoutManager(this);
@@ -49,21 +56,46 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
             @Override
             public void onClick(View v) {
                 if (mCheckedTextView.isChecked())
-                {mCheckedTextView.setChecked(false);}
-                else{ checkAll();
-                    mCheckedTextView.setChecked(true);}
+                {
+                    setPref(Constants.KEY_PREF_ALL_MARKERS, false);
+                    checkAll(false);
+                    mCheckedTextView.setChecked(false);
+                }
+                else
+                {
+                    setPref(Constants.KEY_PREF_ALL_MARKERS, true);
+                    checkAll(true);
+                    mCheckedTextView.setChecked(true);
+                }
             }
         });
-        setUpFiltros();
+
+        if (mAllMarkers){
+            mCheckedTextView.setChecked(true);
+        }
 
         //instantiate your adapter with the list of bands
         mAdpaterFiltro = new AdapterFiltro(mFiltros);
 
-        mAdpaterFiltro.setOnGroupExpandCollapseListener(this);
-        mAdpaterFiltro.setChildClickListener(this);
+        mAdpaterFiltro.setOnGroupExpandCollapseListener(ActivityFiltros.this);
+        mAdpaterFiltro.setChildClickListener(ActivityFiltros.this);
 
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdpaterFiltro);
+
+        new Thread(new Runnable() {
+            public void run() {
+
+                setUpFiltros();
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mAdpaterFiltro.notifyDataSetChanged();
+                    }
+                });
+            }
+        }).start();
     }
 
 
@@ -89,7 +121,7 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
                 finish();
                 break;
             case R.id.action_aplicar_filtros:
-                //saveFiltros();
+                mEditor.commit();
                 finish();
               break;
         }
@@ -105,25 +137,19 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
 
     private void setUpFiltros(){
 
-        final Boolean allMarkers = isChecked(Constants.KEY_PREF_ALL_MARKERS);
-
-        if (allMarkers){
-            mCheckedTextView.setChecked(true);
-        }
-
         for (int i=0; i<3;i++){
 
             switch (i){
-                case 1:
+                case 0:
 
                     List<Opcion> mPokeStops = new ArrayList<>();
                     mPokeStops.add(new Opcion(R.drawable.ic_pokestop, getString(R.string.op_normal_pokestop)));
                     mPokeStops.add(new Opcion(R.drawable.ic_pokestope_lucky, getString(R.string.op_lured_pokestop)));
 
-                    Filtro filtroPokeStops = new Filtro(getString(R.string.filtro_gyms), mPokeStops);
+                    Filtro filtroPokeStops = new Filtro(getString(R.string.filtro_pokestops), mPokeStops);
 
-                    if(allMarkers){
-                        for (int j = 0; j<filtroPokeStops.getItems().size(); i++){
+                    if(mAllMarkers){
+                        for (int j = 0; j<filtroPokeStops.getItems().size(); j++){
                             filtroPokeStops.onChildClicked(j,true);
                         }
                     }
@@ -140,7 +166,7 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
 
                     break;
 
-                case 0:
+                case 1:
 
                     List<Opcion> mGyms= new ArrayList<>();
                     mGyms.add(new Opcion(R.drawable.ic_gym_team_blue, getString(R.string.op_blue_gym)));
@@ -150,8 +176,8 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
 
                     Filtro filtroGyms = new Filtro(getString(R.string.filtro_gyms), mGyms);
 
-                    if(allMarkers){
-                        for (int j = 0; j<filtroGyms.getItems().size(); i++){
+                    if(mAllMarkers){
+                        for (int j = 0; j<filtroGyms.getItems().size(); j++){
                             filtroGyms.onChildClicked(j,true);
                         }
                     }
@@ -178,12 +204,14 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
         }
     }
 
-    private void checkAll(){
+    private void checkAll(Boolean check){
         for (Filtro filtro: mFiltros){
 
             for (int i =0; i<filtro.getItems().size();i++){
-                filtro.onChildClicked(i, true);
+                filtro.onChildClicked(i, check);
             }
+
+            mAdpaterFiltro.notifyDataSetChanged();
         }
     }
 
@@ -196,12 +224,7 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
     }
 
     public void setPref(String prefKey, Boolean pref){
-        SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
-        SharedPreferences.Editor editor= prefs_user.edit();
-
-        editor.putBoolean(prefKey, pref);
-
-        editor.commit();
+        mEditor.putBoolean(prefKey, pref);
     }
 
     //Callbacks related to the ExpandableRecyclerView
@@ -220,6 +243,7 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
 
         if (mCheckedTextView.isChecked()){
             mCheckedTextView.setChecked(false);
+            setPref(Constants.KEY_PREF_ALL_MARKERS, false);
         }
 
         if (group.getTitle().equalsIgnoreCase(getString(R.string.filtro_pokestops))){

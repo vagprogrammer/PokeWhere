@@ -5,7 +5,12 @@ package com.javic.pokewhere.util;
  */
 public class Constants {
 
+    public final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
+    public static final int ALERT_ADDRESS_RESULT_RECIVER = 0;
+    public static final int REQUEST_PERMISSION_ACCESS_COARSE_LOCATION = 1;
 
+    public final static int REQUEST_CODE_ACTIVITY_FILTROS = 2000;
+    public final static int RESULT_CODE_OK = 1;
 
     public static final String TAG = "FETCH_ADDRESS";
     public static final int SUCCESS_RESULT = 0;
@@ -21,9 +26,6 @@ public class Constants {
 
     //Actions
     public static final int ACTION_START_SERVICE = 0;
-    public static final int ACTION_OPEN_DRAWER = 0;
-    public static final int ACTION_CLOSE_DRAWER = 1;
-
 
     // Preferencias
     public static final String PREFS_POKEWHERE="prefs_pokewhere";
