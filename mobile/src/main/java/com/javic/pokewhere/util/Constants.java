@@ -7,6 +7,7 @@ public class Constants {
 
     public final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
     public static final int ALERT_ADDRESS_RESULT_RECIVER = 0;
+    public static final int ALERT_RESUME_TASK = 1;
     public static final int REQUEST_PERMISSION_ACCESS_COARSE_LOCATION = 1;
 
     public final static int REQUEST_CODE_ACTIVITY_FILTROS = 2000;

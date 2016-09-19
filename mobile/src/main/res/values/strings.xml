@@ -30,10 +30,24 @@
     <string name="location_alert_pos_btn">Inténtalo de nuevo</string>
     <string name="location_alert_neg_btn">Cancelar</string>
     <string name="location_alert_error">Ah currido un error, por favor intentalo más tarde!</string>
-    <string name="snack_bar_neg_btn">Detener</string>
+
+
+    <string name="resume_alert_title">¿Empezar una nueva búsqueda?</string>
+    <string name="resume_alert_message">Los citerios de búsqueda han cambiado, quieres continuar con tú búsqueda actual o iniciar una nueva? Si inicias una nueva búsqueda todos los marcadores del mapa serán eliminados incluyendo (Pokeparadas, gimnasisos, lugares de búsqueda, pokémones)</string>
+    <string name="resume_alert_pos_btn">Continuar búsqueda</string>
+    <string name="resume_alert_neg_btn">Nueva búsqueda</string>
+
+
+
 
     <string name="permission_access_coarse_location">Access location permission is needed for providing get pokemons.</string>
     <string name="action_snack_permission_access_coarse_location">Aceptar permiso</string>
+
+
+    <string name="snack_bar_error_with_pokemon">Ocurrio un error</string>
+    <string name="snack_bar_error_with_pokemon_positive_btn">Reintentar</string>
+
+    <string name="snack_bar_neg_btn">Detener</string>
 
     <string name="permission_alert_title">Servicios de ubicación desactivados</string>
     <string name="permission_alert_message">Para el correcto funcionamiento de la aplicación, es necesario que los servicios de ubicación esten activados, puedes activarlos desde los Settings de la aplicación</string>

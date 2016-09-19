@@ -152,7 +152,7 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
             case R.id.action_aplicar_filtros:
                 mEditor.commit();
                 Intent intent = new Intent();
-                setResult(Constants.RESULT_CODE_OK, intent);
+                setResult(RESULT_OK, intent);
                 finish();
               break;
         }

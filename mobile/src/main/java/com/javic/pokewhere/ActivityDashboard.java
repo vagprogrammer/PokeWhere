@@ -19,7 +19,6 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -119,7 +118,7 @@ public class ActivityDashboard extends AppCompatActivity
     protected void onResume() {
         super.onResume();
 
-        if (mGO==null) {
+        if (mGO == null) {
             connectWithPokemonGO();
         }
     }
@@ -173,7 +172,7 @@ public class ActivityDashboard extends AppCompatActivity
                 fragmentManager = getSupportFragmentManager();
                 fragmentTransaction = fragmentManager.beginTransaction();
 
-                if (mGO!=null){
+                if (mGO != null) {
                     mFragmentMap = FragmentMap.newInstance(mGO);
                     fragmentTransaction.replace(R.id.content_fragment, mFragmentMap);
                     fragmentTransaction.commit();
@@ -214,11 +213,17 @@ public class ActivityDashboard extends AppCompatActivity
                 Log.w(TAG, "Permiso Denegado");
             }
         }
+
+        if (requestCode == Constants.REQUEST_CODE_ACTIVITY_FILTROS && resultCode == RESULT_OK) {
+            mFragmentMap.onActivityResult(requestCode, resultCode, data);
+        }
+
+
     }
 
 
     public void connectWithPokemonGO() {
-        if (isDeviceOnline()){
+        if (isDeviceOnline()) {
 
             showProgress(true);
 
@@ -226,12 +231,11 @@ public class ActivityDashboard extends AppCompatActivity
                 public void run() {
                     try {
 
-                        if (!getPref(Constants.KEY_PREF_REFRESH_TOKEN).equalsIgnoreCase("")){
+                        if (!getPref(Constants.KEY_PREF_REFRESH_TOKEN).equalsIgnoreCase("")) {
                             //User is logged in with Google Account
                             mGO = new PokemonGo(new GoogleUserCredentialProvider(httpClient, getPref(Constants.KEY_PREF_REFRESH_TOKEN)), httpClient);
 
-                        }
-                        else{
+                        } else {
                             //User is logged in with username and password
                             mGO = new PokemonGo(new PtcCredentialProvider(httpClient, getPref(Constants.KEY_PREF_USER_EMAIL), getPref(Constants.KEY_PREF_USER_PASS)), httpClient);
                         }
@@ -239,12 +243,11 @@ public class ActivityDashboard extends AppCompatActivity
                         runOnUiThread(new Runnable() {
                             public void run() {
 
-                                if (mGO!=null){
+                                if (mGO != null) {
                                     //First start (Inbox Fragment)
                                     setFragment(0);
                                     mNavigationView.getMenu().getItem(0).setChecked(true);
-                                }
-                                else{
+                                } else {
                                     showSnackBar("No pudimos conectar con Pokemon GO", "Reintentar");
                                 }
                             }
@@ -252,12 +255,20 @@ public class ActivityDashboard extends AppCompatActivity
 
                     } catch (LoginFailedException | RemoteServerException e) {
                         e.printStackTrace();
+
+                        showSnackBar("No pudimos conectar con Pokemon GO", "Reintentar");
+
+                       runOnUiThread(new Runnable() {
+                           @Override
+                           public void run() {
+                               showProgress(false);
+                           }
+                       });
                     }
                 }
             }).start();
 
-        }
-        else{
+        } else {
             showSnackBar("No hay conexión a Internet", "Ir a Configuraciones");
         }
 
@@ -324,26 +335,25 @@ public class ActivityDashboard extends AppCompatActivity
         return false;
     }
 
-    public void showSnackBar(String snacKMessage, final String buttonTitle){
+    public void showSnackBar(String snacKMessage, final String buttonTitle) {
 
-            mSnackBar = Snackbar.make(mView, snacKMessage, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(buttonTitle, new View.OnClickListener() {
-                        @Override
-                        @TargetApi(Build.VERSION_CODES.M)
-                        public void onClick(View v) {
+        mSnackBar = Snackbar.make(mView, snacKMessage, Snackbar.LENGTH_INDEFINITE)
+                .setAction(buttonTitle, new View.OnClickListener() {
+                    @Override
+                    @TargetApi(Build.VERSION_CODES.M)
+                    public void onClick(View v) {
 
-                            if (buttonTitle.equalsIgnoreCase("Reintentar")){
-                                connectWithPokemonGO();
-                            }
-                            else{
-                                Intent intent = new Intent(Intent.ACTION_MAIN);
-                                intent.setClassName("com.android.phone","com.android.phone.NetworkSetting");
-                                startActivity(intent);
-                            }
+                        if (buttonTitle.equalsIgnoreCase("Reintentar")) {
+                            connectWithPokemonGO();
+                        } else {
+                            Intent intent = new Intent(Intent.ACTION_MAIN);
+                            intent.setClassName("com.android.phone", "com.android.phone.NetworkSetting");
+                            startActivity(intent);
                         }
-                    });
+                    }
+                });
 
-            mSnackBar.show();
+        mSnackBar.show();
 
     }
 
@@ -351,12 +361,12 @@ public class ActivityDashboard extends AppCompatActivity
 
         SharedPreferences prefsPokeWhere = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
 
-        if(KEY_PREF.equalsIgnoreCase(Constants.KEY_PREF_USER_TEAM_KEY) || KEY_PREF.equalsIgnoreCase(Constants.KEY_PREF_USER_LEVEL_KEY)){
+        if (KEY_PREF.equalsIgnoreCase(Constants.KEY_PREF_USER_TEAM_KEY) || KEY_PREF.equalsIgnoreCase(Constants.KEY_PREF_USER_LEVEL_KEY)) {
             String pref = String.valueOf(prefsPokeWhere.getInt(KEY_PREF, -1));
-            return  pref;
-        }else{
+            return pref;
+        } else {
             String pref = prefsPokeWhere.getString(KEY_PREF, "");
-            return  pref;
+            return pref;
 
         }
 
@@ -375,14 +385,14 @@ public class ActivityDashboard extends AppCompatActivity
 
     @Override
     public void onFragmentCreatedViewStatus(Boolean status) {
-        if (status){
+        if (status) {
             showProgress(false);
         }
     }
 
     @Override
     public void onFragmentActionPerform(int action) {
-        switch(action){
+        switch (action) {
             case Constants.ACTION_START_SERVICE:
                 final boolean canShow = showMapHead();
 

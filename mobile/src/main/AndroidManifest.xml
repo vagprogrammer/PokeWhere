@@ -31,7 +31,7 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="@string/google_maps_key_secretaria_imac" />
+            android:value="@string/google_maps_key_home_imac" />
 
         <activity
             android:name=".ActivitySelectAccount"
@@ -59,7 +59,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ActivityFiltros"></activity>
+        <activity android:name=".ActivityFiltros"
+            android:noHistory="false"></activity>
     </application>
 
 </manifest>
