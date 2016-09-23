@@ -1,15 +1,13 @@
 package com.javic.pokewhere.fragments;
 
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -24,22 +22,15 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.javic.pokewhere.ActivityFiltros;
+import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.adapters.AdapterFiltro;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
 import com.javic.pokewhere.models.Filtro;
-import com.javic.pokewhere.models.LocalGym;
-import com.javic.pokewhere.models.LocalPokeStop;
-import com.javic.pokewhere.models.LocalPokemon;
 import com.javic.pokewhere.models.Opcion;
 import com.javic.pokewhere.models.TransferablePokemon;
 import com.pokegoapi.api.PokemonGo;
-import com.pokegoapi.api.map.fort.Pokestop;
-import com.pokegoapi.api.map.fort.PokestopLootResult;
 import com.pokegoapi.api.pokemon.Pokemon;
-import com.pokegoapi.exceptions.LoginFailedException;
-import com.pokegoapi.exceptions.RemoteServerException;
 import com.thoughtbot.expandablecheckrecyclerview.listeners.OnCheckChildClickListener;
 import com.thoughtbot.expandablecheckrecyclerview.models.CheckedExpandableGroup;
 import com.thoughtbot.expandablerecyclerview.listeners.GroupExpandCollapseListener;
@@ -50,8 +41,6 @@ import java.util.List;
 
 import POGOProtos.Enums.PokemonIdOuterClass;
 import POGOProtos.Networking.Responses.ReleasePokemonResponseOuterClass;
-
-import static com.javic.pokewhere.R.id.toolbar;
 
 
 public class FragmentTransfer extends Fragment implements View.OnClickListener, GroupExpandCollapseListener, OnCheckChildClickListener {
@@ -70,6 +59,7 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
     private RecyclerView mRecyclerView;
     private LinearLayoutManager mLayoutManager;
     private Toolbar mToolbar;
+    private ActionBarDrawerToggle mDrawerToggle;
 
     //Context
     private Context mContext;
@@ -105,6 +95,13 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_transfer, menu);
     }
 
     @Override
@@ -112,16 +109,16 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
         // TODO Auto-generated method stub
 
         switch (item.getItemId()) {
-            case R.id.action_aplicar:
+            case R.id.action_transferir:
 
                 break;
 
             default:
                 break;
         }
-
         return super.onOptionsItemSelected(item);
     }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -132,16 +129,31 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
 
         mToolbar = (Toolbar) mView.findViewById(R.id.appbar);
         ((AppCompatActivity)getActivity()).setSupportActionBar(mToolbar);
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle("");
 
-        mToolbar.inflateMenu(R.menu.fragment_transfer);
+        mDrawerToggle = new ActionBarDrawerToggle(getActivity(), ActivityDashboard.mDrawerLayout, mToolbar, R.string.open_location_settings,  R.string.open_location_settings);
+        mDrawerToggle.setDrawerIndicatorEnabled(true);
+        mDrawerToggle.syncState();
 
-
+        // Tie DrawerLayout events to the ActionBarToggle
+        ActivityDashboard.mDrawerLayout.addDrawerListener(mDrawerToggle);
 
         mLayoutManager = new LinearLayoutManager(mContext);
         tvStatus = (TextView) mView.findViewById(R.id.textViewStatus);
         btnTransferir = (Button) mView.findViewById(R.id.buttonTransferir);
 
         return mView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        if (mDrawerToggle!=null){
+            ActivityDashboard.mDrawerLayout.removeDrawerListener(mDrawerToggle);
+        }
+
     }
 
     @Override
@@ -413,4 +425,5 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
         //If the encontered id exist, return true, if it doesn't exist return false
         return false;
     }
+
 }

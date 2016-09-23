@@ -1,23 +1,22 @@
 package com.javic.pokewhere.holders;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.view.View;
-import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.daimajia.androidanimations.library.Techniques;
+import com.daimajia.androidanimations.library.YoYo;
 import com.javic.pokewhere.R;
-import com.javic.pokewhere.models.Filtro;
-import com.javic.pokewhere.models.Opcion;
 import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
 import com.thoughtbot.expandablerecyclerview.viewholders.GroupViewHolder;
+
+import static android.view.animation.Animation.RELATIVE_TO_SELF;
 
 /**
  * Created by franciscojimenezjimenez on 12/09/16.
  */
-public class FiltroViewHolder extends GroupViewHolder{
+public class FiltroViewHolder extends GroupViewHolder {
     private TextView tv;
     private ImageView img_arrow;
 
@@ -38,19 +37,22 @@ public class FiltroViewHolder extends GroupViewHolder{
 
     @Override
     public void collapse() {
-        animateCollapse();
+        YoYo.with(Techniques.RotateInDownLeft)
+                .duration(700)
+                .playOn(img_arrow);
     }
 
-    private void animateExpand()
-    {
-        RotateAnimation rotate = new RotateAnimation(180,360, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+    private void animateCollapse() {
+        RotateAnimation rotate =
+                new RotateAnimation(0, 180, RELATIVE_TO_SELF, 0.5f, RELATIVE_TO_SELF, 0.5f);
         rotate.setDuration(300);
         rotate.setFillAfter(true);
         img_arrow.setAnimation(rotate);
     }
 
-    private void animateCollapse(){
-        RotateAnimation rotate = new RotateAnimation(360,180, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+    private void animateExpand() {
+        RotateAnimation rotate =
+                new RotateAnimation(180, 0, RELATIVE_TO_SELF, 0.5f, RELATIVE_TO_SELF, 0.5f);
         rotate.setDuration(300);
         rotate.setFillAfter(true);
         img_arrow.setAnimation(rotate);

@@ -15,6 +15,7 @@
     <string name="action_location">Ir a mi ubicación</string>
     <string name="action_filter">Filtrar </string>
     <string name="action_aplicar_filtros">APLICAR</string>
+    <string name="action_transferir">TRANSFERIR</string>
 
 
     <!-- User Location -->

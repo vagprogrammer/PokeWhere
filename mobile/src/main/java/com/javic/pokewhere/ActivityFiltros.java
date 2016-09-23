@@ -2,11 +2,10 @@ package com.javic.pokewhere;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,13 +17,11 @@ import com.javic.pokewhere.models.Opcion;
 import com.javic.pokewhere.util.Constants;
 import com.thoughtbot.expandablecheckrecyclerview.listeners.OnCheckChildClickListener;
 import com.thoughtbot.expandablecheckrecyclerview.models.CheckedExpandableGroup;
-import com.thoughtbot.expandablerecyclerview.listeners.GroupExpandCollapseListener;
-import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ActivityFiltros extends AppCompatActivity implements GroupExpandCollapseListener,OnCheckChildClickListener {
+public class ActivityFiltros extends AppCompatActivity implements OnCheckChildClickListener {
 
     private static final String TAG = ActivityFiltros.class.getSimpleName();
 
@@ -106,7 +103,6 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
         //instantiate your adapter with the list of bands
         mAdpaterFiltro = new AdapterFiltro(mFiltros);
 
-        mAdpaterFiltro.setOnGroupExpandCollapseListener(ActivityFiltros.this);
         mAdpaterFiltro.setChildClickListener(ActivityFiltros.this);
 
         mRecyclerView.setLayoutManager(mLayoutManager);
@@ -271,17 +267,6 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
 
     public void setPref(String prefKey, Boolean pref){
         mEditor.putBoolean(prefKey, pref);
-    }
-
-    //Callbacks related to the ExpandableRecyclerView
-    @Override
-    public void onGroupExpanded(ExpandableGroup group) {
-        Log.i(TAG, "Expanded: " + group.getTitle() );
-    }
-
-    @Override
-    public void onGroupCollapsed(ExpandableGroup group) {
-        Log.i(TAG, "Collapsed: " + group.getTitle() );
     }
 
     @Override

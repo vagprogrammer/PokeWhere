@@ -384,7 +384,6 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
         switch (view.getId()){
             case R.id.email_sign_in_button:
                 startActivity(new Intent(this, ActivityLogin.class));
-                finish();
                 break;
 
             case R.id.google_sign_in_button:
