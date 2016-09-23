@@ -12,11 +12,15 @@ import android.view.View;
 import android.widget.CheckedTextView;
 
 import com.javic.pokewhere.adapters.AdapterFiltro;
+import com.javic.pokewhere.holders.FiltroViewHolder;
 import com.javic.pokewhere.models.Filtro;
 import com.javic.pokewhere.models.Opcion;
 import com.javic.pokewhere.util.Constants;
 import com.thoughtbot.expandablecheckrecyclerview.listeners.OnCheckChildClickListener;
 import com.thoughtbot.expandablecheckrecyclerview.models.CheckedExpandableGroup;
+import com.thoughtbot.expandablecheckrecyclerview.models.MultiCheckExpandableGroup;
+import com.thoughtbot.expandablerecyclerview.listeners.GroupExpandCollapseListener;
+import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
 
 import java.util.ArrayList;
 import java.util.List;

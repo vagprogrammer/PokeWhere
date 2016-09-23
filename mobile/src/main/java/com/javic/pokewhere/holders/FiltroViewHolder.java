@@ -18,6 +18,7 @@ import static android.view.animation.Animation.RELATIVE_TO_SELF;
  */
 public class FiltroViewHolder extends GroupViewHolder {
     private TextView tv;
+    //public ImageView img_filtro;
     private ImageView img_arrow;
 
     public FiltroViewHolder(View itemView) {
@@ -27,34 +28,13 @@ public class FiltroViewHolder extends GroupViewHolder {
     }
 
     public void setFiltroTitle(ExpandableGroup group) {
+
         tv.setText(group.getTitle());
     }
 
-    @Override
-    public void expand() {
-        animateExpand();
-    }
 
-    @Override
-    public void collapse() {
-        YoYo.with(Techniques.RotateInDownLeft)
-                .duration(700)
-                .playOn(img_arrow);
-    }
+    /*public void setFiltroImage(int res) {
 
-    private void animateCollapse() {
-        RotateAnimation rotate =
-                new RotateAnimation(0, 180, RELATIVE_TO_SELF, 0.5f, RELATIVE_TO_SELF, 0.5f);
-        rotate.setDuration(300);
-        rotate.setFillAfter(true);
-        img_arrow.setAnimation(rotate);
-    }
-
-    private void animateExpand() {
-        RotateAnimation rotate =
-                new RotateAnimation(180, 0, RELATIVE_TO_SELF, 0.5f, RELATIVE_TO_SELF, 0.5f);
-        rotate.setDuration(300);
-        rotate.setFillAfter(true);
-        img_arrow.setAnimation(rotate);
-    }
+        img_filtro.setImageResource(res);
+    }*/
 }

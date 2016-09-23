@@ -21,26 +21,25 @@ import java.util.List;
 /**
  * Created by franciscojimenezjimenez on 12/09/16.
  */
-public class AdapterFiltro extends CheckableChildRecyclerViewAdapter<FiltroViewHolder, OpcionViewHolder> {
+public class AdapterChildTransferablePokemon extends CheckableChildRecyclerViewAdapter<FiltroViewHolder, ChildTransferablePokemonViewHolder> {
 
 
-    public AdapterFiltro(List<Filtro> groups) {
+    public AdapterChildTransferablePokemon(List<Filtro> groups) {
         super(groups);
     }
 
     @Override
-    public OpcionViewHolder onCreateCheckChildViewHolder(ViewGroup parent, int viewType) {
+    public ChildTransferablePokemonViewHolder onCreateCheckChildViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.layout_recycler_item_opcion, parent, false);
+                .inflate(R.layout.layout_recycler_item_child_transferable_pokemon, parent, false);
 
-        return new OpcionViewHolder(view);
+        return new ChildTransferablePokemonViewHolder(view);
     }
 
     @Override
-    public void onBindCheckChildViewHolder(OpcionViewHolder holder, int flatPosition, CheckedExpandableGroup group, int childIndex) {
-        final Opcion opcion = (Opcion) group.getItems().get(childIndex);
+    public void onBindCheckChildViewHolder(ChildTransferablePokemonViewHolder holder, int flatPosition, CheckedExpandableGroup group, int childIndex) {
+        final ChildTransferablePokemon opcion = (ChildTransferablePokemon) group.getItems().get(childIndex);
         holder.setOpcionTitle(opcion.getTitle());
-        holder.setOpcionImage(opcion.getImage());
     }
 
     @Override
@@ -53,7 +52,6 @@ public class AdapterFiltro extends CheckableChildRecyclerViewAdapter<FiltroViewH
     @Override
     public void onBindGroupViewHolder(FiltroViewHolder holder, int flatPosition, final ExpandableGroup group) {
         holder.setFiltroTitle(group);
-
     }
 }
 

@@ -21,11 +21,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.R;
+import com.javic.pokewhere.adapters.AdapterChildTransferablePokemon;
 import com.javic.pokewhere.adapters.AdapterFiltro;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
+import com.javic.pokewhere.models.ChildTransferablePokemon;
 import com.javic.pokewhere.models.Filtro;
 import com.javic.pokewhere.models.Opcion;
 import com.javic.pokewhere.models.TransferablePokemon;
@@ -37,13 +40,15 @@ import com.thoughtbot.expandablerecyclerview.listeners.GroupExpandCollapseListen
 import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import POGOProtos.Enums.PokemonIdOuterClass;
 import POGOProtos.Networking.Responses.ReleasePokemonResponseOuterClass;
 
 
-public class FragmentTransfer extends Fragment implements View.OnClickListener, GroupExpandCollapseListener, OnCheckChildClickListener {
+public class FragmentTransfer extends Fragment implements GroupExpandCollapseListener, OnCheckChildClickListener {
 
     private static final String TAG = FragmentTransfer.class.getSimpleName();
 
@@ -54,8 +59,6 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
 
     //Fragment UI
     private View mView;
-    private TextView tvStatus;
-    private Button btnTransferir;
     private RecyclerView mRecyclerView;
     private LinearLayoutManager mLayoutManager;
     private Toolbar mToolbar;
@@ -71,13 +74,12 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
     private TransferTask mTransferTask;
 
     //Adapters
-    private AdapterFiltro mAdpaterFiltro;
+    private AdapterChildTransferablePokemon mAdpaterChildTransferablePokemon;
 
     //Listas
     private List<Pokemon> mUserPokemons;
-    private List<TransferablePokemon> mTransferablePokemons = new ArrayList<>();;
-    private List<Filtro> mFiltrosPokemons = new ArrayList<>();
-
+    private List<TransferablePokemon> mTransferablePokemons = new ArrayList<>();
+    private List<Filtro> mFiltrosPokemonList = new ArrayList<>();;
 
     public FragmentTransfer() {
         // Required empty public constructor
@@ -110,7 +112,17 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
 
         switch (item.getItemId()) {
             case R.id.action_transferir:
+                if (isDeviceOnline()) {
+                    if (mTransferTask == null) {
+                        mTransferTask = new TransferTask(true);
 
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                            mTransferTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                        } else {
+                            mTransferTask.execute();
+                        }
+                    }
+                }
                 break;
 
             default:
@@ -140,8 +152,6 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
         ActivityDashboard.mDrawerLayout.addDrawerListener(mDrawerToggle);
 
         mLayoutManager = new LinearLayoutManager(mContext);
-        tvStatus = (TextView) mView.findViewById(R.id.textViewStatus);
-        btnTransferir = (Button) mView.findViewById(R.id.buttonTransferir);
 
         return mView;
     }
@@ -161,16 +171,14 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
         super.onViewCreated(view, savedInstanceState);
 
         if (mPokemonGo != null) {
-            btnTransferir.setOnClickListener(this);
-
             //instantiate your adapter with the list of bands
-            mAdpaterFiltro = new AdapterFiltro(mFiltrosPokemons);
+            mAdpaterChildTransferablePokemon = new AdapterChildTransferablePokemon(mFiltrosPokemonList);
 
-            mAdpaterFiltro.setOnGroupExpandCollapseListener(this);
-            mAdpaterFiltro.setChildClickListener(this);
+            mAdpaterChildTransferablePokemon.setOnGroupExpandCollapseListener(this);
+            mAdpaterChildTransferablePokemon.setChildClickListener(this);
 
             mRecyclerView.setLayoutManager(mLayoutManager);
-            mRecyclerView.setAdapter(mAdpaterFiltro);
+            mRecyclerView.setAdapter(mAdpaterChildTransferablePokemon);
 
             new Thread(new Runnable() {
                 public void run() {
@@ -180,7 +188,7 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            mAdpaterFiltro.notifyDataSetChanged();
+                            mAdpaterChildTransferablePokemon.notifyDataSetChanged();
                             mListener.onFragmentCreatedViewStatus(true);
                         }
                     });
@@ -220,31 +228,41 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
         mListener = null;
     }
 
-    @Override
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.buttonTransferir:
-
-                if (isDeviceOnline()) {
-                    if (mTransferTask == null) {
-                        mTransferTask = new TransferTask(true);
-
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                            mTransferTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                        } else {
-                            mTransferTask.execute();
-                        }
-                    }
-                }
-
-                break;
-        }
-    }
 
     @Override
     public void onCheckChildCLick(View v, boolean checked, CheckedExpandableGroup group, int childIndex) {
 
+        ChildTransferablePokemon childTransferablePokemon = (ChildTransferablePokemon) group.getItems().get(childIndex);
+        TransferablePokemon transferablePokemon = getTransferablePokemon(childTransferablePokemon.getId());
+
+        if (transferablePokemon!=null){
+
+            if(!transferablePokemon.getFavorite()){
+
+                if (transferablePokemon.getTransfer()){
+                    transferablePokemon.setTransfer(checked);
+                    mTransferablePokemons.set(mTransferablePokemons.indexOf(getTransferablePokemon(childTransferablePokemon.getId())), transferablePokemon);
+                    group.onChildClicked(childIndex, false);
+                }
+                else{
+                    transferablePokemon.setTransfer(checked);
+                    mTransferablePokemons.set(mTransferablePokemons.indexOf(getTransferablePokemon(childTransferablePokemon.getId())), transferablePokemon);
+                    group.onChildClicked(childIndex, true);
+                }
+
+            }
+            else{
+                Toast.makeText(mContext, "No puedes transferir un pokémon favorito", Toast.LENGTH_SHORT).show();
+                group.onChildClicked(childIndex, false);
+            }
+        }
+        else{
+            Toast.makeText(mContext, "Ocurrio un error, intentalo más tarde", Toast.LENGTH_SHORT).show();
+            group.onChildClicked(childIndex, false);
+        }
+
     }
+
 
     @Override
     public void onGroupExpanded(ExpandableGroup group) {
@@ -272,30 +290,30 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
 
             try {
 
-                List<Pokemon> pokemons = mPokemonGo.getInventories().getPokebank().getPokemons();
-
-                for (Pokemon pokemonToTransfer : pokemons) {
+                for (TransferablePokemon transferablePokemon : mTransferablePokemons) {
 
                     if (isTransfering) {
-                        if (pokemonToTransfer.getPokemonId() == PokemonIdOuterClass.PokemonId.PIDGEY ||
-                                pokemonToTransfer.getPokemonId() == PokemonIdOuterClass.PokemonId.RATTATA ||
-                                pokemonToTransfer.getPokemonId() == PokemonIdOuterClass.PokemonId.EKANS ||
-                                pokemonToTransfer.getPokemonId() == PokemonIdOuterClass.PokemonId.MAGNEMITE ||
-                                pokemonToTransfer.getPokemonId() == PokemonIdOuterClass.PokemonId.SANDSHREW ||
-                                pokemonToTransfer.getPokemonId() == PokemonIdOuterClass.PokemonId.GEODUDE ||
-                                pokemonToTransfer.getPokemonId() == PokemonIdOuterClass.PokemonId.MANKEY ||
-                                pokemonToTransfer.getPokemonId() == PokemonIdOuterClass.PokemonId.VENONAT) {
-                            publishProgress("Transfering " + pokemonToTransfer.getPokemonId() + " with CP: " + String.valueOf(pokemonToTransfer.getCp()) + "... ");
-                            pokemonToTransfer.debug();
-                            ReleasePokemonResponseOuterClass.ReleasePokemonResponse.Result result = pokemonToTransfer.transferPokemon();
-                            publishProgress("Transfered result: " + result);
-                            sleep(500);
+                        if (transferablePokemon.getTransfer()) {
+                            Pokemon pokemonToTransfer = getUserPokemon(transferablePokemon.getId());
+
+                            if (pokemonToTransfer!=null){
+                                publishProgress(pokemonToTransfer.getPokemonId().toString());
+                                pokemonToTransfer.debug();
+                                ReleasePokemonResponseOuterClass.ReleasePokemonResponse.Result result = pokemonToTransfer.transferPokemon();
+                                publishProgress(result.toString());
+
+                                sleep(500);
+                            }
                         }
                     } else {
                         mTransferTask.cancel(true);
                     }
 
                 }
+
+                //To update the list
+                mListener.onFragmentCreatedViewStatus(false);
+                setUpFiltros();
 
                 return true;
 
@@ -313,7 +331,9 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
 
             super.onProgressUpdate(data);
 
-            tvStatus.setText(data[0]);
+            ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(data[0]);
+
+            //tvStatus.setText(data[0]);
 
         }
 
@@ -328,14 +348,19 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        tvStatus.setText("Transfering complete");
+
+                        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle("Complete");
+
+                        mAdpaterChildTransferablePokemon.notifyDataSetChanged();
+                        mListener.onFragmentCreatedViewStatus(true);
                     }
                 });
             } else {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        tvStatus.setText("Ocurrio un error, por favor intentalo de nuevo.");
+
+                        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle("Try again!");
                     }
                 });
             }
@@ -382,6 +407,8 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
 
     public void setUpFiltros() {
 
+        mFiltrosPokemonList.clear();
+
         try {
             mUserPokemons = mPokemonGo.getInventories().getPokebank().getPokemons();
 
@@ -390,7 +417,7 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
                 if (!containsEncounteredId(pokemon.getPokemonId())){
                     //Obtenemos todos los pokemons para este id
                     List<Pokemon> specificPokemons = mPokemonGo.getInventories().getPokebank().getPokemonByPokemonId(pokemon.getPokemonId());
-                    List<Opcion> mOpcionPokemons = new ArrayList<>();
+                    List<ChildTransferablePokemon> mChildTransferablePokemonList = new ArrayList<>();
 
                     for (Pokemon specificPokemon:specificPokemons){
 
@@ -402,11 +429,30 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
                         transferablePokemon.setDead(specificPokemon.isInjured());
                         mTransferablePokemons.add(transferablePokemon);
 
-                        mOpcionPokemons.add(new Opcion(R.drawable.ic_pokeball,specificPokemon.getPokemonId().toString() + " CP: " + String.valueOf(transferablePokemon.getCp() )));
+                        mChildTransferablePokemonList.add(new ChildTransferablePokemon(specificPokemon.getId(), transferablePokemon.getCp(), specificPokemon.getPokemonId().toString() + " CP: " + String.valueOf(transferablePokemon.getCp() )));
 
                     }
 
-                    mFiltrosPokemons.add(new Filtro(pokemon.getPokemonId().toString(), mOpcionPokemons));
+                    // Sorting
+                    Collections.sort(mChildTransferablePokemonList, new Comparator<ChildTransferablePokemon>() {
+
+                        @Override
+                        public int compare(ChildTransferablePokemon childTransferablePokemon1, ChildTransferablePokemon childTransferablePokemon2) {
+                            return childTransferablePokemon1.getCp() - childTransferablePokemon2.getCp(); // Ascending
+                        }
+                    });
+
+                    mFiltrosPokemonList.add(new Filtro(pokemon.getPokemonId().toString(), mChildTransferablePokemonList));
+
+                    // Sorting
+                    Collections.sort(mFiltrosPokemonList, new Comparator<Filtro>() {
+
+                        @Override
+                        public int compare(Filtro filtro1, Filtro filtro2) {
+
+                            return filtro1.getTitle().compareTo(filtro2.getTitle());
+                        }
+                    });
                 }
             }
         } catch (Exception e) {
@@ -416,7 +462,7 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
 
     public boolean containsEncounteredId(PokemonIdOuterClass.PokemonId enconunteredId) {
 
-        for (Filtro filtroPokemon : mFiltrosPokemons) {
+        for (Filtro filtroPokemon : mFiltrosPokemonList) {
             if (filtroPokemon.getTitle() == enconunteredId.toString()) {
                 return true;
             }
@@ -424,6 +470,26 @@ public class FragmentTransfer extends Fragment implements View.OnClickListener, 
 
         //If the encontered id exist, return true, if it doesn't exist return false
         return false;
+    }
+
+    public TransferablePokemon getTransferablePokemon(Long idPokemon) {
+
+        for (TransferablePokemon transferablePokemon: mTransferablePokemons) {
+            if (String.valueOf(transferablePokemon.getId()).equalsIgnoreCase(String.valueOf(idPokemon))) {
+                return transferablePokemon;
+            }
+        }
+        return null;
+    }
+
+    public Pokemon getUserPokemon(Long idPokemon) {
+
+        for (Pokemon pokemon: mUserPokemons) {
+            if (String.valueOf(pokemon.getId()).equalsIgnoreCase(String.valueOf(idPokemon))) {
+                return pokemon;
+            }
+        }
+        return null;
     }
 
 }
