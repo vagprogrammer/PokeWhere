@@ -60,6 +60,7 @@ import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.gym.Gym;
 import com.pokegoapi.api.map.fort.Pokestop;
+import com.pokegoapi.api.map.fort.PokestopLootResult;
 import com.pokegoapi.api.map.pokemon.CatchResult;
 import com.pokegoapi.api.map.pokemon.CatchablePokemon;
 import com.pokegoapi.api.map.pokemon.encounter.EncounterResult;
@@ -101,6 +102,8 @@ public class FragmentMap extends Fragment implements
     private FloatingSearchView mSearchView;
     private FloatingActionButton mGetPokemonsButton;
     private ImageView mUserMarker;
+    private Snackbar mSnackBar;
+    private Snackbar mSnackBarPermisions;
 
     // API PokemonGO
     private static PokemonGo mPokemonGo;
@@ -126,14 +129,14 @@ public class FragmentMap extends Fragment implements
     private Boolean mWhiteGymsMarkers;
 
 
-    public Boolean isSearching = true;
-
+    //Variables
+    private Boolean isSearching = true;
     private LatLng ltn = null;
+
 
     private CounterToRemoveMarkers mCounterExpirationTime;
 
-    private Snackbar mSnackBar;
-    private Snackbar mSnackBarPermisions;
+
 
     public FragmentMap() {
         // Required empty public constructor
@@ -691,7 +694,7 @@ public class FragmentMap extends Fragment implements
             }
         }
 
-        if (mGymsTask == null) {
+        /*if (mGymsTask == null) {
             mGymsTask = new GymsTask(true);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -699,7 +702,7 @@ public class FragmentMap extends Fragment implements
             } else {
                 mGymsTask.execute();
             }
-        }
+        }*/
     }
 
     /**
@@ -726,7 +729,7 @@ public class FragmentMap extends Fragment implements
                     if (ltn == null) {
                         ltn = new LatLng(userPosition.longitude, userPosition.latitude);
                     } else {
-                        ltn = getRandomeLocation(userPosition.longitude, userPosition.latitude, 200);
+                        ltn = getRandomeLocation(userPosition.longitude, userPosition.latitude, 100);
                     }
 
                     if (isDeviceOnline()) {
@@ -743,7 +746,7 @@ public class FragmentMap extends Fragment implements
                                     EncounterResult encResult = chablePokemon.encounterPokemon();
                                     // if encounter was succesful, catch
                                     if (encResult.wasSuccessful()) {
-                                        Log.i(TAG, " Encounted: " + chablePokemon.getPokemonId());
+                                        Log.i(TAG, " Encountered: " + chablePokemon.getPokemonId());
 
                                         CatchResult result = chablePokemon.catchPokemon();
 
@@ -899,20 +902,34 @@ public class FragmentMap extends Fragment implements
                                 localPokeStop.setLatitude(pkStop.getLatitude());
                                 localPokeStop.setLongitude(pkStop.getLongitude());
 
-                                Boolean isEncountered = containsEncounteredId(localPokeStop, localPokeStop.getId());
+                                //Boolean isEncountered = containsEncounteredId(localPokeStop, localPokeStop.getId());
 
-                                if (!isEncountered) {
+                                if (!containsEncounteredId(localPokeStop, localPokeStop.getId())) {
 
-                                    sleep(1000);
-                                    localPokeStop.setHasLure(pkStop.hasLure());
-                                    localPokeStop.setName(pkStop.getDetails().getName());
-                                    localPokeStop.setDescription(pkStop.getDetails().getDescription());
-                                    //localPokeStop.setDistance(pkStop.getDistance());
+                                    //Check if the pokestop is in range to Loot (< 150 [m])
+                                    if (!shouldMarkerRemove(localPokeStop)){
 
-                                    mLocalPokeStops.add(localPokeStop);
-                                    publishProgress(localPokeStop);
+                                        if (isinRange(localPokeStop)){
+                                            mPokemonGo.setLocation(localPokeStop.getLatitude(), localPokeStop.getLongitude(), 1);
+
+                                            Log.i(TAG, " Encountered PokeStop: " + pkStop.getId());
+
+                                            if (pkStop.canLoot()){
+                                                PokestopLootResult result = pkStop.loot();
+                                                Log.i(TAG, "Attempt to catch: " + pkStop.getId() + "Items obtained: " + String.valueOf(result.getItemsAwarded().size()));
+                                            }
+                                        }
+
+                                        sleep(1000);
+                                        localPokeStop.setHasLure(pkStop.hasLure());
+                                        localPokeStop.setName(pkStop.getDetails().getName());
+                                        localPokeStop.setDescription(pkStop.getDetails().getDescription());
+                                        //localPokeStop.setDistance(pkStop.getDistance());
+
+                                        mLocalPokeStops.add(localPokeStop);
+                                        publishProgress(localPokeStop);
+                                    }
                                 }
-
                             }
 
                         }
@@ -1569,7 +1586,33 @@ public class FragmentMap extends Fragment implements
             }
         }
 
+        //If the encontered id exist, return true, if it doesn't exist return false
+
         return false;
+    }
+
+    public Boolean isinRange(LocalPokeStop localPokeStop){
+
+        Boolean isInRange;
+
+        double earthRadius = 6371000; //meters
+
+        double dLat = Math.toRadians(localPokeStop.getLatitude() - userPosition.latitude);
+        double dLng = Math.toRadians(localPokeStop.getLongitude() - userPosition.longitude);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(userPosition.latitude)) * Math.cos(Math.toRadians(localPokeStop.getLatitude())) *
+                        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        float dist = (float) (earthRadius * c);
+
+        if (dist < 90) {
+            isInRange = true;
+        }else{
+            isInRange = false;
+        }
+
+        return isInRange;
     }
 
     public boolean shouldMarkerRemove(Object object) {
@@ -1602,7 +1645,7 @@ public class FragmentMap extends Fragment implements
             double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             float dist = (float) (earthRadius * c);
 
-            if (dist > 300) {
+            if (dist > 150) {
                 remove = true;
             }else{
                 remove = false;

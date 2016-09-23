@@ -25,6 +25,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.javic.pokewhere.fragments.FragmentMap;
+import com.javic.pokewhere.fragments.FragmentTransfer;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
 import com.javic.pokewhere.services.ServiceFloatingMap;
 import com.javic.pokewhere.util.Constants;
@@ -43,6 +44,8 @@ public class ActivityDashboard extends AppCompatActivity
 
     private static final int MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE = 100;
     private FragmentMap mFragmentMap;
+    private FragmentTransfer mFragmentTransfer;
+
     private Bundle mExtras;
 
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -148,7 +151,8 @@ public class ActivityDashboard extends AppCompatActivity
         } else if (id == R.id.nav_gallery) {
 
         } else if (id == R.id.nav_slideshow) {
-
+            // Handle the camera action
+            setFragment(2);
         } else if (id == R.id.nav_manage) {
 
         } else if (id == R.id.nav_share) {
@@ -164,13 +168,12 @@ public class ActivityDashboard extends AppCompatActivity
     }
 
     public void setFragment(int position) {
-        FragmentManager fragmentManager;
-        FragmentTransaction fragmentTransaction;
+
+        FragmentManager fragmentManager= getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         switch (position) {
             case 0:
-                fragmentManager = getSupportFragmentManager();
-                fragmentTransaction = fragmentManager.beginTransaction();
 
                 if (mGO != null) {
                     mFragmentMap = FragmentMap.newInstance(mGO);
@@ -178,6 +181,13 @@ public class ActivityDashboard extends AppCompatActivity
                     fragmentTransaction.commit();
                 }
 
+                break;
+            case 2:
+                if (mGO != null) {
+                    mFragmentTransfer = mFragmentTransfer.newInstance(mGO);
+                    fragmentTransaction.replace(R.id.content_fragment, mFragmentTransfer);
+                    fragmentTransaction.commit();
+                }
                 break;
         }
     }

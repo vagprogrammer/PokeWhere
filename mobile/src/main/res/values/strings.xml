@@ -38,8 +38,6 @@
     <string name="resume_alert_neg_btn">Nueva búsqueda</string>
 
 
-
-
     <string name="permission_access_coarse_location">Access location permission is needed for providing get pokemons.</string>
     <string name="action_snack_permission_access_coarse_location">Aceptar permiso</string>
 

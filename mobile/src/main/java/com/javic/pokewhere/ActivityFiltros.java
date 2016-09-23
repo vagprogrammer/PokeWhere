@@ -49,7 +49,7 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
         mPrefsUser = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
         mEditor= mPrefsUser.edit();
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.recyclerview);
+        mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         mLayoutManager = new LinearLayoutManager(this);
         mCheckedFilterAll = (CheckedTextView) findViewById(R.id.checked_tv_filtro_show_all);
         mCheckedFilterBusqueda = (CheckedTextView) findViewById(R.id.checked_tv_filtro_busqueda);
@@ -149,7 +149,7 @@ public class ActivityFiltros extends AppCompatActivity implements GroupExpandCol
             case android.R.id.home:
                 finish();
                 break;
-            case R.id.action_aplicar_filtros:
+            case R.id.action_aplicar:
                 mEditor.commit();
                 Intent intent = new Intent();
                 setResult(RESULT_OK, intent);
