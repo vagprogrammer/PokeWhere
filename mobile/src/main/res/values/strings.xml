@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">PokeWhere</string>
     <string name="title_activity_login">Sign in</string>
-
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_activity_splash_screen">Splash Screen</string>
 
     <!-- Navigation Drawer -->
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -16,6 +17,7 @@
     <string name="action_filter">Filtrar </string>
     <string name="action_aplicar_filtros">APLICAR</string>
     <string name="action_transferir">TRANSFERIR</string>
+    <string name="action_refresh">REFRESH</string>
 
 
     <!-- User Location -->
@@ -45,7 +47,7 @@
 
     <string name="snack_bar_error_with_pokemon">Ocurrio un error</string>
     <string name="snack_bar_error_with_pokemon_positive_btn">Reintentar</string>
-
+    <string name="snack_bar_error_with_pokemon_negative_btn">No ahora</string>
     <string name="snack_bar_neg_btn">Detener</string>
 
     <string name="permission_alert_title">Servicios de ubicación desactivados</string>
@@ -76,11 +78,6 @@
     <string name="action_snack_intentarlo_ahora">Inténtarlo ahora</string>
     <string name="pick_account">Es necesario que selecciones una cuenta</string>
     <string name="not_online">Por favor verifica tu conexión a internet</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_activity_splash_screen">Splash Screen</string>
-
 
     <!-- Strings related to Activity Filter -->
     <string name="filtro_all_markers">MOSTRAR TODO</string>

@@ -66,10 +66,6 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
     private String mEmail;
     private String mParamRefreshToken;
 
-    private String mUserName;
-    private int mUserTeam;
-    private int mUserLevel;
-
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
@@ -286,14 +282,10 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
 
     }
 
-    public void saveUserData(String userName, int userTeam, int userLevel){
+    public void saveUserData(){
 
         SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
         SharedPreferences.Editor editor= prefs_user.edit();
-
-        editor.putString(Constants.KEY_PREF_USER_NAME_KEY, userName);
-        editor.putInt(Constants.KEY_PREF_USER_TEAM_KEY, userTeam);
-        editor.putInt(Constants.KEY_PREF_USER_LEVEL_KEY, userLevel);
 
         editor.commit();
 

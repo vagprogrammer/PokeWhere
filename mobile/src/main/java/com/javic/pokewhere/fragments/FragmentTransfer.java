@@ -19,19 +19,16 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.adapters.AdapterChildTransferablePokemon;
-import com.javic.pokewhere.adapters.AdapterFiltro;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
 import com.javic.pokewhere.models.ChildTransferablePokemon;
-import com.javic.pokewhere.models.Filtro;
-import com.javic.pokewhere.models.Opcion;
+import com.javic.pokewhere.models.GroupTransferablePokemon;
 import com.javic.pokewhere.models.TransferablePokemon;
+import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.pokemon.Pokemon;
 import com.thoughtbot.expandablecheckrecyclerview.listeners.OnCheckChildClickListener;
@@ -79,7 +76,7 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
     //Listas
     private List<Pokemon> mUserPokemons;
     private List<TransferablePokemon> mTransferablePokemons = new ArrayList<>();
-    private List<Filtro> mFiltrosPokemonList = new ArrayList<>();;
+    private List<GroupTransferablePokemon> mFiltrosPokemonList = new ArrayList<>();;
 
     public FragmentTransfer() {
         // Required empty public constructor
@@ -124,7 +121,9 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
                     }
                 }
                 break;
-
+            case R.id.action_refresh:
+                mListener.onFragmentActionPerform(Constants.ACTION_REFRESH);
+                break;
             default:
                 break;
         }
@@ -301,8 +300,7 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
                                 pokemonToTransfer.debug();
                                 ReleasePokemonResponseOuterClass.ReleasePokemonResponse.Result result = pokemonToTransfer.transferPokemon();
                                 publishProgress(result.toString());
-
-                                sleep(500);
+                                sleep(300);
                             }
                         }
                     } else {
@@ -333,8 +331,6 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
 
             ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(data[0]);
 
-            //tvStatus.setText(data[0]);
-
         }
 
         @Override
@@ -349,18 +345,16 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
                     @Override
                     public void run() {
 
-                        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle("Complete");
-
                         mAdpaterChildTransferablePokemon.notifyDataSetChanged();
                         mListener.onFragmentCreatedViewStatus(true);
+                        //setActionBarTitle("Total: "+String.valueOf(mTransferablePokemons.size()));
                     }
                 });
             } else {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-
-                        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle("Try again!");
+                        setActionBarTitle("Try again!");
                     }
                 });
             }
@@ -404,10 +398,10 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
         }
     }
 
-
     public void setUpFiltros() {
 
         mFiltrosPokemonList.clear();
+        mTransferablePokemons.clear();
 
         try {
             mUserPokemons = mPokemonGo.getInventories().getPokebank().getPokemons();
@@ -442,15 +436,18 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
                         }
                     });
 
-                    mFiltrosPokemonList.add(new Filtro(pokemon.getPokemonId().toString(), mChildTransferablePokemonList));
+                    final String pokemonId = pokemon.getPokemonId().toString();
+                    final int childCount = mChildTransferablePokemonList.size();
+
+                    mFiltrosPokemonList.add(new GroupTransferablePokemon(pokemonId, childCount, pokemonId + " " + String.valueOf(childCount), mChildTransferablePokemonList));
 
                     // Sorting
-                    Collections.sort(mFiltrosPokemonList, new Comparator<Filtro>() {
+                    Collections.sort(mFiltrosPokemonList, new Comparator<GroupTransferablePokemon>() {
 
                         @Override
-                        public int compare(Filtro filtro1, Filtro filtro2) {
+                        public int compare(GroupTransferablePokemon filtro1, GroupTransferablePokemon filtro2) {
 
-                            return filtro1.getTitle().compareTo(filtro2.getTitle());
+                            return filtro1.getPokemonId().compareTo(filtro2.getPokemonId());
                         }
                     });
                 }
@@ -458,12 +455,14 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
         } catch (Exception e) {
             Log.i(TAG, e.toString());
         }
+
+        setActionBarTitle("Total: "+String.valueOf(mTransferablePokemons.size()));
     }
 
-    public boolean containsEncounteredId(PokemonIdOuterClass.PokemonId enconunteredId) {
+    public boolean containsEncounteredId(PokemonIdOuterClass.PokemonId enconunteredPokemonId) {
 
-        for (Filtro filtroPokemon : mFiltrosPokemonList) {
-            if (filtroPokemon.getTitle() == enconunteredId.toString()) {
+        for (GroupTransferablePokemon filtroPokemon : mFiltrosPokemonList) {
+            if (filtroPokemon.getPokemonId() == enconunteredPokemonId.toString()) {
                 return true;
             }
         }
@@ -490,6 +489,16 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
             }
         }
         return null;
+    }
+
+    public void setActionBarTitle(final String message){
+
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(message);
+            }
+        });
     }
 
 }

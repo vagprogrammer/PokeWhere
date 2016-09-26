@@ -3,7 +3,6 @@ package com.javic.pokewhere.models;
 import android.annotation.SuppressLint;
 
 import com.thoughtbot.expandablecheckrecyclerview.models.MultiCheckExpandableGroup;
-import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
 
 import java.util.List;
 

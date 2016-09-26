@@ -7,13 +7,10 @@ import android.view.ViewGroup;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.holders.ChildTransferablePokemonViewHolder;
 import com.javic.pokewhere.holders.FiltroViewHolder;
-import com.javic.pokewhere.holders.OpcionViewHolder;
 import com.javic.pokewhere.models.ChildTransferablePokemon;
-import com.javic.pokewhere.models.Filtro;
-import com.javic.pokewhere.models.Opcion;
+import com.javic.pokewhere.models.GroupTransferablePokemon;
 import com.thoughtbot.expandablecheckrecyclerview.CheckableChildRecyclerViewAdapter;
 import com.thoughtbot.expandablecheckrecyclerview.models.CheckedExpandableGroup;
-import com.thoughtbot.expandablerecyclerview.listeners.OnGroupClickListener;
 import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
 
 import java.util.List;
@@ -24,14 +21,14 @@ import java.util.List;
 public class AdapterChildTransferablePokemon extends CheckableChildRecyclerViewAdapter<FiltroViewHolder, ChildTransferablePokemonViewHolder> {
 
 
-    public AdapterChildTransferablePokemon(List<Filtro> groups) {
+    public AdapterChildTransferablePokemon(List<GroupTransferablePokemon> groups) {
         super(groups);
     }
 
     @Override
     public ChildTransferablePokemonViewHolder onCreateCheckChildViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.layout_recycler_item_child_transferable_pokemon, parent, false);
+                .inflate(R.layout.layout_transferable_pokemon_child, parent, false);
 
         return new ChildTransferablePokemonViewHolder(view);
     }

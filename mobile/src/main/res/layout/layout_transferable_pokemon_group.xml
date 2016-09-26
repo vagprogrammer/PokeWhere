@@ -23,6 +23,7 @@
                 android:typeface="monospace"
                 android:text="TITLE FOR FILTER"
                 android:gravity="center_vertical"
+                android:drawableLeft="@drawable/ic_pokeball"
                 android:drawablePadding="10dp"
                 android:textStyle="bold" />
 

@@ -48,11 +48,6 @@ public class ActivityDashboard extends AppCompatActivity
 
     private Bundle mExtras;
 
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private String mUserName;
-    private String mUserTeam;
-    private String mUserLevel;
-
     public static NavigationView mNavigationView;
     public static DrawerLayout mDrawerLayout;
     private View mHeaderView;
@@ -61,6 +56,11 @@ public class ActivityDashboard extends AppCompatActivity
     private OkHttpClient httpClient = new OkHttpClient();
     private PokemonGo mGO;
 
+    //Variables
+    String mUserName="";
+    int mUserTeam=0;
+    int mUserLevel =0;
+    long mUserExperience =0;
 
     // Activity UI
     private View mView;
@@ -89,30 +89,6 @@ public class ActivityDashboard extends AppCompatActivity
         mNavHeaderTitle = (TextView) mHeaderView.findViewById(R.id.nav_header_title);
         mNavHeaderSubtitle = (TextView) mHeaderView.findViewById(R.id.nav_header_subtitle);
         mNavHeaderImage = (ImageView) mHeaderView.findViewById(R.id.nav_header_image);
-
-        //Config UI
-        mUserName = getPref(Constants.KEY_PREF_USER_NAME_KEY);
-        mUserTeam = getPref(Constants.KEY_PREF_USER_TEAM_KEY);
-        mUserLevel = getPref(Constants.KEY_PREF_USER_LEVEL_KEY);
-
-
-        mNavHeaderTitle.setText(mUserName);
-        mNavHeaderSubtitle.setText("Nivel: " + String.valueOf(mUserLevel));
-
-        switch (Integer.parseInt(mUserTeam)) {
-            case 1:
-                mNavHeaderImage.setImageResource(R.drawable.ic_team_yellow);
-                break;
-            case 2:
-                mNavHeaderImage.setImageResource(R.drawable.ic_team_blue);
-                break;
-            case 3:
-                mNavHeaderImage.setImageResource(R.drawable.ic_team_red);
-                break;
-            default:
-                mNavHeaderImage.setImageResource(R.drawable.ic_gym_team_white);
-                break;
-        }
 
         mNavigationView.setNavigationItemSelectedListener(this);
     }
@@ -246,15 +222,45 @@ public class ActivityDashboard extends AppCompatActivity
                             mGO = new PokemonGo(new GoogleUserCredentialProvider(httpClient, getPref(Constants.KEY_PREF_REFRESH_TOKEN)), httpClient);
 
                         } else {
+                            //Error
                             //User is logged in with username and password
                             mGO = new PokemonGo(new PtcCredentialProvider(httpClient, getPref(Constants.KEY_PREF_USER_EMAIL), getPref(Constants.KEY_PREF_USER_PASS)), httpClient);
                         }
+
+
+                        if (mGO!=null){
+                            mUserName = mGO.getPlayerProfile().getPlayerData().getUsername();
+                            mUserTeam = mGO.getPlayerProfile().getPlayerData().getTeamValue();
+                            mUserLevel = mGO.getPlayerProfile().getStats().getLevel();
+                            mUserExperience = mGO.getPlayerProfile().getStats().getExperience();
+                        }
+
 
                         runOnUiThread(new Runnable() {
                             public void run() {
 
                                 if (mGO != null) {
                                     //First start (Inbox Fragment)
+
+                                    mNavHeaderTitle.setText(mUserName);
+
+                                    mNavHeaderSubtitle.setText("Nivel: " + String.valueOf(mUserLevel)+ " Experience: " + mUserExperience);
+
+                                    switch (mUserTeam) {
+                                        case 1:
+                                            mNavHeaderImage.setImageResource(R.drawable.ic_team_yellow);
+                                            break;
+                                        case 2:
+                                            mNavHeaderImage.setImageResource(R.drawable.ic_team_blue);
+                                            break;
+                                        case 3:
+                                            mNavHeaderImage.setImageResource(R.drawable.ic_team_red);
+                                            break;
+                                        default:
+                                            mNavHeaderImage.setImageResource(R.drawable.ic_gym_team_white);
+                                            break;
+                                    }
+
                                     setFragment(0);
                                     mNavigationView.getMenu().getItem(0).setChecked(true);
                                 } else {
@@ -371,14 +377,8 @@ public class ActivityDashboard extends AppCompatActivity
 
         SharedPreferences prefsPokeWhere = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
 
-        if (KEY_PREF.equalsIgnoreCase(Constants.KEY_PREF_USER_TEAM_KEY) || KEY_PREF.equalsIgnoreCase(Constants.KEY_PREF_USER_LEVEL_KEY)) {
-            String pref = String.valueOf(prefsPokeWhere.getInt(KEY_PREF, -1));
-            return pref;
-        } else {
             String pref = prefsPokeWhere.getString(KEY_PREF, "");
             return pref;
-
-        }
 
     }
 
@@ -412,6 +412,10 @@ public class ActivityDashboard extends AppCompatActivity
                     final Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + ActivityDashboard.this.getPackageName()));
                     startActivityForResult(intent, MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE);
                 }
+
+                break;
+            case Constants.ACTION_REFRESH:
+                connectWithPokemonGO();
 
                 break;
             default:

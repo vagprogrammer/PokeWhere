@@ -341,10 +341,6 @@ public class ActivityLogin extends AppCompatActivity{
 
         private final String mEmail;
         private final String mPassword;
-        private String userName;
-        private int userTeam;
-        private int userLevel;
-
 
         UserLoginTask(String email, String password) {
             mEmail = email;
@@ -364,10 +360,6 @@ public class ActivityLogin extends AppCompatActivity{
                     e.printStackTrace();
                 }
 
-                userName = go.getPlayerProfile().getPlayerData().getUsername();
-                userTeam = go.getPlayerProfile().getPlayerData().getTeamValue();
-                userLevel = go.getPlayerProfile().getStats().getLevel();
-
                 return true;
             } catch (LoginFailedException | RemoteServerException e) {
                 e.printStackTrace();
@@ -382,8 +374,7 @@ public class ActivityLogin extends AppCompatActivity{
 
             if (success) {
                 saveUserCredentials(mEmail, mPassword);
-                saveUserData(userName, userTeam, userLevel);
-
+                saveUserData();
                 Intent intent = new Intent(ActivityLogin.this, ActivityDashboard.class);
                 startActivity(intent);
 
@@ -501,14 +492,10 @@ public class ActivityLogin extends AppCompatActivity{
 
     }
 
-    public void saveUserData(String userName, int userTeam, int userLevel){
+    public void saveUserData(){
 
         SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
         SharedPreferences.Editor editor= prefs_user.edit();
-
-        editor.putString(Constants.KEY_PREF_USER_NAME_KEY, userName);
-        editor.putInt(Constants.KEY_PREF_USER_TEAM_KEY, userTeam);
-        editor.putInt(Constants.KEY_PREF_USER_LEVEL_KEY, userLevel);
 
         //Pref to show all the markers in teh map <def value is true>
         editor.putBoolean(Constants.KEY_PREF_ALL_MARKERS, true);
