@@ -31,6 +31,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -39,6 +40,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
@@ -73,6 +75,8 @@ import com.javic.pokewhere.models.PlaceSuggestion;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.gym.Gym;
+import com.pokegoapi.api.inventory.Item;
+import com.pokegoapi.api.inventory.Pokeball;
 import com.pokegoapi.api.map.fort.Pokestop;
 import com.pokegoapi.api.map.fort.PokestopLootResult;
 import com.pokegoapi.api.map.pokemon.CatchResult;
@@ -85,12 +89,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
+
+import POGOProtos.Inventory.Item.ItemAwardOuterClass;
+import POGOProtos.Inventory.Item.ItemIdOuterClass;
+import POGOProtos.Networking.Responses.FortSearchResponseOuterClass;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 
@@ -535,6 +544,8 @@ public class FragmentMap extends Fragment implements
 
     public void drawPokeStop(LocalPokeStop localPokeStop) {
 
+        Log.i(TAG, "DRAW: " + localPokeStop.getName());
+
         int resourceId;
 
         if (!localPokeStop.getHasLure()) {
@@ -766,18 +777,26 @@ public class FragmentMap extends Fragment implements
             try {
                 while (isSearching) {
 
-                    if (ltn == null) {
-                        ltn = new LatLng(userPosition.longitude, userPosition.latitude);
-                    } else {
-                        ltn = getRandomeLocation(userPosition.longitude, userPosition.latitude, 100);
-                    }
-
                     if (isDeviceOnline()) {
+
+                        if (ltn == null) {
+                            ltn = new LatLng(userPosition.longitude, userPosition.latitude);
+                        } else {
+                            ltn = getRandomeLocation(userPosition.longitude, userPosition.latitude, 100);
+                        }
 
                         mPokemonGo.setLocation(ltn.latitude, ltn.longitude, 1);
 
                         try {
                             List<CatchablePokemon> chablePokemons = mPokemonGo.getMap().getCatchablePokemon();
+
+                            List<Pokeball> pokeBallsList = new ArrayList<>();
+
+                            int normalPokeballs = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_POKE_BALL).getCount();
+                            int greatPokeBalls = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_GREAT_BALL).getCount();
+                            int ultraPokeballs = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_ULTRA_BALL).getCount();
+
+                            Log.i(TAG,"POKEBALL:" + String.valueOf(normalPokeballs)+ " GREAT_POKEBALL: " + String.valueOf(greatPokeBalls)+ " ULTRA_POKEBALL: " + String.valueOf(ultraPokeballs));
 
                             if (chablePokemons != null) {
                                 for (CatchablePokemon cachablePokemon : chablePokemons) {
@@ -870,52 +889,86 @@ public class FragmentMap extends Fragment implements
 
                 while (isSearching) {
 
-                    mPokemonGo.setLocation(userPosition.latitude, userPosition.longitude, 1);
+                    if (isDeviceOnline()) {
+                        mPokemonGo.setLocation(userPosition.latitude, userPosition.longitude, 1);
 
-                    try {
-                        List<Pokestop> pokeStops = new ArrayList<>(mPokemonGo.getMap().getMapObjects().getPokestops());
+                        try {
+                            List<Pokestop> pokeStops = new ArrayList<>(mPokemonGo.getMap().getMapObjects().getPokestops());
 
-                        if (pokeStops != null) {
+                            if (pokeStops != null) {
 
-                            for (Pokestop pkStop : pokeStops) {
+                                for (Pokestop pkStop : pokeStops) {
 
-                                LocalPokeStop localPokeStop = new LocalPokeStop();
-                                localPokeStop.setId(pkStop.getId());
-                                localPokeStop.setLatitude(pkStop.getLatitude());
-                                localPokeStop.setLongitude(pkStop.getLongitude());
+                                    //Check pokeStop to Add or Loot
+                                    if (!containsEncounteredId(pkStop, pkStop.getId())) {
 
-                                if (!containsEncounteredId(localPokeStop, localPokeStop.getId())) {
-
-                                    //Check if the pokestop is in range to Loot (< 150 [m])
-                                    if (!shouldMarkerRemove(localPokeStop)) {
-
-                                        if (isinRange(localPokeStop)) {
-                                            mPokemonGo.setLocation(localPokeStop.getLatitude(), localPokeStop.getLongitude(), 1);
+                                        //Check if the pokestop is in range to be drawed (< 150 [m])
+                                        if (!shouldMarkerRemove(pkStop)) {
 
                                             Log.i(TAG, " Encountered PokeStop: " + pkStop.getDetails().getName());
 
+                                            //Check if the pokestop is in range to be Loot (< 90 [m])
+                                            if (isinRange(pkStop)) {
+                                                Log.i(TAG, "Attempt to Loot...");
+                                                mPokemonGo.setLocation(pkStop.getLatitude(), pkStop.getLongitude(), 1);
+
+                                                if (pkStop.canLoot()) {
+                                                    PokestopLootResult result = pkStop.loot();
+
+                                                    if (result.wasSuccessful()){
+                                                        String items="";
+
+                                                        for (ItemAwardOuterClass.ItemAward itemAward: result.getItemsAwarded()){
+                                                            items.concat("*" + itemAward.getItemId().toString());
+                                                        }
+
+                                                        String message = "Items obtained: " + String.valueOf(result.getItemsAwarded().size()+ items);
+                                                        Log.i(TAG, message);
+                                                        showToast(message);
+                                                    }
+
+                                                    Log.i(TAG, "Result: " + result.getResult().toString());
+                                                }
+                                            }
+
+                                            //Add PokeStop
+                                            sleep(1000);
+                                            LocalPokeStop localPokeStop = new LocalPokeStop();
+                                            localPokeStop.setId(pkStop.getId());
+                                            localPokeStop.setLatitude(pkStop.getLatitude());
+                                            localPokeStop.setLongitude(pkStop.getLongitude());
+                                            localPokeStop.setHasLure(pkStop.hasLure());
+                                            localPokeStop.setName(pkStop.getDetails().getName());
+                                            localPokeStop.setDescription(pkStop.getDetails().getDescription());
+
+                                            mLocalPokeStops.add(localPokeStop);
+                                            publishProgress(localPokeStop);
+                                        }
+                                    }
+                                    else{
+                                        //Check if the pokestop is in range to be Loot (< 90 [m])
+                                        if (isinRange(pkStop)) {
+                                            Log.i(TAG, "Attempt to Loot " + pkStop.getDetails().getName());
+                                            mPokemonGo.setLocation(pkStop.getLatitude(), pkStop.getLongitude(), 1);
+
                                             if (pkStop.canLoot()) {
                                                 PokestopLootResult result = pkStop.loot();
-                                                Log.i(TAG, "Attempt to Loot: " + result.getResult().toString()  + " Items obtained: " + String.valueOf(result.getItemsAwarded().size()));
+
+                                                String message = "Result: " + result.getResult().toString() + " Items obtained: " + String.valueOf(result.getItemsAwarded().size());
+                                                Log.i(TAG, message);
+                                                showToast(message);
                                             }
                                         }
-
                                         sleep(1000);
-                                        localPokeStop.setHasLure(pkStop.hasLure());
-                                        localPokeStop.setName(pkStop.getDetails().getName());
-                                        localPokeStop.setDescription(pkStop.getDetails().getDescription());
-
-                                        mLocalPokeStops.add(localPokeStop);
-                                        publishProgress(localPokeStop);
                                     }
                                 }
-                            }
 
-                            sleep(10000);
+                                //sleep(10000);
+                            }
+                        } catch (LoginFailedException | RemoteServerException e) {
+                            Log.e(TAG, "Failed to get pokestops or server issue Login or RemoteServer exception: ", e);
+                            cancelTask(false);
                         }
-                    } catch (LoginFailedException | RemoteServerException e) {
-                        Log.e(TAG, "Failed to get pokestops or server issue Login or RemoteServer exception: ", e);
-                        cancelTask(false);
                     }
                 }
 
@@ -966,50 +1019,52 @@ public class FragmentMap extends Fragment implements
         }
 
         @Override
-        protected Boolean doInBackground(Void... params) {
+        protected Boolean doInBackground(Void... params)
+        {
 
             try {
 
                 while (isSearching) {
 
-                    mPokemonGo.setLocation(userPosition.latitude, userPosition.longitude, 1);
+                    if (isDeviceOnline()) {
 
-                    try {
-                        List<Gym> gyms = new ArrayList<>(mPokemonGo.getMap().getGyms());
+                        mPokemonGo.setLocation(userPosition.latitude, userPosition.longitude, 1);
 
-                        if (gyms != null) {
+                        try {
+                            List<Gym> gyms = new ArrayList<>(mPokemonGo.getMap().getGyms());
 
-                            for (Gym gym : gyms) {
-                                LocalGym localGym = new LocalGym();
-                                localGym.setId(gym.getId());
+                            if (gyms != null) {
 
-                                Boolean isEncountered = containsEncounteredId(localGym, localGym.getId());
+                                for (Gym gym : gyms) {
+                                    LocalGym localGym = new LocalGym();
+                                    localGym.setId(gym.getId());
 
-                                if (!isEncountered) {
+                                    Boolean isEncountered = containsEncounteredId(localGym, localGym.getId());
 
-                                    sleep(1000);
-                                    localGym.setName(gym.getName());
-                                    localGym.setTeam(gym.getOwnedByTeam().getNumber());
-                                    localGym.setInBattle(gym.getIsInBattle());
-                                    localGym.setPoints(gym.getPoints());
-                                    localGym.setLatitude(gym.getLatitude());
-                                    localGym.setLongitude(gym.getLongitude());
-                                    localGym.setDescription(gym.getDescription());
+                                    if (!isEncountered) {
 
-                                    mLocalGyms.add(localGym);
-                                    publishProgress(localGym);
+                                        sleep(1000);
+                                        localGym.setName(gym.getName());
+                                        localGym.setTeam(gym.getOwnedByTeam().getNumber());
+                                        localGym.setInBattle(gym.getIsInBattle());
+                                        localGym.setPoints(gym.getPoints());
+                                        localGym.setLatitude(gym.getLatitude());
+                                        localGym.setLongitude(gym.getLongitude());
+                                        localGym.setDescription(gym.getDescription());
+
+                                        mLocalGyms.add(localGym);
+                                        publishProgress(localGym);
+
+                                    }
 
                                 }
-
                             }
+                            sleep(10000);
+                        } catch (LoginFailedException | RemoteServerException e) {
+                            Log.e(TAG, "Failed to get gyms or server issue Login or RemoteServer exception: ", e);
+                            cancelTask(false);
                         }
-                        sleep(10000);
                     }
-                    catch(LoginFailedException | RemoteServerException e) {
-                        Log.e(TAG, "Failed to get gyms or server issue Login or RemoteServer exception: ", e);
-                        cancelTask(false);
-                    }
-
                 }
 
             } catch (Exception e){
@@ -1696,16 +1751,16 @@ public class FragmentMap extends Fragment implements
         return false;
     }
 
-    public Boolean isinRange(LocalPokeStop localPokeStop) {
+    public Boolean isinRange(Pokestop pokeStop) {
 
         Boolean isInRange;
 
         double earthRadius = 6371000; //meters
 
-        double dLat = Math.toRadians(localPokeStop.getLatitude() - userPosition.latitude);
-        double dLng = Math.toRadians(localPokeStop.getLongitude() - userPosition.longitude);
+        double dLat = Math.toRadians(pokeStop.getLatitude() - userPosition.latitude);
+        double dLng = Math.toRadians(pokeStop.getLongitude() - userPosition.longitude);
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(Math.toRadians(userPosition.latitude)) * Math.cos(Math.toRadians(localPokeStop.getLatitude())) *
+                Math.cos(Math.toRadians(userPosition.latitude)) * Math.cos(Math.toRadians(pokeStop.getLatitude())) *
                         Math.sin(dLng / 2) * Math.sin(dLng / 2);
 
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
@@ -1724,7 +1779,7 @@ public class FragmentMap extends Fragment implements
 
         Boolean remove = false;
 
-        if (object instanceof LocalPokeStop || object instanceof LocalGym) {
+        if (object instanceof Pokestop || object instanceof LocalGym || object instanceof LocalPokeStop) {
 
             double earthRadius = 6371000; //meters
 
@@ -1738,7 +1793,14 @@ public class FragmentMap extends Fragment implements
                 a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
                         Math.cos(Math.toRadians(userPosition.latitude)) * Math.cos(Math.toRadians(((LocalGym) object).getLatitude())) *
                                 Math.sin(dLng / 2) * Math.sin(dLng / 2);
-            } else if (object instanceof LocalPokeStop) {
+            } else if (object instanceof Pokestop) {
+                dLat = Math.toRadians(((Pokestop) object).getLatitude() - userPosition.latitude);
+                dLng = Math.toRadians(((Pokestop) object).getLongitude() - userPosition.longitude);
+                a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                        Math.cos(Math.toRadians(userPosition.latitude)) * Math.cos(Math.toRadians(((Pokestop) object).getLatitude())) *
+                                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            }
+            else if (object instanceof LocalPokeStop) {
                 dLat = Math.toRadians(((LocalPokeStop) object).getLatitude() - userPosition.latitude);
                 dLng = Math.toRadians(((LocalPokeStop) object).getLongitude() - userPosition.longitude);
                 a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -1833,8 +1895,14 @@ public class FragmentMap extends Fragment implements
 
                         Object object = marker.getTag();
 
-                        if (object instanceof PokeStopsTask){
+                        if (object instanceof LocalPokeStop){
                             mLocalPokeStops.remove(object);
+                        }
+                        else if(object instanceof  LocalGym){
+                            mLocalGyms.remove(object);
+                        }
+                        else if (object instanceof LocalPokemon){
+                            mLocalPokemons.remove(object);
                         }
                     }
                 }
@@ -1844,5 +1912,15 @@ public class FragmentMap extends Fragment implements
                 }
             }
         }
+    }
+
+    public void showToast(final String message){
+
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(mContext,message, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
