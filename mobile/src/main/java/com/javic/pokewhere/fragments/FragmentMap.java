@@ -912,7 +912,7 @@ public class FragmentMap extends Fragment implements
                                                 Log.i(TAG, "Attempt to Loot...");
                                                 mPokemonGo.setLocation(pkStop.getLatitude(), pkStop.getLongitude(), 1);
 
-                                                if (pkStop.canLoot()) {
+                                               // if (pkStop.canLoot()) {
                                                     PokestopLootResult result = pkStop.loot();
 
                                                     if (result.wasSuccessful()){
@@ -928,7 +928,7 @@ public class FragmentMap extends Fragment implements
                                                     }
 
                                                     Log.i(TAG, "Result: " + result.getResult().toString());
-                                                }
+                                               // }
                                             }
 
                                             //Add PokeStop
@@ -951,13 +951,23 @@ public class FragmentMap extends Fragment implements
                                             Log.i(TAG, "Attempt to Loot " + pkStop.getDetails().getName());
                                             mPokemonGo.setLocation(pkStop.getLatitude(), pkStop.getLongitude(), 1);
 
-                                            if (pkStop.canLoot()) {
-                                                PokestopLootResult result = pkStop.loot();
+                                            // if (pkStop.canLoot()) {
+                                            PokestopLootResult result = pkStop.loot();
 
-                                                String message = "Result: " + result.getResult().toString() + " Items obtained: " + String.valueOf(result.getItemsAwarded().size());
+                                            if (result.wasSuccessful()){
+                                                String items="";
+
+                                                for (ItemAwardOuterClass.ItemAward itemAward: result.getItemsAwarded()){
+                                                    items.concat("*" + itemAward.getItemId().toString());
+                                                }
+
+                                                String message = "Items obtained: " + String.valueOf(result.getItemsAwarded().size()+ items);
                                                 Log.i(TAG, message);
                                                 showToast(message);
                                             }
+
+                                            Log.i(TAG, "Result: " + result.getResult().toString());
+                                            // }
                                         }
                                         sleep(1000);
                                     }

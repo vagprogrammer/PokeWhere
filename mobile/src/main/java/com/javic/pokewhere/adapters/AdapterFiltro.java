@@ -8,6 +8,7 @@ import com.javic.pokewhere.R;
 import com.javic.pokewhere.holders.FiltroViewHolder;
 import com.javic.pokewhere.holders.OpcionViewHolder;
 import com.javic.pokewhere.models.Filtro;
+import com.javic.pokewhere.models.GroupTransferablePokemon;
 import com.javic.pokewhere.models.Opcion;
 import com.thoughtbot.expandablecheckrecyclerview.CheckableChildRecyclerViewAdapter;
 import com.thoughtbot.expandablecheckrecyclerview.models.CheckedExpandableGroup;

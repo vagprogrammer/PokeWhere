@@ -24,17 +24,21 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.games.Player;
 import com.javic.pokewhere.fragments.FragmentMap;
 import com.javic.pokewhere.fragments.FragmentTransfer;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
 import com.javic.pokewhere.services.ServiceFloatingMap;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
+import com.pokegoapi.api.inventory.Stats;
+import com.pokegoapi.api.player.PlayerProfile;
 import com.pokegoapi.auth.GoogleUserCredentialProvider;
 import com.pokegoapi.auth.PtcCredentialProvider;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
 
+import POGOProtos.Data.PlayerDataOuterClass;
 import okhttp3.OkHttpClient;
 
 public class ActivityDashboard extends AppCompatActivity
@@ -224,15 +228,19 @@ public class ActivityDashboard extends AppCompatActivity
                         } else {
                             //Error
                             //User is logged in with username and password
-                            mGO = new PokemonGo(new PtcCredentialProvider(httpClient, getPref(Constants.KEY_PREF_USER_EMAIL), getPref(Constants.KEY_PREF_USER_PASS)), httpClient);
+                             mGO = new PokemonGo(new PtcCredentialProvider(httpClient, getPref(Constants.KEY_PREF_USER_EMAIL), getPref(Constants.KEY_PREF_USER_PASS)), httpClient);
                         }
 
 
                         if (mGO!=null){
-                            mUserName = mGO.getPlayerProfile().getPlayerData().getUsername();
-                            mUserTeam = mGO.getPlayerProfile().getPlayerData().getTeamValue();
-                            mUserLevel = mGO.getPlayerProfile().getStats().getLevel();
-                            mUserExperience = mGO.getPlayerProfile().getStats().getExperience();
+
+                            final PlayerDataOuterClass.PlayerData playerData = mGO.getPlayerProfile().getPlayerData();
+                            final Stats stats = mGO.getPlayerProfile().getStats();
+
+                            mUserName = playerData.getUsername();
+                            mUserTeam = playerData.getTeamValue();
+                            mUserLevel = stats.getLevel();
+                            mUserExperience = stats.getExperience();
                         }
 
 

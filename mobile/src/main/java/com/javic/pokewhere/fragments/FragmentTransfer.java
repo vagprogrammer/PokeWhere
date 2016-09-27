@@ -171,7 +171,7 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
 
         if (mPokemonGo != null) {
             //instantiate your adapter with the list of bands
-            mAdpaterChildTransferablePokemon = new AdapterChildTransferablePokemon(mFiltrosPokemonList);
+            mAdpaterChildTransferablePokemon = new AdapterChildTransferablePokemon(mFiltrosPokemonList, mContext);
 
             mAdpaterChildTransferablePokemon.setOnGroupExpandCollapseListener(this);
             mAdpaterChildTransferablePokemon.setChildClickListener(this);
@@ -437,9 +437,10 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
                     });
 
                     final String pokemonId = pokemon.getPokemonId().toString();
+                    final int pokemonIdNumber = pokemon.getPokemonId().getNumber();
                     final int childCount = mChildTransferablePokemonList.size();
 
-                    mFiltrosPokemonList.add(new GroupTransferablePokemon(pokemonId, childCount, pokemonId + " " + String.valueOf(childCount), mChildTransferablePokemonList));
+                    mFiltrosPokemonList.add(new GroupTransferablePokemon(pokemonId, pokemonIdNumber ,childCount, pokemonId + " " + String.valueOf(childCount), mChildTransferablePokemonList));
 
                     // Sorting
                     Collections.sort(mFiltrosPokemonList, new Comparator<GroupTransferablePokemon>() {

@@ -1,6 +1,7 @@
 package com.javic.pokewhere.models;
 
 import android.annotation.SuppressLint;
+import android.graphics.Bitmap;
 
 import com.thoughtbot.expandablecheckrecyclerview.models.MultiCheckExpandableGroup;
 
@@ -14,11 +15,14 @@ public class GroupTransferablePokemon extends MultiCheckExpandableGroup {
 
     private String pokemonId;
     private int childCount;
+    private int pokemonIdNumber;
 
-    public GroupTransferablePokemon(String pokemonId, int childCount, String title, List items) {
+    public GroupTransferablePokemon(String pokemonId, int pokemonIdNumber, int childCount, String title, List items) {
         super(title, items);
-        this.childCount= childCount;
         this.pokemonId = pokemonId;
+        this.childCount= childCount;
+        this.pokemonIdNumber = pokemonIdNumber;
+
     }
 
     public String getPokemonId() {
@@ -35,5 +39,13 @@ public class GroupTransferablePokemon extends MultiCheckExpandableGroup {
 
     public void setChildCount(int childCount) {
         this.childCount = childCount;
+    }
+
+    public int getPokemonIdNumber() {
+        return pokemonIdNumber;
+    }
+
+    public void setPokemonIdNumber(int pokemonIdNumber) {
+        this.pokemonIdNumber = pokemonIdNumber;
     }
 }
