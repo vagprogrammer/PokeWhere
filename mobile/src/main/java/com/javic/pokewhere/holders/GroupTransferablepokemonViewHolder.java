@@ -15,13 +15,11 @@ import com.thoughtbot.expandablerecyclerview.viewholders.GroupViewHolder;
  */
 public class GroupTransferablePokemonViewHolder extends GroupViewHolder {
     private TextView tv;
-    public ImageView img_filtro;
-    private ImageView img_arrow;
+    private ImageView img_filtro;
 
     public GroupTransferablePokemonViewHolder(View itemView) {
         super(itemView);
         tv = (TextView) itemView.findViewById(R.id.tv_filtro);
-        img_arrow = (ImageView) itemView.findViewById(R.id.img_arrow_filtro);
         img_filtro = (ImageView) itemView.findViewById(R.id.img_filtro);
     }
 

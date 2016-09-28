@@ -6,7 +6,6 @@ package com.javic.pokewhere.util;
 public class Constants {
 
     public final static Boolean DEBUG_MODE = true;
-    public final static int RESULT_CODE_OK = 1;
     public static final int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
     public static final int ALERT_ADDRESS_RESULT_RECIVER = 0;
     public static final int ALERT_RESUME_TASK = 1;
@@ -28,8 +27,14 @@ public class Constants {
     public static final int USER_ZOOM =15;
 
     //Actions
-    public static final int ACTION_START_SERVICE = 0;
-    public static final int ACTION_REFRESH = 1;
+    public static final int ACTION_START_SERVICE = 1;
+
+
+    //Fragments
+    public static final int FRAGMENT_BLANK = -1;
+    public static final int FRAGMENT_MAPA = 0;
+    public static final int FRAGMENT_BAG = 1;
+    public static final int FRAGMENT_TRANSFER = 2;
 
     // Preferencias
     public static final String PREFS_POKEWHERE="prefs_pokewhere";

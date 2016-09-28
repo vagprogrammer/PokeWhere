@@ -59,7 +59,6 @@
     <string name="message_json_request_empty">Por ahora no hay ningún pokémon cerca, vuelve a intentarlo más tarde!</string>
     <string name="message_json_request_error">Ha ocurrido un error, vuelve a intentarlo más tarde!</string>
     <string name="message_snackbar_searching_text">Buscando pokémons...</string>
-
     <string name="text_hint_searchbar">Indicar ubicación, ej. Santa Monica Pier,CA...</string>
 
 

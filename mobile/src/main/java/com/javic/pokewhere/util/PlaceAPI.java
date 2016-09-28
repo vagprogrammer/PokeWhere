@@ -39,7 +39,7 @@ public class PlaceAPI {
             sb.append("?key=" + API_KEY);
             //sb.append("&types=regions");
             sb.append("&input=" + URLEncoder.encode(input, "utf8"));
-            Log.i("FragmentMap", sb.toString());
+            Log.i("FragmentMapa", sb.toString());
 
             URL url = new URL(sb.toString());
             conn = (HttpURLConnection) url.openConnection();

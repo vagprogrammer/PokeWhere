@@ -31,7 +31,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -75,7 +74,6 @@ import com.javic.pokewhere.models.PlaceSuggestion;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.gym.Gym;
-import com.pokegoapi.api.inventory.Item;
 import com.pokegoapi.api.inventory.Pokeball;
 import com.pokegoapi.api.map.fort.Pokestop;
 import com.pokegoapi.api.map.fort.PokestopLootResult;
@@ -89,7 +87,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -99,22 +96,21 @@ import java.util.Random;
 
 import POGOProtos.Inventory.Item.ItemAwardOuterClass;
 import POGOProtos.Inventory.Item.ItemIdOuterClass;
-import POGOProtos.Networking.Responses.FortSearchResponseOuterClass;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 
-public class FragmentMap extends Fragment implements
+public class FragmentMapa extends Fragment implements
         OnMapReadyCallback, GoogleMap.OnCameraChangeListener, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String TAG = FragmentMap.class.getSimpleName();
+    private static final String TAG = FragmentMapa.class.getSimpleName();
 
     // Google client to interact with Google API
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
     private LatLng userPosition;
 
-    // FragmentMap UI
+    // FragmentMapa UI
     private View mView;
     private GoogleMap mGoogleMap;
     private MapView mapView;
@@ -163,7 +159,7 @@ public class FragmentMap extends Fragment implements
     HandlerThread mHandlerThread;
     Handler mThreadHandler;
 
-    public FragmentMap() {
+    public FragmentMapa() {
         // Required empty public constructor
 
         if (mThreadHandler == null) {
@@ -210,10 +206,10 @@ public class FragmentMap extends Fragment implements
 
     /**
      * @param
-     * @return A new instance of fragment FragmentMap.
+     * @return A new instance of fragment FragmentMapa.
      */
-    public static FragmentMap newInstance(PokemonGo pokemonGo) {
-        FragmentMap fragment = new FragmentMap();
+    public static FragmentMapa newInstance(PokemonGo pokemonGo) {
+        FragmentMapa fragment = new FragmentMapa();
 
         mPokemonGo = pokemonGo;
 
@@ -364,7 +360,6 @@ public class FragmentMap extends Fragment implements
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .addApi(Places.GEO_DATA_API)
-                //.addApi(Places.PLACE_DETECTION_API)
                 .build();
     }
 
@@ -396,7 +391,7 @@ public class FragmentMap extends Fragment implements
         setUpGoogleMap();
         setUpSearchView();
 
-        mListener.onFragmentCreatedViewStatus(true);
+        mListener.onFragmentCreatedViewStatus(true, Constants.FRAGMENT_MAPA);
 
         mGoogleApiClient.connect();
 
@@ -518,12 +513,20 @@ public class FragmentMap extends Fragment implements
             InputStream is = null;
 
             if (localPokemon.getPokemonId() < 10) {
+                is = assetManager.open(String.valueOf("00" + localPokemon.getPokemonId()) + ".ico");
+            } else if (localPokemon.getPokemonId() < 100) {
+                is = assetManager.open(String.valueOf("0" + localPokemon.getPokemonId()) + ".ico");
+            } else {
+                is = assetManager.open(String.valueOf(localPokemon.getPokemonId()) + ".ico");
+            }
+
+            /*if (localPokemon.getPokemonId() < 10) {
                 is = assetManager.open(String.valueOf("00" + localPokemon.getPokemonId()) + ".png");
             } else if (localPokemon.getPokemonId() < 100) {
                 is = assetManager.open(String.valueOf("0" + localPokemon.getPokemonId()) + ".png");
             } else {
                 is = assetManager.open(String.valueOf(localPokemon.getPokemonId()) + ".png");
-            }
+            }*/
 
             Bitmap bitmap = BitmapFactory.decodeStream(is);
 
@@ -1372,8 +1375,6 @@ public class FragmentMap extends Fragment implements
             @Override
             public void onSearchAction(String query) {
 
-                Log.i(TAG, "onSearchAction()");
-
                 // Determine whether a Geocoder is available.
                 if (!Geocoder.isPresent()) {
                     Snackbar.make(mView, getString(R.string.no_geocoder_available), Snackbar.LENGTH_SHORT)
@@ -1396,6 +1397,7 @@ public class FragmentMap extends Fragment implements
 
                 }
 
+                Log.i(TAG, "onSearchAction()");
             }
         });
 

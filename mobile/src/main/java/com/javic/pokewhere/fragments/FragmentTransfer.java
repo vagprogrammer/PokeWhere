@@ -122,7 +122,7 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
                 }
                 break;
             case R.id.action_refresh:
-                mListener.onFragmentActionPerform(Constants.ACTION_REFRESH);
+                mListener.onFragmentActionPerform(Constants.FRAGMENT_TRANSFER);
                 break;
             default:
                 break;
@@ -188,7 +188,7 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
                         @Override
                         public void run() {
                             mAdpaterChildTransferablePokemon.notifyDataSetChanged();
-                            mListener.onFragmentCreatedViewStatus(true);
+                            mListener.onFragmentCreatedViewStatus(true, Constants.FRAGMENT_TRANSFER);
                         }
                     });
                 }
@@ -310,7 +310,7 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
                 }
 
                 //To update the list
-                mListener.onFragmentCreatedViewStatus(false);
+                mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_TRANSFER);
                 setUpFiltros();
 
                 return true;
@@ -346,7 +346,7 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
                     public void run() {
 
                         mAdpaterChildTransferablePokemon.notifyDataSetChanged();
-                        mListener.onFragmentCreatedViewStatus(true);
+                        mListener.onFragmentCreatedViewStatus(true, Constants.FRAGMENT_TRANSFER);
                         //setActionBarTitle("Total: "+String.valueOf(mTransferablePokemons.size()));
                     }
                 });

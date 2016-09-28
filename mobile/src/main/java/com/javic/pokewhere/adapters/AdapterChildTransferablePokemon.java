@@ -67,13 +67,20 @@ public class AdapterChildTransferablePokemon extends CheckableChildRecyclerViewA
             InputStream is = null;
 
             if (pokemonIdNumber < 10) {
+                is = assetManager.open(String.valueOf("00" +pokemonIdNumber) + ".ico");
+            } else if (pokemonIdNumber < 100) {
+                is = assetManager.open(String.valueOf("0" + pokemonIdNumber) + ".ico");
+            } else {
+                is = assetManager.open(String.valueOf(pokemonIdNumber) + ".ico");
+            }
+
+            /*if (pokemonIdNumber < 10) {
                 is = assetManager.open(String.valueOf("00" +pokemonIdNumber) + ".png");
             } else if (pokemonIdNumber < 100) {
                 is = assetManager.open(String.valueOf("0" + pokemonIdNumber) + ".png");
             } else {
                 is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
-            }
-
+            }*/
             Bitmap bitmap = BitmapFactory.decodeStream(is);
 
             holder.setFiltroImagen(bitmap);
