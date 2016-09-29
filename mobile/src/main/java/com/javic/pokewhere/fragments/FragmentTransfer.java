@@ -188,7 +188,7 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
                         @Override
                         public void run() {
                             mAdpaterChildTransferablePokemon.notifyDataSetChanged();
-                            mListener.onFragmentCreatedViewStatus(true, Constants.FRAGMENT_TRANSFER);
+                            mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_TRANSFER);
                         }
                     });
                 }
@@ -310,7 +310,7 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
                 }
 
                 //To update the list
-                mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_TRANSFER);
+                mListener.onFragmentCreatedViewStatus(true, Constants.FRAGMENT_TRANSFER);
                 setUpFiltros();
 
                 return true;
@@ -346,7 +346,7 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
                     public void run() {
 
                         mAdpaterChildTransferablePokemon.notifyDataSetChanged();
-                        mListener.onFragmentCreatedViewStatus(true, Constants.FRAGMENT_TRANSFER);
+                        mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_TRANSFER);
                         //setActionBarTitle("Total: "+String.valueOf(mTransferablePokemons.size()));
                     }
                 });
@@ -423,7 +423,10 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
                         transferablePokemon.setDead(specificPokemon.isInjured());
                         mTransferablePokemons.add(transferablePokemon);
 
-                        mChildTransferablePokemonList.add(new ChildTransferablePokemon(specificPokemon.getId(), transferablePokemon.getCp(), specificPokemon.getPokemonId().toString() + " CP: " + String.valueOf(transferablePokemon.getCp() )));
+                        mChildTransferablePokemonList.add(new
+                                ChildTransferablePokemon(specificPokemon.getId(),
+                                                            transferablePokemon.getCp(),
+                                                                specificPokemon.getNickname() + " CP: " + String.valueOf(transferablePokemon.getCp()) + " IV: " + String.valueOf(specificPokemon.getIndividualAttack())));
 
                     }
 
@@ -440,7 +443,7 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
                     final int pokemonIdNumber = pokemon.getPokemonId().getNumber();
                     final int childCount = mChildTransferablePokemonList.size();
 
-                    mFiltrosPokemonList.add(new GroupTransferablePokemon(pokemonId, pokemonIdNumber ,childCount, pokemonId + " " + String.valueOf(childCount), mChildTransferablePokemonList));
+                    mFiltrosPokemonList.add(new GroupTransferablePokemon(pokemonId, pokemonIdNumber ,childCount, pokemonId + " " + String.valueOf(childCount) + " Can:" + String.valueOf(pokemon.getCandy()), mChildTransferablePokemonList));
 
                     // Sorting
                     Collections.sort(mFiltrosPokemonList, new Comparator<GroupTransferablePokemon>() {

@@ -391,7 +391,7 @@ public class FragmentMapa extends Fragment implements
         setUpGoogleMap();
         setUpSearchView();
 
-        mListener.onFragmentCreatedViewStatus(true, Constants.FRAGMENT_MAPA);
+        mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_MAPA);
 
         mGoogleApiClient.connect();
 
@@ -512,21 +512,21 @@ public class FragmentMapa extends Fragment implements
         try {
             InputStream is = null;
 
-            if (localPokemon.getPokemonId() < 10) {
+           /* if (localPokemon.getPokemonId() < 10) {
                 is = assetManager.open(String.valueOf("00" + localPokemon.getPokemonId()) + ".ico");
             } else if (localPokemon.getPokemonId() < 100) {
                 is = assetManager.open(String.valueOf("0" + localPokemon.getPokemonId()) + ".ico");
             } else {
                 is = assetManager.open(String.valueOf(localPokemon.getPokemonId()) + ".ico");
-            }
+            }*/
 
-            /*if (localPokemon.getPokemonId() < 10) {
+            if (localPokemon.getPokemonId() < 10) {
                 is = assetManager.open(String.valueOf("00" + localPokemon.getPokemonId()) + ".png");
             } else if (localPokemon.getPokemonId() < 100) {
                 is = assetManager.open(String.valueOf("0" + localPokemon.getPokemonId()) + ".png");
             } else {
                 is = assetManager.open(String.valueOf(localPokemon.getPokemonId()) + ".png");
-            }*/
+            }
 
             Bitmap bitmap = BitmapFactory.decodeStream(is);
 
@@ -914,7 +914,6 @@ public class FragmentMapa extends Fragment implements
                                             if (isinRange(pkStop)) {
                                                 Log.i(TAG, "Attempt to Loot...");
                                                 mPokemonGo.setLocation(pkStop.getLatitude(), pkStop.getLongitude(), 1);
-
                                                // if (pkStop.canLoot()) {
                                                     PokestopLootResult result = pkStop.loot();
 
@@ -922,7 +921,7 @@ public class FragmentMapa extends Fragment implements
                                                         String items="";
 
                                                         for (ItemAwardOuterClass.ItemAward itemAward: result.getItemsAwarded()){
-                                                            items.concat("*" + itemAward.getItemId().toString());
+                                                            items = items + "\n* " + itemAward.getItemId().name();
                                                         }
 
                                                         String message = "Items obtained: " + String.valueOf(result.getItemsAwarded().size()+ items);
@@ -954,14 +953,14 @@ public class FragmentMapa extends Fragment implements
                                             Log.i(TAG, "Attempt to Loot " + pkStop.getDetails().getName());
                                             mPokemonGo.setLocation(pkStop.getLatitude(), pkStop.getLongitude(), 1);
 
-                                            // if (pkStop.canLoot()) {
+                                            if (pkStop.canLoot()) {
                                             PokestopLootResult result = pkStop.loot();
 
                                             if (result.wasSuccessful()){
                                                 String items="";
 
                                                 for (ItemAwardOuterClass.ItemAward itemAward: result.getItemsAwarded()){
-                                                    items.concat("*" + itemAward.getItemId().toString());
+                                                    items = items + "\n* " + itemAward.getItemId().name();
                                                 }
 
                                                 String message = "Items obtained: " + String.valueOf(result.getItemsAwarded().size()+ items);
@@ -970,7 +969,7 @@ public class FragmentMapa extends Fragment implements
                                             }
 
                                             Log.i(TAG, "Result: " + result.getResult().toString());
-                                            // }
+                                            }
                                         }
                                         sleep(1000);
                                     }

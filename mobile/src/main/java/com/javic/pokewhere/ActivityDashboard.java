@@ -368,28 +368,28 @@ public class ActivityDashboard extends AppCompatActivity
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
             int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-            mContainerFormView.setVisibility(show ? View.VISIBLE:View.GONE  );
+            //mContainerFormView.setVisibility(show ? View.VISIBLE:View.GONE  );
             mContainerFormView.animate().setDuration(shortAnimTime).alpha(
                     show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    mContainerFormView.setVisibility(show ? View.VISIBLE: View.GONE );
+                    mContainerFormView.setVisibility(show ? View.GONE : View.VISIBLE );
                 }
             });
 
-            mProgressView.setVisibility(show ? View.GONE : View.VISIBLE);
+            //mProgressView.setVisibility(show ? View.GONE : View.VISIBLE);
             mProgressView.animate().setDuration(shortAnimTime).alpha(
                     show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.GONE : View.VISIBLE );
+                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE );
                 }
             });
         } else {
             // The ViewPropertyAnimator APIs are not available, so simply show
             // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.GONE: View.VISIBLE );
-            mContainerFormView.setVisibility(show ? View.VISIBLE: View.GONE  );
+            mProgressView.setVisibility(show ? View.VISIBLE: View.GONE );
+            mContainerFormView.setVisibility(show ? View.GONE: View.VISIBLE  );
         }
     }
 
