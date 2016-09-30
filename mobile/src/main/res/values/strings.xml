@@ -3,6 +3,7 @@
     <string name="title_activity_login">Sign in</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_activity_splash_screen">Splash Screen</string>
+    <string name="title_fragment_bag">Bag</string>
 
     <!-- Navigation Drawer -->
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -85,10 +86,14 @@
     <string name="op_normal_pokestop">Normal poke-stop</string>
     <string name="op_lured_pokestop">Lured poke-stop</string>
 
+
     <string name="filtro_gyms">GIMNASIOS</string>
     <string name="op_blue_gym">Mystics Gyms</string>
     <string name="op_red_gym">Valors Gyms</string>
     <string name="op_yellow_gym">Instincts Gyms</string>
     <string name="op_white_gym">Without equipment Gyms</string>
+
+    <string name="group_pokeballs">POKE BALLS</string>
+    <string name="group_incenses">INCENSES</string>
 
 </resources>

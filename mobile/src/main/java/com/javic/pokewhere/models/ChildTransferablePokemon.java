@@ -2,18 +2,6 @@ package com.javic.pokewhere.models;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
-import com.javic.pokewhere.R;
-import com.javic.pokewhere.holders.ChildTransferablePokemonViewHolder;
-import com.javic.pokewhere.holders.FiltroViewHolder;
-import com.thoughtbot.expandablecheckrecyclerview.CheckableChildRecyclerViewAdapter;
-import com.thoughtbot.expandablecheckrecyclerview.models.CheckedExpandableGroup;
-import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
-
-import java.util.List;
 
 /**
  * Created by franciscojimenezjimenez on 12/09/16.

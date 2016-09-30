@@ -10,10 +10,10 @@ import com.thoughtbot.expandablerecyclerview.viewholders.GroupViewHolder;
 /**
  * Created by franciscojimenezjimenez on 12/09/16.
  */
-public class FiltroViewHolder extends GroupViewHolder {
+public class GroupFiltroViewHolder extends GroupViewHolder {
     private TextView tv;
 
-    public FiltroViewHolder(View itemView) {
+    public GroupFiltroViewHolder(View itemView) {
         super(itemView);
         tv = (TextView) itemView.findViewById(R.id.tv_filtro);
     }

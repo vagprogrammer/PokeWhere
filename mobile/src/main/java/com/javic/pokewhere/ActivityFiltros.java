@@ -11,16 +11,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.CheckedTextView;
 
-import com.javic.pokewhere.adapters.AdapterFiltro;
-import com.javic.pokewhere.holders.FiltroViewHolder;
-import com.javic.pokewhere.models.Filtro;
-import com.javic.pokewhere.models.Opcion;
+import com.javic.pokewhere.adapters.AdapterChildFiltro;
+import com.javic.pokewhere.models.GroupFiltro;
+import com.javic.pokewhere.models.ChildFiltro;
 import com.javic.pokewhere.util.Constants;
 import com.thoughtbot.expandablecheckrecyclerview.listeners.OnCheckChildClickListener;
 import com.thoughtbot.expandablecheckrecyclerview.models.CheckedExpandableGroup;
-import com.thoughtbot.expandablecheckrecyclerview.models.MultiCheckExpandableGroup;
-import com.thoughtbot.expandablerecyclerview.listeners.GroupExpandCollapseListener;
-import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,9 +27,9 @@ public class ActivityFiltros extends AppCompatActivity implements OnCheckChildCl
 
     private RecyclerView mRecyclerView;
     private LinearLayoutManager mLayoutManager;
-    private AdapterFiltro mAdpaterFiltro;
+    private AdapterChildFiltro mAdpaterFiltro;
     private CheckedTextView mCheckedFilterAll, mCheckedFilterBusqueda;
-    private List<Filtro> mFiltros = new ArrayList<>();
+    private List<GroupFiltro> mGroupFiltros = new ArrayList<>();
 
     private Boolean mAllMarkers;
     private SharedPreferences mPrefsUser;
@@ -105,7 +101,7 @@ public class ActivityFiltros extends AppCompatActivity implements OnCheckChildCl
         }
 
         //instantiate your adapter with the list of bands
-        mAdpaterFiltro = new AdapterFiltro(mFiltros);
+        mAdpaterFiltro = new AdapterChildFiltro(mGroupFiltros);
 
         mAdpaterFiltro.setChildClickListener(ActivityFiltros.this);
 
@@ -173,62 +169,62 @@ public class ActivityFiltros extends AppCompatActivity implements OnCheckChildCl
             switch (i){
                 case 0:
 
-                    List<Opcion> mPokeStops = new ArrayList<>();
-                    mPokeStops.add(new Opcion(R.drawable.ic_pokestop, getString(R.string.op_normal_pokestop)));
-                    mPokeStops.add(new Opcion(R.drawable.ic_pokestope_lucky, getString(R.string.op_lured_pokestop)));
+                    List<ChildFiltro> mPokeStops = new ArrayList<>();
+                    mPokeStops.add(new ChildFiltro(R.drawable.ic_pokestop, getString(R.string.op_normal_pokestop)));
+                    mPokeStops.add(new ChildFiltro(R.drawable.ic_pokestope_lucky, getString(R.string.op_lured_pokestop)));
 
-                    Filtro filtroPokeStops = new Filtro(getString(R.string.filtro_pokestops), mPokeStops);
+                    GroupFiltro groupFiltroPokeStops = new GroupFiltro(getString(R.string.filtro_pokestops), mPokeStops);
 
                     if(mAllMarkers){
-                        for (int j = 0; j<filtroPokeStops.getItems().size(); j++){
-                            filtroPokeStops.onChildClicked(j,true);
+                        for (int j = 0; j< groupFiltroPokeStops.getItems().size(); j++){
+                            groupFiltroPokeStops.onChildClicked(j,true);
                         }
                     }
                     else{
                         if (isChecked(Constants.KEY_PREF_NORMAL_POKESTOPS_MARKERS)){
-                            filtroPokeStops.onChildClicked(0,true);
+                            groupFiltroPokeStops.onChildClicked(0,true);
                         }
                         if (isChecked(Constants.KEY_PREF_LURED_POKESTOPS_MARKERS)){
-                            filtroPokeStops.onChildClicked(1,true);
+                            groupFiltroPokeStops.onChildClicked(1,true);
                         }
                     }
 
-                    mFiltros.add(filtroPokeStops);
+                    mGroupFiltros.add(groupFiltroPokeStops);
 
                     break;
 
                 case 1:
 
-                    List<Opcion> mGyms= new ArrayList<>();
-                    mGyms.add(new Opcion(R.drawable.ic_gym_team_blue, getString(R.string.op_blue_gym)));
-                    mGyms.add(new Opcion(R.drawable.ic_gym_team_red, getString(R.string.op_red_gym)));
-                    mGyms.add(new Opcion(R.drawable.ic_gym_team_yellow, getString(R.string.op_yellow_gym)));
-                    mGyms.add(new Opcion(R.drawable.ic_gym_team_white, getString(R.string.op_white_gym)));
+                    List<ChildFiltro> mGyms= new ArrayList<>();
+                    mGyms.add(new ChildFiltro(R.drawable.ic_gym_team_blue, getString(R.string.op_blue_gym)));
+                    mGyms.add(new ChildFiltro(R.drawable.ic_gym_team_red, getString(R.string.op_red_gym)));
+                    mGyms.add(new ChildFiltro(R.drawable.ic_gym_team_yellow, getString(R.string.op_yellow_gym)));
+                    mGyms.add(new ChildFiltro(R.drawable.ic_gym_team_white, getString(R.string.op_white_gym)));
 
-                    Filtro filtroGyms = new Filtro(getString(R.string.filtro_gyms), mGyms);
+                    GroupFiltro groupFiltroGyms = new GroupFiltro(getString(R.string.filtro_gyms), mGyms);
 
                     if(mAllMarkers){
-                        for (int j = 0; j<filtroGyms.getItems().size(); j++){
-                            filtroGyms.onChildClicked(j,true);
+                        for (int j = 0; j< groupFiltroGyms.getItems().size(); j++){
+                            groupFiltroGyms.onChildClicked(j,true);
                         }
                     }
 
                     else{
                         if (isChecked(Constants.KEY_PREF_BLUE_GYMS_MARKERS)){
-                            filtroGyms.onChildClicked(0,true);
+                            groupFiltroGyms.onChildClicked(0,true);
                         }
                         if (isChecked(Constants.KEY_PREF_RED_GYMS_MARKERS)){
-                            filtroGyms.onChildClicked(1,true);
+                            groupFiltroGyms.onChildClicked(1,true);
                         }
                         if (isChecked(Constants.KEY_PREF_YELLOW_GYMS_MARKERS)){
-                            filtroGyms.onChildClicked(2,true);
+                            groupFiltroGyms.onChildClicked(2,true);
                         }
                         if (isChecked(Constants.KEY_PREF_WHITE_GYMS_MARKERS)){
-                            filtroGyms.onChildClicked(3,true);
+                            groupFiltroGyms.onChildClicked(3,true);
                         }
                     }
 
-                    mFiltros.add(filtroGyms);
+                    mGroupFiltros.add(groupFiltroGyms);
 
                     break;
             }
@@ -237,10 +233,10 @@ public class ActivityFiltros extends AppCompatActivity implements OnCheckChildCl
 
     private void checkAll(Boolean check){
 
-        for (Filtro filtro: mFiltros){
+        for (GroupFiltro groupFiltro : mGroupFiltros){
 
-            for (int i =0; i<filtro.getItems().size();i++){
-                filtro.onChildClicked(i, check);
+            for (int i = 0; i< groupFiltro.getItems().size(); i++){
+                groupFiltro.onChildClicked(i, check);
             }
 
             mAdpaterFiltro.notifyDataSetChanged();

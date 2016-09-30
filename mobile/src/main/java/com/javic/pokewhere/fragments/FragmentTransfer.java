@@ -76,13 +76,12 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
     //Listas
     private List<Pokemon> mUserPokemons;
     private List<TransferablePokemon> mTransferablePokemons = new ArrayList<>();
-    private List<GroupTransferablePokemon> mFiltrosPokemonList = new ArrayList<>();;
+    private List<GroupTransferablePokemon> mFiltrosPokemonList = new ArrayList<>();
 
     public FragmentTransfer() {
         // Required empty public constructor
     }
 
-    // TODO: Rename and change types and number of parameters
     public static FragmentTransfer newInstance(PokemonGo pokemonGo) {
         FragmentTransfer fragment = new FragmentTransfer();
 
@@ -105,8 +104,6 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // TODO Auto-generated method stub
-
         switch (item.getItemId()) {
             case R.id.action_transferir:
                 if (isDeviceOnline()) {
@@ -156,16 +153,6 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-
-        if (mDrawerToggle!=null){
-            ActivityDashboard.mDrawerLayout.removeDrawerListener(mDrawerToggle);
-        }
-
-    }
-
-    @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
@@ -197,13 +184,24 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        if (mDrawerToggle!=null){
+            ActivityDashboard.mDrawerLayout.removeDrawerListener(mDrawerToggle);
+        }
+
+    }
+
+
+
+    @Override
     public void onPause() {
         super.onPause();
 
-        if (isTransfering != null) {
-            if (isTransfering) {
-                isTransfering = false;
-            }
+        if (mTransferTask!=null){
+            mTransferTask.cancel(true);
+            mTransferTask = null;
         }
     }
 
@@ -426,7 +424,9 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
                         mChildTransferablePokemonList.add(new
                                 ChildTransferablePokemon(specificPokemon.getId(),
                                                             transferablePokemon.getCp(),
-                                                                specificPokemon.getNickname() + " CP: " + String.valueOf(transferablePokemon.getCp()) + " IV: " + String.valueOf(specificPokemon.getIndividualAttack())));
+                                                                specificPokemon.getNickname()
+                                                                        + " CP: " + String.valueOf(transferablePokemon.getCp())
+                                                                        + " IV: " + String.valueOf((int)(specificPokemon.getIvRatio()*100))+ "%"));
 
                     }
 
@@ -466,7 +466,7 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
     public boolean containsEncounteredId(PokemonIdOuterClass.PokemonId enconunteredPokemonId) {
 
         for (GroupTransferablePokemon filtroPokemon : mFiltrosPokemonList) {
-            if (filtroPokemon.getPokemonId() == enconunteredPokemonId.toString()) {
+            if (filtroPokemon.getPokemonId().equalsIgnoreCase(enconunteredPokemonId.toString())) {
                 return true;
             }
         }

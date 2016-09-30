@@ -10,8 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.javic.pokewhere.R;
-import com.javic.pokewhere.holders.ChildTransferablePokemonViewHolder;
-import com.javic.pokewhere.holders.GroupTransferablePokemonViewHolder;
 import com.javic.pokewhere.models.ChildTransferablePokemon;
 import com.javic.pokewhere.models.GroupTransferablePokemon;
 import com.thoughtbot.expandablecheckrecyclerview.CheckableChildRecyclerViewAdapter;
@@ -37,7 +35,7 @@ public class AdapterChildTransferablePokemon extends CheckableChildRecyclerViewA
     @Override
     public ChildTransferablePokemonViewHolder onCreateCheckChildViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.layout_transferable_pokemon_child, parent, false);
+                .inflate(R.layout.layout_child_transferable_pokemon, parent, false);
 
         return new ChildTransferablePokemonViewHolder(view);
     }
@@ -51,7 +49,7 @@ public class AdapterChildTransferablePokemon extends CheckableChildRecyclerViewA
     @Override
     public GroupTransferablePokemonViewHolder onCreateGroupViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.layout_transferable_pokemon_group, parent, false);
+                .inflate(R.layout.layout_group_transferable_pokemon, parent, false);
         return new GroupTransferablePokemonViewHolder(view);
     }
 

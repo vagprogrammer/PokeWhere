@@ -56,6 +56,8 @@ dependencies {
     compile 'com.google.android.gms:play-services-gcm:9.6.1'
     compile 'com.github.recruit-lifestyle:FloatingView:1.7'
     compile 'com.github.arimorty:floatingsearchview:2.0.3'
+    compile 'com.thoughtbot:expandablerecyclerview:1.0'
     compile 'com.thoughtbot:expandablecheckrecyclerview:0.3'
+    compile 'com.vanniktech:vntnumberpickerpreference:1.0.0'
     testCompile 'junit:junit:4.12'
 }

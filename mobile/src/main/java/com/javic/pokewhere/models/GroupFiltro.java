@@ -10,9 +10,9 @@ import java.util.List;
  * Created by franciscojimenezjimenez on 12/09/16.
  */
 @SuppressLint("ParcelCreator")
-public class Filtro extends MultiCheckExpandableGroup {
+public class GroupFiltro extends MultiCheckExpandableGroup {
 
-    public Filtro(String title, List items) {
+    public GroupFiltro(String title, List items) {
         super(title, items);
     }
 }

@@ -749,6 +749,7 @@ public class FragmentMapa extends Fragment implements
                     @Override
                     @TargetApi(Build.VERSION_CODES.M)
                     public void onClick(View v) {
+
                         //onlyCancel
                         cancelTask(true);
                     }
@@ -902,16 +903,22 @@ public class FragmentMapa extends Fragment implements
 
                                 for (Pokestop pkStop : pokeStops) {
 
+                                    LocalPokeStop localPokeStop = new LocalPokeStop();
+                                    localPokeStop.setId(pkStop.getId());
+                                    localPokeStop.setLatitude(pkStop.getLatitude());
+                                    localPokeStop.setLatitude(pkStop.getLatitude());
+                                    localPokeStop.setLongitude(pkStop.getLongitude());
+
                                     //Check pokeStop to Add or Loot
-                                    if (!containsEncounteredId(pkStop, pkStop.getId())) {
+                                    if (!containsEncounteredId(localPokeStop, localPokeStop.getId())) {
 
                                         //Check if the pokestop is in range to be drawed (< 150 [m])
-                                        if (!shouldMarkerRemove(pkStop)) {
+                                        if (!shouldMarkerRemove(localPokeStop)) {
 
                                             Log.i(TAG, " Encountered PokeStop: " + pkStop.getDetails().getName());
 
                                             //Check if the pokestop is in range to be Loot (< 90 [m])
-                                            if (isinRange(pkStop)) {
+                                            if (isinRange(localPokeStop)) {
                                                 Log.i(TAG, "Attempt to Loot...");
                                                 mPokemonGo.setLocation(pkStop.getLatitude(), pkStop.getLongitude(), 1);
                                                // if (pkStop.canLoot()) {
@@ -935,10 +942,6 @@ public class FragmentMapa extends Fragment implements
 
                                             //Add PokeStop
                                             sleep(1000);
-                                            LocalPokeStop localPokeStop = new LocalPokeStop();
-                                            localPokeStop.setId(pkStop.getId());
-                                            localPokeStop.setLatitude(pkStop.getLatitude());
-                                            localPokeStop.setLongitude(pkStop.getLongitude());
                                             localPokeStop.setHasLure(pkStop.hasLure());
                                             localPokeStop.setName(pkStop.getDetails().getName());
                                             localPokeStop.setDescription(pkStop.getDetails().getDescription());
@@ -949,7 +952,7 @@ public class FragmentMapa extends Fragment implements
                                     }
                                     else{
                                         //Check if the pokestop is in range to be Loot (< 90 [m])
-                                        if (isinRange(pkStop)) {
+                                        if (isinRange(localPokeStop)) {
                                             Log.i(TAG, "Attempt to Loot " + pkStop.getDetails().getName());
                                             mPokemonGo.setLocation(pkStop.getLatitude(), pkStop.getLongitude(), 1);
 
@@ -1762,16 +1765,16 @@ public class FragmentMapa extends Fragment implements
         return false;
     }
 
-    public Boolean isinRange(Pokestop pokeStop) {
+    public Boolean isinRange(LocalPokeStop localPokeStop) {
 
         Boolean isInRange;
 
         double earthRadius = 6371000; //meters
 
-        double dLat = Math.toRadians(pokeStop.getLatitude() - userPosition.latitude);
-        double dLng = Math.toRadians(pokeStop.getLongitude() - userPosition.longitude);
+        double dLat = Math.toRadians(localPokeStop.getLatitude() - userPosition.latitude);
+        double dLng = Math.toRadians(localPokeStop.getLongitude() - userPosition.longitude);
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(Math.toRadians(userPosition.latitude)) * Math.cos(Math.toRadians(pokeStop.getLatitude())) *
+                Math.cos(Math.toRadians(userPosition.latitude)) * Math.cos(Math.toRadians(localPokeStop.getLatitude())) *
                         Math.sin(dLng / 2) * Math.sin(dLng / 2);
 
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
@@ -1790,7 +1793,7 @@ public class FragmentMapa extends Fragment implements
 
         Boolean remove = false;
 
-        if (object instanceof Pokestop || object instanceof LocalGym || object instanceof LocalPokeStop) {
+        if (object instanceof LocalGym || object instanceof LocalPokeStop) {
 
             double earthRadius = 6371000; //meters
 
@@ -1803,12 +1806,6 @@ public class FragmentMapa extends Fragment implements
                 dLng = Math.toRadians(((LocalGym) object).getLongitude() - userPosition.longitude);
                 a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
                         Math.cos(Math.toRadians(userPosition.latitude)) * Math.cos(Math.toRadians(((LocalGym) object).getLatitude())) *
-                                Math.sin(dLng / 2) * Math.sin(dLng / 2);
-            } else if (object instanceof Pokestop) {
-                dLat = Math.toRadians(((Pokestop) object).getLatitude() - userPosition.latitude);
-                dLng = Math.toRadians(((Pokestop) object).getLongitude() - userPosition.longitude);
-                a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                        Math.cos(Math.toRadians(userPosition.latitude)) * Math.cos(Math.toRadians(((Pokestop) object).getLatitude())) *
                                 Math.sin(dLng / 2) * Math.sin(dLng / 2);
             }
             else if (object instanceof LocalPokeStop) {

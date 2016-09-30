@@ -6,6 +6,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -22,22 +23,30 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.javic.pokewhere.fragments.FragmentBag;
 import com.javic.pokewhere.fragments.FragmentMapa;
 import com.javic.pokewhere.fragments.FragmentTransfer;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
+import com.javic.pokewhere.models.GroupTransferablePokemon;
 import com.javic.pokewhere.services.ServiceFloatingMap;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.Stats;
 import com.pokegoapi.auth.GoogleUserCredentialProvider;
 import com.pokegoapi.auth.PtcCredentialProvider;
+import com.thoughtbot.expandablerecyclerview.listeners.GroupExpandCollapseListener;
+import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
+import com.thoughtbot.expandablerecyclerview.viewholders.GroupViewHolder;
 
 import POGOProtos.Data.PlayerDataOuterClass;
 import okhttp3.OkHttpClient;
+
+import static android.view.animation.Animation.RELATIVE_TO_SELF;
 
 public class ActivityDashboard extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnFragmentCreatedViewListener {
@@ -46,7 +55,9 @@ public class ActivityDashboard extends AppCompatActivity
 
     private static final int MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE = 100;
     private FragmentMapa mFragmentMapa;
+    private FragmentBag mFragmentBag;
     private FragmentTransfer mFragmentTransfer;
+
 
     private Bundle mExtras;
 
@@ -131,7 +142,7 @@ public class ActivityDashboard extends AppCompatActivity
             // Handle the camera action
             setFragment(Constants.FRAGMENT_MAPA);
         } else if (id == R.id.nav_gallery) {
-
+            setFragment(Constants.FRAGMENT_BAG);
         } else if (id == R.id.nav_slideshow) {
             // Handle the camera action
             setFragment(Constants.FRAGMENT_TRANSFER);
@@ -163,6 +174,16 @@ public class ActivityDashboard extends AppCompatActivity
                 }
 
                 break;
+
+            case Constants.FRAGMENT_BAG:
+                if (mGO != null) {
+                    mFragmentBag = FragmentBag.newInstance(mGO);
+                    fragmentTransaction.replace(R.id.content_fragment, mFragmentBag);
+                    fragmentTransaction.commit();
+                }
+
+                break;
+
             case Constants.FRAGMENT_TRANSFER:
                 if (mGO != null) {
                     mFragmentTransfer = mFragmentTransfer.newInstance(mGO);
@@ -323,43 +344,6 @@ public class ActivityDashboard extends AppCompatActivity
         }
     }
 
-
-    /**
-     * Shows the progress UI and hides the login form.
-     */
-    /*@TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    private void showProgresst(final boolean show) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-            mContainerFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mContainerFormView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mContainerFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
-
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mContainerFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
-    }*/
-
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     private void showProgress(final boolean show) {
         // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
@@ -473,9 +457,6 @@ public class ActivityDashboard extends AppCompatActivity
         this.visibleFragment = visibleFragment;
         showProgress(status);
 
-       /* if (status) {
-            showProgress(false);
-        }*/
     }
 
     @Override
@@ -511,3 +492,4 @@ public class ActivityDashboard extends AppCompatActivity
         }
     }
 }
+

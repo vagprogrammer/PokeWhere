@@ -378,6 +378,9 @@ public class ActivityLogin extends AppCompatActivity{
                 Intent intent = new Intent(ActivityLogin.this, ActivityDashboard.class);
                 startActivity(intent);
 
+                //finish activity to select
+                ActivitySelectAccount.activitySelectAccount.finish();
+
                 finish();
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));

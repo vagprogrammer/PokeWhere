@@ -6,12 +6,12 @@ import android.os.Parcelable;
 /**
  * Created by franciscojimenezjimenez on 12/09/16.
  */
-public class Opcion implements Parcelable{
+public class ChildItem implements Parcelable{
 
     private int image;
     private String title;
 
-    public Opcion(int image, String title) {
+    public ChildItem(int image, String title) {
         this.image = image;
         this.title = title;
     }
@@ -32,7 +32,7 @@ public class Opcion implements Parcelable{
         this.title = title;
     }
 
-    protected Opcion(Parcel in){
+    protected ChildItem(Parcel in){
         image = in.readInt();
         title = in.readString();
     }
@@ -48,16 +48,16 @@ public class Opcion implements Parcelable{
         return 0;
     }
 
-    public static final Parcelable.Creator<Opcion> CREATOR = new Parcelable.Creator<Opcion>(){
+    public static final Creator<ChildItem> CREATOR = new Creator<ChildItem>(){
 
         @Override
-        public Opcion createFromParcel(Parcel parcel) {
-            return new Opcion(parcel);
+        public ChildItem createFromParcel(Parcel parcel) {
+            return new ChildItem(parcel);
         }
 
         @Override
-        public Opcion[] newArray(int size) {
-            return new Opcion[size];
+        public ChildItem[] newArray(int size) {
+            return new ChildItem[size];
         }
     };
 }

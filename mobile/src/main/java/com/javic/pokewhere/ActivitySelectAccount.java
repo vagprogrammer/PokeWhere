@@ -44,6 +44,7 @@ import okhttp3.OkHttpClient;
 public class ActivitySelectAccount extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = ActivitySelectAccount.class.getSimpleName();
+    public static Activity activitySelectAccount;
 
     static final int REQUEST_CODE_PICK_ACCOUNT = 1000;
     static final int REQUEST_AUTHORIZATION = 2;
@@ -75,6 +76,8 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        activitySelectAccount= this;
+
         setContentView(R.layout.activity_select_account);
         // Set up the login form.
         mLoginFormView = findViewById(R.id.login_form);
