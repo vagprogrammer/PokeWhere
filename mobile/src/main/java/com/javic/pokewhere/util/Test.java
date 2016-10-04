@@ -80,4 +80,66 @@ public class Test {
             e.printStackTrace();
         }
     }*/
+
+
+    //Errror BAN
+   /* 10-01 09:13:09.192 30359-31379/com.javic.pokewhere E/FragmentMapa: Failed to get pokemons or server issue General exception:
+    com.pokegoapi.exceptions.AsyncPokemonGoException: Unknown exception occurred.
+    at com.pokegoapi.util.AsyncHelper.toBlocking(AsyncHelper.java:46)
+    at com.pokegoapi.api.map.pokemon.CatchablePokemon.useItem(CatchablePokemon.java:595)
+    at com.pokegoapi.api.map.pokemon.CatchablePokemon.catchPokemon(CatchablePokemon.java:454)
+    at com.pokegoapi.api.map.pokemon.CatchablePokemon.catchPokemon(CatchablePokemon.java:265)
+    at com.javic.pokewhere.fragments.FragmentMapa$PokemonsTask.doInBackground(FragmentMapa.java:820)
+    at com.javic.pokewhere.fragments.FragmentMapa$PokemonsTask.doInBackground(FragmentMapa.java:768)
+    at android.os.AsyncTask$2.call(AsyncTask.java:295)
+    at java.util.concurrent.FutureTask.run(FutureTask.java:237)
+    at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1113)
+    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:588)
+    at java.lang.Thread.run(Thread.java:818)
+    Caused by: java.lang.RuntimeException: java.util.concurrent.ExecutionException: com.pokegoapi.exceptions.RemoteServerException: Your account may be banned! please try from the official client.
+    at rx.exceptions.Exceptions.propagate(Exceptions.java:58)
+    at rx.observables.BlockingObservable.blockForSingle(BlockingObservable.java:465)
+    at rx.observables.BlockingObservable.first(BlockingObservable.java:168)
+    at com.pokegoapi.util.AsyncHelper.toBlocking(AsyncHelper.java:38)
+    at com.pokegoapi.api.map.pokemon.CatchablePokemon.useItem(CatchablePokemon.java:595) 
+    at com.pokegoapi.api.map.pokemon.CatchablePokemon.catchPokemon(CatchablePokemon.java:454) 
+    at com.pokegoapi.api.map.pokemon.CatchablePokemon.catchPokemon(CatchablePokemon.java:265) 
+    at com.javic.pokewhere.fragments.FragmentMapa$PokemonsTask.doInBackground(FragmentMapa.java:820) 
+    at com.javic.pokewhere.fragments.FragmentMapa$PokemonsTask.doInBackground(FragmentMapa.java:768) 
+    at android.os.AsyncTask$2.call(AsyncTask.java:295) 
+    at java.util.concurrent.FutureTask.run(FutureTask.java:237) 
+    at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1113) 
+    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:588) 
+    at java.lang.Thread.run(Thread.java:818) 
+    Caused by: java.util.concurrent.ExecutionException: com.pokegoapi.exceptions.RemoteServerException: Your account may be banned! please try from the official client.
+    at com.pokegoapi.main.RequestHandler$1.get(RequestHandler.java:109)
+    at com.pokegoapi.main.RequestHandler$1.get(RequestHandler.java:86)
+    at rx.internal.operators.OnSubscribeToObservableFuture$ToObservableFuture.call(OnSubscribeToObservableFuture.java:74)
+    at rx.internal.operators.OnSubscribeToObservableFuture$ToObservableFuture.call(OnSubscribeToObservableFuture.java:43)
+    at rx.Observable.unsafeSubscribe(Observable.java:9861)
+    at rx.internal.operators.OnSubscribeMap.call(OnSubscribeMap.java:48)
+    at rx.internal.operators.OnSubscribeMap.call(OnSubscribeMap.java:33)
+    at rx.internal.operators.OnSubscribeLift.call(OnSubscribeLift.java:48)
+    at rx.internal.operators.OnSubscribeLift.call(OnSubscribeLift.java:30)
+    at rx.internal.operators.OnSubscribeLift.call(OnSubscribeLift.java:48)
+    at rx.internal.operators.OnSubscribeLift.call(OnSubscribeLift.java:30)
+    at rx.Observable.subscribe(Observable.java:9957)
+    at rx.Observable.subscribe(Observable.java:9924)
+    at rx.observables.BlockingObservable.blockForSingle(BlockingObservable.java:445)
+    at rx.observables.BlockingObservable.first(BlockingObservable.java:168) 
+    at com.pokegoapi.util.AsyncHelper.toBlocking(AsyncHelper.java:38) 
+    at com.pokegoapi.api.map.pokemon.CatchablePokemon.useItem(CatchablePokemon.java:595) 
+    at com.pokegoapi.api.map.pokemon.CatchablePokemon.catchPokemon(CatchablePokemon.java:454) 
+    at com.pokegoapi.api.map.pokemon.CatchablePokemon.catchPokemon(CatchablePokemon.java:265) 
+    at com.javic.pokewhere.fragments.FragmentMapa$PokemonsTask.doInBackground(FragmentMapa.java:820) 
+    at com.javic.pokewhere.fragments.FragmentMapa$PokemonsTask.doInBackground(FragmentMapa.java:768) 
+    at android.os.AsyncTask$2.call(AsyncTask.java:295) 
+    at java.util.concurrent.FutureTask.run(FutureTask.java:237) 
+    at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1113) 
+    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:588) 
+    at java.lang.Thread.run(Thread.java:818) 
+    Caused by: com.pokegoapi.exceptions.RemoteServerException: Your account may be banned! please try from the official client.
+    at com.pokegoapi.main.RequestHandler.internalSendServerRequests(RequestHandler.java:223)
+    at com.pokegoapi.main.RequestHandler.run(RequestHandler.java:293)
+    at java.lang.Thread.run(Thread.java:818) */
 }

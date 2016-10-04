@@ -36,7 +36,7 @@ public class AdapterChildItem extends ExpandableRecyclerViewAdapter<GroupItemVie
 
     @Override
     public void onBindGroupViewHolder(GroupItemViewHolder holder, int flatPosition, ExpandableGroup group) {
-        holder.setItemTitle(group);
+        holder.setItemTitle((GroupItem)group);
     }
 
     @Override

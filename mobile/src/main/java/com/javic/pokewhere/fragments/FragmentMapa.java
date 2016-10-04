@@ -80,6 +80,7 @@ import com.pokegoapi.api.map.fort.PokestopLootResult;
 import com.pokegoapi.api.map.pokemon.CatchResult;
 import com.pokegoapi.api.map.pokemon.CatchablePokemon;
 import com.pokegoapi.api.map.pokemon.encounter.EncounterResult;
+import com.pokegoapi.api.settings.CatchOptions;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
 
@@ -796,23 +797,40 @@ public class FragmentMapa extends Fragment implements
 
                             List<Pokeball> pokeBallsList = new ArrayList<>();
 
-                            int normalPokeballs = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_POKE_BALL).getCount();
-                            int greatPokeBalls = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_GREAT_BALL).getCount();
-                            int ultraPokeballs = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_ULTRA_BALL).getCount();
+                            int pokeballs = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_POKE_BALL).getCount();
+                            int greatBalls = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_GREAT_BALL).getCount();
+                            int ultraBalls = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_ULTRA_BALL).getCount();
 
-                            Log.i(TAG,"POKEBALL:" + String.valueOf(normalPokeballs)+ " GREAT_POKEBALL: " + String.valueOf(greatPokeBalls)+ " ULTRA_POKEBALL: " + String.valueOf(ultraPokeballs));
+                            Log.i(TAG,"POKEBALL:" + String.valueOf(pokeballs)+ " GREAT_BALL: " + String.valueOf(greatBalls)+ " ULTRA_BALL: " + String.valueOf(ultraBalls));
 
                             if (chablePokemons != null) {
                                 for (CatchablePokemon cachablePokemon : chablePokemons) {
 
                                     // You need to Encounter first.
                                     EncounterResult encResult = cachablePokemon.encounterPokemon();
+
+                                    Log.i(TAG, " Encountered Result: " + encResult.getStatus().toString());
+
                                     // if encounter was succesful, catch
                                     if (encResult.wasSuccessful()) {
                                         Log.i(TAG, " Encountered: " + cachablePokemon.getPokemonId());
 
-                                        CatchResult result = cachablePokemon.catchPokemon();
+                                        CatchOptions options = new CatchOptions(mPokemonGo);
+
+                                        if(options.getRazzberries()>0){
+                                            options.maxRazzberries(0);
+                                        }
+
+                                        if (options.getMaxPokeballs()>0){
+                                            options.useBestBall(true);
+                                            options.noMasterBall(true);
+                                        }
+
+                                        CatchResult result = cachablePokemon.catchPokemon(options);
+
                                         Log.i(TAG, "Attempt to catch: " + cachablePokemon.getPokemonId() + " " + result.getStatus());
+
+                                        showToast(cachablePokemon.getPokemonId() + " " + result.getStatus());
 
                                     }
 
@@ -1187,6 +1205,7 @@ public class FragmentMapa extends Fragment implements
             }
             else{
 
+                sleep(5000);
                 Log.i(TAG, "DEBUG MODE IS ENABLED, SO RESTART ALL THE TASKS");
                 //Restart all the Tasks
                 attemptSearch();

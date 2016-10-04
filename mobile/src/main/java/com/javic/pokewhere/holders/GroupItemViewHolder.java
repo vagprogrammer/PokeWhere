@@ -1,15 +1,12 @@
 package com.javic.pokewhere.holders;
 
-import android.graphics.Bitmap;
 import android.view.View;
 import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.javic.pokewhere.R;
-import com.javic.pokewhere.models.GroupTransferablePokemon;
-import com.thoughtbot.expandablerecyclerview.listeners.GroupExpandCollapseListener;
-import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
+import com.javic.pokewhere.models.GroupItem;
 import com.thoughtbot.expandablerecyclerview.viewholders.GroupViewHolder;
 
 import static android.view.animation.Animation.RELATIVE_TO_SELF;
@@ -17,25 +14,22 @@ import static android.view.animation.Animation.RELATIVE_TO_SELF;
 /**
  * Created by franciscojimenezjimenez on 12/09/16.
  */
-public class GroupTransferablePokemonViewHolderr extends GroupViewHolder implements GroupExpandCollapseListener {
-    private ImageView img_filtro;
-    private TextView tv;
+public class GroupItemViewHolder extends GroupViewHolder {
+    private ImageView img_item;
+    private TextView tv_item;
     private ImageView img_arrow;
 
-    public GroupTransferablePokemonViewHolderr(View itemView) {
+    public GroupItemViewHolder(View itemView) {
         super(itemView);
-        tv = (TextView) itemView.findViewById(R.id.tv_filtro);
-        img_filtro = (ImageView) itemView.findViewById(R.id.img_filtro);
-        img_arrow = (ImageView) itemView.findViewById(R.id.img_arrow_filtro);
+        tv_item = (TextView) itemView.findViewById(R.id.tv_item);
+        img_item = (ImageView) itemView.findViewById(R.id.img_item);
+        img_arrow = (ImageView) itemView.findViewById(R.id.img_arrow_item);
     }
 
-    public void setFiltroTitle(GroupTransferablePokemon group) {
-        tv.setText(group.getTitle());
+    public void setItemTitle(GroupItem group) {
+        tv_item.setText(group.getTitle());
     }
 
-    public void setFiltroImagen(Bitmap bitmap){
-        img_filtro.setImageBitmap(bitmap);
-    }
 
     @Override
     public void expand() {
@@ -61,15 +55,5 @@ public class GroupTransferablePokemonViewHolderr extends GroupViewHolder impleme
         rotate.setDuration(300);
         rotate.setFillAfter(true);
         img_arrow.setAnimation(rotate);
-    }
-
-    @Override
-    public void onGroupExpanded(ExpandableGroup group) {
-        animateExpand();
-    }
-
-    @Override
-    public void onGroupCollapsed(ExpandableGroup group) {
-        animateCollapse();
     }
 }

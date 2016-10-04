@@ -6,7 +6,6 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -23,7 +22,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,21 +30,15 @@ import com.javic.pokewhere.fragments.FragmentBag;
 import com.javic.pokewhere.fragments.FragmentMapa;
 import com.javic.pokewhere.fragments.FragmentTransfer;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
-import com.javic.pokewhere.models.GroupTransferablePokemon;
 import com.javic.pokewhere.services.ServiceFloatingMap;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.Stats;
 import com.pokegoapi.auth.GoogleUserCredentialProvider;
 import com.pokegoapi.auth.PtcCredentialProvider;
-import com.thoughtbot.expandablerecyclerview.listeners.GroupExpandCollapseListener;
-import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
-import com.thoughtbot.expandablerecyclerview.viewholders.GroupViewHolder;
 
 import POGOProtos.Data.PlayerDataOuterClass;
 import okhttp3.OkHttpClient;
-
-import static android.view.animation.Animation.RELATIVE_TO_SELF;
 
 public class ActivityDashboard extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnFragmentCreatedViewListener {
@@ -253,11 +245,13 @@ public class ActivityDashboard extends AppCompatActivity
 
                 if (!getPref(Constants.KEY_PREF_REFRESH_TOKEN).equalsIgnoreCase("")) {
                     //User is logged in with Google Account
-                    mGO = new PokemonGo(new GoogleUserCredentialProvider(httpClient, getPref(Constants.KEY_PREF_REFRESH_TOKEN)), httpClient);
+                    mGO = new PokemonGo(httpClient);
+                    mGO.login(new GoogleUserCredentialProvider(httpClient, getPref(Constants.KEY_PREF_REFRESH_TOKEN)));
 
                 } else {
                     //User is logged in with username and password
-                    mGO = new PokemonGo(new PtcCredentialProvider(httpClient, getPref(Constants.KEY_PREF_USER_EMAIL), getPref(Constants.KEY_PREF_USER_PASS)), httpClient);
+                    mGO = new PokemonGo(httpClient);
+                    mGO.login(new PtcCredentialProvider(httpClient, getPref(Constants.KEY_PREF_USER_EMAIL), getPref(Constants.KEY_PREF_USER_PASS)));
                 }
 
 

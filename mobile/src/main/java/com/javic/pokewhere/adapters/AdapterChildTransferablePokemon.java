@@ -10,6 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.javic.pokewhere.R;
+import com.javic.pokewhere.holders.ChildTransferablePokemonViewHolder;
+import com.javic.pokewhere.holders.GroupTransferablePokemonViewHolder;
 import com.javic.pokewhere.models.ChildTransferablePokemon;
 import com.javic.pokewhere.models.GroupTransferablePokemon;
 import com.thoughtbot.expandablecheckrecyclerview.CheckableChildRecyclerViewAdapter;

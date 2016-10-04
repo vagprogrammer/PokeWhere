@@ -194,7 +194,8 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
 
                     saveRefreshToken(mParamRefreshToken);
 
-                    PokemonGo go = new PokemonGo(provider, httpClient);
+                    PokemonGo go = new PokemonGo(httpClient);
+                    go.login(provider);
 
                    /* mUserName = go.getPlayerProfile().getPlayerData().getUsername();
                     mUserTeam = go.getPlayerProfile().getPlayerData().getTeamValue();

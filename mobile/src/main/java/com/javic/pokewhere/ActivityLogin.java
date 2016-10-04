@@ -58,7 +58,7 @@ public class ActivityLogin extends AppCompatActivity{
     private static final int REQUEST_PERMISSION_READ_CONTACTS = 0;
 
     private OkHttpClient httpClient = new OkHttpClient();
-    private PokemonGo go;
+    private PokemonGo mGO;
 
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
@@ -352,13 +352,17 @@ public class ActivityLogin extends AppCompatActivity{
             // TODO: attempt authentication against a network service.
 
             try {
-                go = new PokemonGo(new PtcCredentialProvider(httpClient,mEmail, mPassword),httpClient);
+
+                mGO = new PokemonGo(httpClient);
 
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+
+                mGO.login(new PtcCredentialProvider(httpClient, mEmail, mPassword));
+
 
                 return true;
             } catch (LoginFailedException | RemoteServerException e) {

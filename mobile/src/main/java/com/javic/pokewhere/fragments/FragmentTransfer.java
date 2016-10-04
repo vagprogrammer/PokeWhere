@@ -157,29 +157,7 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
         super.onViewCreated(view, savedInstanceState);
 
         if (mPokemonGo != null) {
-            //instantiate your adapter with the list of bands
-            mAdpaterChildTransferablePokemon = new AdapterChildTransferablePokemon(mFiltrosPokemonList, mContext);
-
-            mAdpaterChildTransferablePokemon.setOnGroupExpandCollapseListener(this);
-            mAdpaterChildTransferablePokemon.setChildClickListener(this);
-
-            mRecyclerView.setLayoutManager(mLayoutManager);
-            mRecyclerView.setAdapter(mAdpaterChildTransferablePokemon);
-
-            new Thread(new Runnable() {
-                public void run() {
-
-                    setUpFiltros();
-
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mAdpaterChildTransferablePokemon.notifyDataSetChanged();
-                            mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_TRANSFER);
-                        }
-                    });
-                }
-            }).start();
+            setUpFiltros();
         }
     }
 
@@ -299,18 +277,13 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
                                 ReleasePokemonResponseOuterClass.ReleasePokemonResponse.Result result = pokemonToTransfer.transferPokemon();
                                 publishProgress(result.toString());
                                 sleep(300);
+                                mPokemonGo.getInventories().updateInventories(true);
                             }
                         }
                     } else {
                         mTransferTask.cancel(true);
                     }
-
                 }
-
-                //To update the list
-                mListener.onFragmentCreatedViewStatus(true, Constants.FRAGMENT_TRANSFER);
-                setUpFiltros();
-
                 return true;
 
             } catch (Exception e) {
@@ -338,23 +311,9 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
             isTransfering = false;
 
             if (succes) {
-
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        mAdpaterChildTransferablePokemon.notifyDataSetChanged();
-                        mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_TRANSFER);
-                        //setActionBarTitle("Total: "+String.valueOf(mTransferablePokemons.size()));
-                    }
-                });
+                setUpFiltros();
             } else {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        setActionBarTitle("Try again!");
-                    }
-                });
+                setActionBarTitle("Try again!");
             }
         }
 
@@ -398,8 +357,9 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
 
     public void setUpFiltros() {
 
-        mFiltrosPokemonList.clear();
-        mTransferablePokemons.clear();
+        mUserPokemons= new ArrayList<>();
+        mFiltrosPokemonList= new ArrayList<>();
+        mTransferablePokemons = new ArrayList<>();
 
         try {
             mUserPokemons = mPokemonGo.getInventories().getPokebank().getPokemons();
@@ -456,6 +416,16 @@ public class FragmentTransfer extends Fragment implements GroupExpandCollapseLis
                     });
                 }
             }
+
+            //instantiate your adapter with the list of bands
+            mAdpaterChildTransferablePokemon = new AdapterChildTransferablePokemon(mFiltrosPokemonList, mContext);
+            mAdpaterChildTransferablePokemon.setOnGroupExpandCollapseListener(this);
+            mAdpaterChildTransferablePokemon.setChildClickListener(this);
+            mRecyclerView.setLayoutManager(mLayoutManager);
+            mRecyclerView.setAdapter(mAdpaterChildTransferablePokemon);
+
+            mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_TRANSFER);
+
         } catch (Exception e) {
             Log.i(TAG, e.toString());
         }
