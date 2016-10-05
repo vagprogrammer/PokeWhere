@@ -1,6 +1,7 @@
 package com.javic.pokewhere.fragments;
 
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -8,9 +9,17 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.javic.pokewhere.R;
+import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
+import com.javic.pokewhere.util.Constants;
 
 
 public class FragmentBlank extends Fragment {
+
+    private Context mContext;
+
+    private OnFragmentCreatedViewListener mListener;
+
+    private View mView;
 
     public FragmentBlank() {
         // Required empty public constructor
@@ -29,8 +38,41 @@ public class FragmentBlank extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_blank, container, false);
+        mView = inflater.inflate(R.layout.fragment_blank, container, false);
+
+        // Inflate the layout for this fragment
+        return mView;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_BLANK);
+    }
+
+
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mContext = context;
+
+        if (context instanceof OnFragmentCreatedViewListener) {
+            mListener = (OnFragmentCreatedViewListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentCreatedViewListener");
+        }
+    }
+
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
     }
 
 }

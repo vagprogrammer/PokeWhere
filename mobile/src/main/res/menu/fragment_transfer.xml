@@ -7,10 +7,4 @@
         android:title="@string/action_transferir"
         app:showAsAction="always" />
 
-    <item
-        android:id="@+id/action_refresh"
-        android:orderInCategory="90"
-        android:title="@string/action_transferir"
-        android:icon="@android:drawable/ic_menu_rotate"
-        app:showAsAction="always" />
 </menu>

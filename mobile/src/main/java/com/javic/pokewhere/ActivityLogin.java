@@ -280,7 +280,7 @@ public class ActivityLogin extends AppCompatActivity{
                 mAuthTask.execute((Void) null);
             }
             else {
-                Toast.makeText(this, R.string.not_online, Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.snack_bar_error_with_internet_acces, Toast.LENGTH_LONG).show();
             }
 
         }
@@ -350,22 +350,27 @@ public class ActivityLogin extends AppCompatActivity{
         @Override
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
-
             try {
-
-                mGO = new PokemonGo(httpClient);
-
                 try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
+
+                    mGO = new PokemonGo(httpClient);
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    mGO.login(new PtcCredentialProvider(httpClient, mEmail, mPassword));
+
+
+                    return true;
+                } catch (LoginFailedException | RemoteServerException e) {
                     e.printStackTrace();
+                    return false;
                 }
-
-                mGO.login(new PtcCredentialProvider(httpClient, mEmail, mPassword));
-
-
-                return true;
-            } catch (LoginFailedException | RemoteServerException e) {
+            }
+            catch (Exception e){
                 e.printStackTrace();
                 return false;
             }

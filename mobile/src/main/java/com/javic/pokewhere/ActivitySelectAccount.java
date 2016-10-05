@@ -109,7 +109,7 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
                 }
 
             } else {
-                Toast.makeText(this, R.string.not_online, Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.snack_bar_error_with_internet_acces, Toast.LENGTH_LONG).show();
             }
         }
     }

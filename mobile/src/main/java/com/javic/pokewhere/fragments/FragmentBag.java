@@ -1,11 +1,15 @@
 package com.javic.pokewhere.fragments;
 
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -49,6 +53,8 @@ import POGOProtos.Networking.Responses.ReleasePokemonResponseOuterClass;
 public class FragmentBag extends Fragment  {
 
     private static final String TAG = FragmentBag.class.getSimpleName();
+    private static final int TASK_ITEMS = 0;
+    private static final int TASK_DELETE = 1;
 
     private OnFragmentCreatedViewListener mListener;
 
@@ -61,6 +67,7 @@ public class FragmentBag extends Fragment  {
     private LinearLayoutManager mLayoutManager;
     private Toolbar mToolbar;
     private ActionBarDrawerToggle mDrawerToggle;
+    private Snackbar mSnackBar;
 
     //Context
     private Context mContext;
@@ -90,7 +97,7 @@ public class FragmentBag extends Fragment  {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
+        //setHasOptionsMenu(true);
     }
 
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -141,15 +148,14 @@ public class FragmentBag extends Fragment  {
         super.onViewCreated(view, savedInstanceState);
 
         if (mPokemonGo != null) {
-            //instantiate your adapter with the list of bands
-            mAdapterChildItem = new AdapterChildItem(mGroupItemList, mContext);
-
-            mRecyclerView.setLayoutManager(mLayoutManager);
-            mRecyclerView.setAdapter(mAdapterChildItem);
-
-            if (mGetItemsTask==null){
+            if (mGetItemsTask == null) {
                 mGetItemsTask = new GetItemsTask();
-                mGetItemsTask.execute();
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                    mGetItemsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                } else {
+                    mGetItemsTask.execute();
+                }
             }
         }
     }
@@ -170,7 +176,6 @@ public class FragmentBag extends Fragment  {
 
         if (mGetItemsTask!=null){
             mGetItemsTask.cancel(true);
-            mGetItemsTask = null;
         }
     }
 
@@ -193,7 +198,6 @@ public class FragmentBag extends Fragment  {
         mListener = null;
     }
 
-    //
 
     public class GetItemsTask extends AsyncTask<Void, String, Boolean> {
 
@@ -275,7 +279,7 @@ public class FragmentBag extends Fragment  {
                 return true;
 
             } catch (Exception e) {
-                Log.i(TAG, e.getMessage());
+                Log.i(TAG, e.toString());
 
                 return false;
             }
@@ -296,18 +300,25 @@ public class FragmentBag extends Fragment  {
 
             if (succes) {
 
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
+                setHasOptionsMenu(true);
 
-                        mAdapterChildItem = new AdapterChildItem(mGroupItemList, mContext);
-                        mRecyclerView.setAdapter(mAdapterChildItem);
-                        //mAdapterChildItem.notifyDataSetChanged();
-                        mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_BAG);
-                    }
-                });
+                //instantiate your adapter with the list of bands
+                mAdapterChildItem = new AdapterChildItem(mGroupItemList, mContext);
+                mRecyclerView.setLayoutManager(mLayoutManager);
+                mRecyclerView.setAdapter(mAdapterChildItem);
+
+                mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_BAG);
+
             } else {
+                setHasOptionsMenu(false);
 
+                if (isDeviceOnline()){
+                    showSnackBar(getString(R.string.snack_bar_error_with_pokemon), getString(R.string.snack_bar_error_with_pokemon_positive_btn), TASK_ITEMS);
+                }else{
+                    showSnackBar(getString(R.string.snack_bar_error_with_internet_acces), getString(R.string.snack_bar_error_with_internet_acces_positive_btn), TASK_ITEMS);
+                }
+
+                mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_TRANSFER);
             }
         }
 
@@ -318,31 +329,6 @@ public class FragmentBag extends Fragment  {
         }
 
     }
-
-    public boolean containsEncounteredGroupItem(String enconunteredItemId) {
-
-        for (GroupItem groupItem : mGroupItemList) {
-            if (groupItem.getTitle().equalsIgnoreCase(enconunteredItemId)) {
-                return true;
-            }
-        }
-
-        //If the encontered id exist, return true, if it doesn't exist return false
-        return false;
-    }
-
-    public boolean containsEncounteredChildItem(String enconunteredItemId, List<ChildItem> specificItemList) {
-
-        for (ChildItem childItem : specificItemList) {
-            if (childItem.getTitle().equalsIgnoreCase(enconunteredItemId)) {
-                return true;
-            }
-        }
-
-        //If the encontered id exist, return true, if it doesn't exist return false
-        return false;
-    }
-
 
     public class DeleteItemsTask extends AsyncTask<Void, String, Boolean> {
 
@@ -406,6 +392,41 @@ public class FragmentBag extends Fragment  {
 
     }
 
+
+    public GroupItem getGroupItem(String titleGroup) {
+
+        for (GroupItem groupItem: mGroupItemList) {
+            if (String.valueOf(groupItem.getTitle()).equalsIgnoreCase(String.valueOf(titleGroup))) {
+                return groupItem;
+            }
+        }
+        return null;
+    }
+
+    public boolean containsEncounteredGroupItem(String enconunteredItemId) {
+
+        for (GroupItem groupItem : mGroupItemList) {
+            if (groupItem.getTitle().equalsIgnoreCase(enconunteredItemId)) {
+                return true;
+            }
+        }
+
+        //If the encontered id exist, return true, if it doesn't exist return false
+        return false;
+    }
+
+    public boolean containsEncounteredChildItem(String enconunteredItemId, List<ChildItem> specificItemList) {
+
+        for (ChildItem childItem : specificItemList) {
+            if (childItem.getTitle().equalsIgnoreCase(enconunteredItemId)) {
+                return true;
+            }
+        }
+
+        //If the encontered id exist, return true, if it doesn't exist return false
+        return false;
+    }
+
     public boolean isDeviceOnline() {
 
         // get Connectivity Manager object to check connection
@@ -435,14 +456,37 @@ public class FragmentBag extends Fragment  {
         }
     }
 
+    public void showSnackBar(String snacKMessage, final String buttonTitle, final int task) {
 
-    public GroupItem getGroupItem(String titleGroup) {
+        mSnackBar = Snackbar.make(mView, snacKMessage, Snackbar.LENGTH_INDEFINITE)
+                .setAction(buttonTitle, new View.OnClickListener() {
+                    @Override
+                    @TargetApi(Build.VERSION_CODES.M)
+                    public void onClick(View v) {
+                        if (buttonTitle.equalsIgnoreCase("Reintentar")) {
 
-        for (GroupItem groupItem: mGroupItemList) {
-            if (String.valueOf(groupItem.getTitle()).equalsIgnoreCase(String.valueOf(titleGroup))) {
-                return groupItem;
-            }
-        }
-        return null;
+                            if (task == TASK_ITEMS){
+                                mGetItemsTask = new GetItemsTask();
+
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                                    mGetItemsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                } else {
+                                    mGetItemsTask.execute();
+                                }
+                            }
+                            else if (task == TASK_DELETE){
+
+                            }
+
+                        } else {
+
+                            mContext.startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+                        }
+                    }
+                });
+
+        mSnackBar.show();
+
     }
+
 }

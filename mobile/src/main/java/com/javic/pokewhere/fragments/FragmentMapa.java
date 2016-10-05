@@ -996,7 +996,6 @@ public class FragmentMapa extends Fragment implements
                                     }
                                 }
 
-                                //sleep(10000);
                             }
                         } catch (LoginFailedException | RemoteServerException e) {
                             Log.e(TAG, "Failed to get pokestops or server issue Login or RemoteServer exception: ", e);
@@ -1133,6 +1132,10 @@ public class FragmentMapa extends Fragment implements
 
     public void cancelTask(Boolean onlyCancel){
 
+        if (isSearching != null) {
+            isSearching = false;
+        }
+
         if (mPokemonTask!=null){
             mPokemonTask.cancel(true);
             mPokemonTask = null;
@@ -1146,10 +1149,6 @@ public class FragmentMapa extends Fragment implements
         if (mGymsTask!=null){
             mGymsTask.cancel(true);
             mGymsTask = null;
-        }
-
-        if (isSearching != null) {
-            isSearching = false;
         }
 
         if (mCounterToRemoveMarkers != null) {

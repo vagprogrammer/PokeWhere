@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.javic.pokewhere.fragments.FragmentBag;
+import com.javic.pokewhere.fragments.FragmentBlank;
 import com.javic.pokewhere.fragments.FragmentMapa;
 import com.javic.pokewhere.fragments.FragmentTransfer;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
@@ -46,6 +47,7 @@ public class ActivityDashboard extends AppCompatActivity
     private static final String TAG = ActivityDashboard.class.getSimpleName();
 
     private static final int MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE = 100;
+    private FragmentBlank mFragmentBlank;
     private FragmentMapa mFragmentMapa;
     private FragmentBag mFragmentBag;
     private FragmentTransfer mFragmentTransfer;
@@ -78,6 +80,7 @@ public class ActivityDashboard extends AppCompatActivity
 
     //Task
     ConnectWithPokemonGoTask mConnectTask;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -144,8 +147,6 @@ public class ActivityDashboard extends AppCompatActivity
             deleteCredentials();
             startActivity(new Intent(ActivityDashboard.this, ActivitySelectAccount.class));
             finish();
-        } else if (id == R.id.nav_send) {
-
         }
 
         mDrawerLayout.closeDrawer(GravityCompat.START);
@@ -158,6 +159,12 @@ public class ActivityDashboard extends AppCompatActivity
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         switch (position) {
+            case Constants.FRAGMENT_BLANK:
+                mFragmentBlank = FragmentBlank.newInstance();
+                fragmentTransaction.replace(R.id.content_fragment, mFragmentBlank);
+                fragmentTransaction.commit();
+
+                break;
             case Constants.FRAGMENT_MAPA:
                 if (mGO != null) {
                     mFragmentMapa = FragmentMapa.newInstance(mGO);
@@ -214,7 +221,7 @@ public class ActivityDashboard extends AppCompatActivity
 
             final boolean canShow = showMapHead();
             if (!canShow) {
-                Log.w(TAG, "Permiso Denegado");
+                Log.i(TAG, "Permiso Denegado");
             }
         }
 
@@ -222,9 +229,7 @@ public class ActivityDashboard extends AppCompatActivity
             mFragmentMapa.onActivityResult(requestCode, resultCode, data);
         }
 
-
     }
-
 
     /**
      * Represents an asynchronous get pokemons
@@ -292,7 +297,7 @@ public class ActivityDashboard extends AppCompatActivity
         @Override
         protected void onPostExecute(Boolean succes) {
             mConnectTask = null;
-            showProgress(false);
+            //showProgress(false);
 
             if (succes){
 
@@ -324,9 +329,10 @@ public class ActivityDashboard extends AppCompatActivity
                 mNavigationView.getMenu().getItem(visibleFragment).setChecked(false);
 
                 if (isDeviceOnline()){
-                    showSnackBar("No pudimos conectar con Pokemon GO", "Reintentar");
+                    showSnackBar(getString(R.string.snack_bar_error_with_pokemon), getString(R.string.snack_bar_error_with_pokemon_positive_btn));
+
                 }else{
-                    showSnackBar("No hay conexión a Internet", "Ir a Configuraciones");
+                    showSnackBar(getString(R.string.snack_bar_error_with_internet_acces), getString(R.string.snack_bar_error_with_internet_acces_positive_btn));
                 }
 
             }
@@ -445,12 +451,22 @@ public class ActivityDashboard extends AppCompatActivity
         editor.commit();
     }
 
+    public void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void onFragmentCreatedViewStatus(Boolean status, int visibleFragment) {
 
-        this.visibleFragment = visibleFragment;
-        showProgress(status);
+        if (visibleFragment != Constants.FRAGMENT_BLANK){
+            this.visibleFragment = visibleFragment;
+        }
 
+        showProgress(status);
     }
 
     @Override
@@ -467,23 +483,19 @@ public class ActivityDashboard extends AppCompatActivity
                 }
                 break;
 
-            case Constants.FRAGMENT_TRANSFER:
+
+            case Constants.ACTION_REFRESH_TOKEN:
                 if (mConnectTask==null){
                     mConnectTask = new ConnectWithPokemonGoTask();
                     mConnectTask.execute();
                 }
                 break;
+
             default:
                 break;
         }
     }
 
-    public void sleep(long millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
+
 }
 

@@ -18,8 +18,6 @@
     <string name="action_filter">Filtrar </string>
     <string name="action_aplicar_filtros">APLICAR</string>
     <string name="action_transferir">TRANSFERIR</string>
-    <string name="action_refresh">REFRESH</string>
-
 
     <!-- User Location -->
     <string name="service_not_available">El Servicio no está disponible</string>
@@ -36,32 +34,36 @@
     <string name="location_alert_error">Ah currido un error, por favor intentalo más tarde!</string>
 
 
+    <!-- Strings related to Dialogs -->
     <string name="resume_alert_title">¿Empezar una nueva búsqueda?</string>
     <string name="resume_alert_message">Los citerios de búsqueda han cambiado, quieres continuar con tú búsqueda actual o iniciar una nueva? Si inicias una nueva búsqueda todos los marcadores del mapa serán eliminados incluyendo (Pokeparadas, gimnasisos, lugares de búsqueda, pokémones)</string>
     <string name="resume_alert_pos_btn">Continuar búsqueda</string>
     <string name="resume_alert_neg_btn">Nueva búsqueda</string>
 
 
-    <string name="permission_access_coarse_location">Access location permission is needed for providing get pokemons.</string>
-    <string name="action_snack_permission_access_coarse_location">Aceptar permiso</string>
-
-
+    <!-- Snack Bar -->
     <string name="snack_bar_error_with_pokemon">Ocurrio un error</string>
     <string name="snack_bar_error_with_pokemon_positive_btn">Reintentar</string>
     <string name="snack_bar_error_with_pokemon_negative_btn">No ahora</string>
     <string name="snack_bar_neg_btn">Detener</string>
+    <string name="snack_bar_error_with_internet_acces">Por favor verifica tu conexión a internet</string>
+    <string name="snack_bar_error_with_internet_acces_positive_btn">Ir a Configuraciones</string>
+    <string name="message_snackbar_searching_text">Buscando pokémons...</string>
+    <string name="permission_access_coarse_location">Access location permission is needed for providing get pokemons.</string>
+    <string name="action_snack_permission_access_coarse_location">Aceptar permiso</string>
+    <string name="permission_rationale">Contacts permissions are needed for providing email suggestions.</string>
+    <string name="action_snack_intentarlo_ahora">Inténtarlo ahora</string>
 
+    <!-- permissions -->
     <string name="permission_alert_title">Servicios de ubicación desactivados</string>
     <string name="permission_alert_message">Para el correcto funcionamiento de la aplicación, es necesario que los servicios de ubicación esten activados, puedes activarlos desde los Settings de la aplicación</string>
     <string name="open_location_settings">Activar Servicios de Ubicación</string>
-
     <string name="message_json_request_succes_1">¡Hemos encontrado</string>
     <string name="message_json_request_succes_2">pokemons a tu alrededor, atrápalos a todos!</string>
     <string name="message_json_request_empty">Por ahora no hay ningún pokémon cerca, vuelve a intentarlo más tarde!</string>
     <string name="message_json_request_error">Ha ocurrido un error, vuelve a intentarlo más tarde!</string>
-    <string name="message_snackbar_searching_text">Buscando pokémons...</string>
-    <string name="text_hint_searchbar">Indicar ubicación, ej. Santa Monica Pier,CA...</string>
 
+    <string name="text_hint_searchbar">Indicar ubicación, ej. Santa Monica Pier,CA...</string>
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
@@ -74,10 +76,7 @@
     <string name="error_incorrect_password">¡La contraseña es incorrecta!</string>
     <string name="error_field_required">Este campo es necesario</string>
     <string name="error_login">Intentalo de nuevo más tarde</string>
-    <string name="permission_rationale">Contacts permissions are needed for providing email suggestions.</string>
-    <string name="action_snack_intentarlo_ahora">Inténtarlo ahora</string>
     <string name="pick_account">Es necesario que selecciones una cuenta</string>
-    <string name="not_online">Por favor verifica tu conexión a internet</string>
 
     <!-- Strings related to Activity Filter -->
     <string name="filtro_all_markers">MOSTRAR TODO</string>
@@ -85,14 +84,13 @@
     <string name="filtro_pokestops">POKEPARADAS</string>
     <string name="op_normal_pokestop">Normal poke-stop</string>
     <string name="op_lured_pokestop">Lured poke-stop</string>
-
-
     <string name="filtro_gyms">GIMNASIOS</string>
     <string name="op_blue_gym">Mystics Gyms</string>
     <string name="op_red_gym">Valors Gyms</string>
     <string name="op_yellow_gym">Instincts Gyms</string>
     <string name="op_white_gym">Without equipment Gyms</string>
 
+    <!-- Strings related to Bag Fragment -->
     <string name="group_pokeballs">POKE BALLS</string>
     <string name="group_incenses">INCENSES</string>
 

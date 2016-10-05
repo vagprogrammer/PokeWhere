@@ -10,7 +10,6 @@ public class Constants {
     public static final int ALERT_ADDRESS_RESULT_RECIVER = 0;
     public static final int ALERT_RESUME_TASK = 1;
     public static final int REQUEST_PERMISSION_ACCESS_COARSE_LOCATION = 1;
-
     public final static int REQUEST_CODE_ACTIVITY_FILTROS = 2000;
 
 
@@ -26,8 +25,9 @@ public class Constants {
     //DEFAULT VALUES
     public static final int USER_ZOOM =15;
 
-    //Actions
+    //Dashboard Actions
     public static final int ACTION_START_SERVICE = 1;
+    public static final int ACTION_REFRESH_TOKEN = 2;
 
 
     //Fragments

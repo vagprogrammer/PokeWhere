@@ -62,7 +62,6 @@
     <string name="permission_rationale">Contacts permissions are needed for providing email suggestions.</string>
     <string name="action_snack_intentarlo_ahora">Inténtarlo ahora</string>
     <string name="pick_account">Es necesario que selecciones una cuenta</string>
-    <string name="not_online">Por favor verifica tu conexión a internet</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

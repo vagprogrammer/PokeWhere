@@ -4,19 +4,19 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_camera"
-            android:icon="@drawable/ic_menu_camera"
-            android:title="Localizador de pokemons" />
+            android:icon="@drawable/ic_location_2"
+            android:title="Localizador de pokemons"/>
         <item
             android:id="@+id/nav_gallery"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="Notificame" />
+            android:icon="@drawable/ic_bag"
+            android:title="Mi Bolsa" />
         <item
             android:id="@+id/nav_slideshow"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="Mi bolsa" />
+            android:icon="@drawable/ic_transfer"
+            android:title="Transferir pokemons" />
         <item
             android:id="@+id/nav_manage"
-            android:icon="@drawable/ic_menu_manage"
+            android:icon="@drawable/ic_settings"
             android:title="Tools" />
     </group>
 
@@ -26,10 +26,6 @@
                 android:id="@+id/nav_share"
                 android:icon="@android:drawable/ic_delete"
                 android:title="Cerrar sesión" />
-            <item
-                android:id="@+id/nav_send"
-                android:icon="@drawable/ic_menu_send"
-                android:title="Send" />
         </menu>
     </item>
 
