@@ -44,8 +44,8 @@ public class AdapterChildTransferablePokemon extends CheckableChildRecyclerViewA
 
     @Override
     public void onBindCheckChildViewHolder(ChildTransferablePokemonViewHolder holder, int flatPosition, CheckedExpandableGroup group, int childIndex) {
-        final ChildTransferablePokemon opcion = (ChildTransferablePokemon) group.getItems().get(childIndex);
-        holder.setOpcionTitle(opcion.getTitle());
+        final ChildTransferablePokemon child = (ChildTransferablePokemon) group.getItems().get(childIndex);
+        holder.setUp(child);
     }
 
     @Override
@@ -59,7 +59,7 @@ public class AdapterChildTransferablePokemon extends CheckableChildRecyclerViewA
     public void onBindGroupViewHolder(GroupTransferablePokemonViewHolder2 holder, int flatPosition, final ExpandableGroup group) {
         final GroupTransferablePokemon g = (GroupTransferablePokemon) group;
         final int pokemonIdNumber = g.getPokemonIdNumber();
-        holder.setFiltroTitle(g);
+        holder.setTexts(g);
 
         AssetManager assetManager = mContext.getAssets();
 

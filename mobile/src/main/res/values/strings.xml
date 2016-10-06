@@ -93,5 +93,11 @@
     <!-- Strings related to Bag Fragment -->
     <string name="group_pokeballs">POKE BALLS</string>
     <string name="group_incenses">INCENSES</string>
+    <string name="group_potions">POTIONS</string>
+    <string name="group_troydisks">TROY DISKS</string>
+    <string name="group_eggs">EGGS</string>
+    <string name="group_revives">REVIVES</string>
+    <string name="group_berries">BERRIES</string>
+    <string name="group_incubators">INCUBATORS</string>
 
 </resources>

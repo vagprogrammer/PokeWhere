@@ -10,7 +10,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
-import android.support.annotation.IntegerRes;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -39,8 +38,6 @@ import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.pokemon.Pokemon;
 import com.thoughtbot.expandablecheckrecyclerview.listeners.OnCheckChildClickListener;
 import com.thoughtbot.expandablecheckrecyclerview.models.CheckedExpandableGroup;
-import com.thoughtbot.expandablerecyclerview.listeners.GroupExpandCollapseListener;
-import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -76,7 +73,8 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
 
     //Variables
     private Boolean isTransfering = true;
-
+    public int pokemonStorage;
+    public int totalPokemons;
     //Tasks
     private FiltrosTask mFiltrosTask;
     private TransferTask mTransferTask;
@@ -86,8 +84,8 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
     private AdapterChildTransferablePokemon mAdpaterChildTransferablePokemon;
 
     //Listas
-    private List<Pokemon> mUserPokemons;
-    private List<TransferablePokemon> mTransferablePokemons = new ArrayList<>();
+    private List<Pokemon> mUserPokemonList;
+    private List<TransferablePokemon> mTransferablePokemonList = new ArrayList<>();
     private List<GroupTransferablePokemon> mFiltrosPokemonList = new ArrayList<>();
 
     public FragmentTransfer() {
@@ -233,21 +231,28 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
 
                 if (transferablePokemon.getTransfer()) {
                     transferablePokemon.setTransfer(checked);
-                    mTransferablePokemons.set(mTransferablePokemons.indexOf(getTransferablePokemon(childTransferablePokemon.getId())), transferablePokemon);
+                    mTransferablePokemonList.set(mTransferablePokemonList.indexOf(getTransferablePokemon(childTransferablePokemon.getId())), transferablePokemon);
                     group.onChildClicked(childIndex, false);
                 } else {
                     transferablePokemon.setTransfer(checked);
-                    mTransferablePokemons.set(mTransferablePokemons.indexOf(getTransferablePokemon(childTransferablePokemon.getId())), transferablePokemon);
+                    mTransferablePokemonList.set(mTransferablePokemonList.indexOf(getTransferablePokemon(childTransferablePokemon.getId())), transferablePokemon);
                     group.onChildClicked(childIndex, true);
                 }
+                if (Integer.parseInt(countTransferablePokemons())>0){
+                    setActionBarTitle(countTransferablePokemons() + " selected");
+                    showToast(countTransferablePokemons() + " pokemons to transfer", 700);
+                    setHasOptionsMenu(true);
+                }else {
+                    setActionBarTitle(String.valueOf(totalPokemons) + "/"+ String.valueOf(pokemonStorage) + " pokemons");
+                    setHasOptionsMenu(false);
+                }
 
-                showToast(countTransferablePokemons() + " pokemons to transfer", 500);
             } else {
                 showToast("No puedes transferir un pokémon favorito", Toast.LENGTH_SHORT);
                 group.onChildClicked(childIndex, false);
             }
         } else {
-            showToast("Ocurrio un error, intentalo más tarde", Toast.LENGTH_SHORT);
+            showToast("Ahora no puedes transferir este pokémon, intentalo más tarde", Toast.LENGTH_SHORT);
             group.onChildClicked(childIndex, false);
         }
 
@@ -258,9 +263,9 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
         @Override
         protected void onPreExecute() {
 
-            mUserPokemons = new ArrayList<>();
+            mUserPokemonList = new ArrayList<>();
             mFiltrosPokemonList = new ArrayList<>();
-            mTransferablePokemons = new ArrayList<>();
+            mTransferablePokemonList = new ArrayList<>();
 
             super.onPreExecute();
         }
@@ -271,9 +276,11 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
 
             try {
                 mPokemonGo.getInventories().updateInventories(true);
-                mUserPokemons = mPokemonGo.getInventories().getPokebank().getPokemons();
+                mUserPokemonList = mPokemonGo.getInventories().getPokebank().getPokemons();
+                totalPokemons  = mUserPokemonList.size() + mPokemonGo.getInventories().getHatchery().getEggs().size();
+                pokemonStorage = mPokemonGo.getPlayerProfile().getPlayerData().getMaxPokemonStorage();
 
-                for (Pokemon pokemon : mUserPokemons) {
+                for (Pokemon pokemon : mUserPokemonList) {
 
                     if (!containsEncounteredId(pokemon.getPokemonId())) {
                         //Obtenemos todos los pokemons para este id
@@ -288,14 +295,20 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
                             transferablePokemon.setCp(specificPokemon.getCp());
                             transferablePokemon.setFavorite(specificPokemon.isFavorite());
                             transferablePokemon.setDead(specificPokemon.isInjured());
-                            mTransferablePokemons.add(transferablePokemon);
+                            mTransferablePokemonList.add(transferablePokemon);
+
+                            String specificPokemonNick = specificPokemon.getNickname();
+
+                            if (specificPokemonNick.equals("")){
+                                specificPokemonNick = specificPokemon.getPokemonId().toString();
+                            }
 
                             mChildTransferablePokemonList.add(new
                                     ChildTransferablePokemon(specificPokemon.getId(),
+                                    transferablePokemon.getFavorite(),
                                     transferablePokemon.getCp(),
-                                    specificPokemon.getNickname()
-                                            + " CP: " + String.valueOf(transferablePokemon.getCp())
-                                            + " IV: " + String.valueOf((int) (specificPokemon.getIvRatio() * 100)) + "%"));
+                                    ((int) (specificPokemon.getIvRatio() * 100)),
+                                    specificPokemonNick));
 
                         }
 
@@ -312,7 +325,7 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
                         final int pokemonIdNumber = pokemon.getPokemonId().getNumber();
                         final int childCount = mChildTransferablePokemonList.size();
 
-                        mFiltrosPokemonList.add(new GroupTransferablePokemon(pokemonId, pokemonIdNumber, childCount, pokemonId + " " + String.valueOf(childCount) + " Can:" + String.valueOf(pokemon.getCandy()), mChildTransferablePokemonList));
+                        mFiltrosPokemonList.add(new GroupTransferablePokemon(pokemonId, pokemonIdNumber, childCount, pokemon.getCandy(), pokemonId, mChildTransferablePokemonList));
 
                         // Sorting
                         Collections.sort(mFiltrosPokemonList, new Comparator<GroupTransferablePokemon>() {
@@ -340,10 +353,9 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
         protected void onPostExecute(Boolean succes) {
 
             mFiltrosTask = null;
-            setActionBarTitle("Total: " + String.valueOf(mFiltrosPokemonList.size()));
+            setActionBarTitle(String.valueOf(totalPokemons) + "/"+ String.valueOf(pokemonStorage) + " pokemons");
 
             if (succes) {
-                setHasOptionsMenu(true);
                 //instantiate your adapter with the list of bands
                 mAdpaterChildTransferablePokemon = new AdapterChildTransferablePokemon(mFiltrosPokemonList, mContext);
                 mAdpaterChildTransferablePokemon.setChildClickListener(FragmentTransfer.this);
@@ -352,8 +364,6 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
 
                 mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_TRANSFER);
             } else {
-                setHasOptionsMenu(false);
-
                 if (isDeviceOnline()) {
                     setActionBarTitle(getString(R.string.snack_bar_error_with_pokemon));
                     showSnackBar(getString(R.string.snack_bar_error_with_pokemon), getString(R.string.snack_bar_error_with_pokemon_positive_btn), TASK_FILTROS);
@@ -390,7 +400,7 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
 
             try {
 
-                for (TransferablePokemon transferablePokemon : mTransferablePokemons) {
+                for (TransferablePokemon transferablePokemon : mTransferablePokemonList) {
 
                     if (isTransfering) {
                         if (transferablePokemon.getTransfer()) {
@@ -484,7 +494,7 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
 
     public TransferablePokemon getTransferablePokemon(Long idPokemon) {
 
-        for (TransferablePokemon transferablePokemon : mTransferablePokemons) {
+        for (TransferablePokemon transferablePokemon : mTransferablePokemonList) {
             if (String.valueOf(transferablePokemon.getId()).equalsIgnoreCase(String.valueOf(idPokemon))) {
                 return transferablePokemon;
             }
@@ -494,7 +504,7 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
 
     public Pokemon getUserPokemon(Long idPokemon) {
 
-        for (Pokemon pokemon : mUserPokemons) {
+        for (Pokemon pokemon : mUserPokemonList) {
             if (String.valueOf(pokemon.getId()).equalsIgnoreCase(String.valueOf(idPokemon))) {
                 return pokemon;
             }
@@ -505,7 +515,7 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
     public String countTransferablePokemons() {
         int size = 0;
 
-        for (TransferablePokemon transferablePokemon : mTransferablePokemons) {
+        for (TransferablePokemon transferablePokemon : mTransferablePokemonList) {
             if (transferablePokemon.getTransfer()) {
                 size++;
             }

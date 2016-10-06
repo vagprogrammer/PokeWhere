@@ -20,19 +20,24 @@ import static android.view.animation.Animation.RELATIVE_TO_SELF;
 public class GroupTransferablePokemonViewHolder2 extends GroupViewHolder implements GroupExpandCollapseListener {
     private ImageView img_filtro;
     private TextView tv;
+    private TextView tv_candies;
+    private TextView tv_child_count;
     private ImageView img_arrow;
 
     public GroupTransferablePokemonViewHolder2(View itemView) {
         super(itemView);
         tv = (TextView) itemView.findViewById(R.id.tv_filtro);
+        tv_candies = (TextView) itemView.findViewById(R.id.tv_candies);
+        tv_child_count= (TextView) itemView.findViewById(R.id.tv_child_count);
         img_filtro = (ImageView) itemView.findViewById(R.id.img_filtro);
         img_arrow = (ImageView) itemView.findViewById(R.id.img_arrow_filtro);
     }
 
-    public void setFiltroTitle(GroupTransferablePokemon group) {
+    public void setTexts(GroupTransferablePokemon group){
+        tv_child_count.setText(String.valueOf(group.getChildCount()));
         tv.setText(group.getTitle());
+        tv_candies.setText(String.valueOf(group.getPokemonCandies()));
     }
-
     public void setFiltroImagen(Bitmap bitmap){
         img_filtro.setImageBitmap(bitmap);
     }

@@ -27,30 +27,17 @@ import android.view.ViewGroup;
 import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.adapters.AdapterChildItem;
-import com.javic.pokewhere.adapters.AdapterChildTransferablePokemon;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
 import com.javic.pokewhere.models.ChildItem;
 import com.javic.pokewhere.models.GroupItem;
-import com.javic.pokewhere.models.GroupTransferablePokemon;
-import com.javic.pokewhere.models.TransferablePokemon;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.Item;
-import com.pokegoapi.api.pokemon.Pokemon;
-import com.thoughtbot.expandablecheckrecyclerview.listeners.OnCheckChildClickListener;
-import com.thoughtbot.expandablecheckrecyclerview.models.CheckedExpandableGroup;
-import com.thoughtbot.expandablerecyclerview.listeners.GroupExpandCollapseListener;
-import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-import POGOProtos.Enums.PokemonIdOuterClass;
-import POGOProtos.Inventory.Item.ItemIdOuterClass;
-import POGOProtos.Networking.Responses.ReleasePokemonResponseOuterClass;
-
-public class FragmentBag extends Fragment  {
+public class FragmentBag extends Fragment {
 
     private static final String TAG = FragmentBag.class.getSimpleName();
     private static final int TASK_ITEMS = 0;
@@ -118,6 +105,7 @@ public class FragmentBag extends Fragment  {
         }
         return super.onOptionsItemSelected(item);
     }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -126,11 +114,11 @@ public class FragmentBag extends Fragment  {
         mRecyclerView = (RecyclerView) mView.findViewById(R.id.recyclerView);
 
         mToolbar = (Toolbar) mView.findViewById(R.id.appbar);
-        ((AppCompatActivity)getActivity()).setSupportActionBar(mToolbar);
-        ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(getString(R.string.title_fragment_bag));
+        ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(getString(R.string.title_fragment_bag));
 
-        mDrawerToggle = new ActionBarDrawerToggle(getActivity(), ActivityDashboard.mDrawerLayout, mToolbar, R.string.open_location_settings,  R.string.open_location_settings);
+        mDrawerToggle = new ActionBarDrawerToggle(getActivity(), ActivityDashboard.mDrawerLayout, mToolbar, R.string.open_location_settings, R.string.open_location_settings);
         mDrawerToggle.setDrawerIndicatorEnabled(true);
         mDrawerToggle.syncState();
 
@@ -164,7 +152,7 @@ public class FragmentBag extends Fragment  {
     public void onDestroyView() {
         super.onDestroyView();
 
-        if (mDrawerToggle!=null){
+        if (mDrawerToggle != null) {
             ActivityDashboard.mDrawerLayout.removeDrawerListener(mDrawerToggle);
         }
 
@@ -174,7 +162,7 @@ public class FragmentBag extends Fragment  {
     public void onPause() {
         super.onPause();
 
-        if (mGetItemsTask!=null){
+        if (mGetItemsTask != null) {
             mGetItemsTask.cancel(true);
         }
     }
@@ -201,6 +189,7 @@ public class FragmentBag extends Fragment  {
 
     public class GetItemsTask extends AsyncTask<Void, String, Boolean> {
 
+
         @Override
         protected void onPreExecute() {
             mGroupItemList = new ArrayList<>();
@@ -211,67 +200,342 @@ public class FragmentBag extends Fragment  {
         protected Boolean doInBackground(Void... params) {
 
             try {
-               mUserBagItemList = new ArrayList<>(mPokemonGo.getInventories().getItemBag().getItems());
+                mPokemonGo.getInventories().updateInventories(true);
+                mUserBagItemList = new ArrayList<>(mPokemonGo.getInventories().getItemBag().getItems());
 
-                if (mUserBagItemList!=null){
+                int itemCount =  mPokemonGo.getInventories().getItemBag().getItemsCount();
+                int itemStorage = mPokemonGo.getPlayerProfile().getPlayerData().getMaxItemStorage();
 
-                    String title_group ="";
+                publishProgress(String.valueOf(itemCount) + "/" +String.valueOf(itemStorage) + " Items");
+
+                if (mUserBagItemList != null) {
+
+                    String title_group = "";
                     final List<ChildItem> pokeBallTypeList = new ArrayList<>();
                     final List<ChildItem> incenseTypeList = new ArrayList<>();
+                    final List<ChildItem> potionTypeList = new ArrayList<>();
+                    final List<ChildItem> troyDiskTypeList = new ArrayList<>();
+                    final List<ChildItem> eggTypeList = new ArrayList<>();
+                    final List<ChildItem> reviveTypeList = new ArrayList<>();
+                    final List<ChildItem> berryTypeList = new ArrayList<>();
+                    final List<ChildItem> incubatorTypeList = new ArrayList<>();
 
-                    for (Item item: mUserBagItemList){
+                    for (Item item : mUserBagItemList) {
 
-                        if (item.getItemId().toString().contains("BALL")){
+                        //POKEBALLS
+                        if (item.getItemId().toString().contains("BALL")) {
                             title_group = getString(R.string.group_pokeballs);
 
-                            if (!containsEncounteredGroupItem(title_group)){
+                            if (!containsEncounteredGroupItem(title_group)) {
 
                                 String[] full_name = item.getItemId().toString().split("_");
                                 String ball_type = full_name[1];
 
-                                if (!containsEncounteredChildItem(ball_type, pokeBallTypeList)){
-                                    pokeBallTypeList.add(new ChildItem(R.drawable.ic_pokeball, full_name[1]+" "+full_name[2] + ":" + item.getCount()));
+                                if (!containsEncounteredChildItem(ball_type, pokeBallTypeList)) {
+                                    if (ball_type.equalsIgnoreCase("POKE")){
+                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_poke_ball, ball_type + " " + full_name[2] + ":" + item.getCount()));
+                                    }
+                                    else if (ball_type.equalsIgnoreCase("GREAT")){
+                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_great_ball, ball_type + " " + full_name[2] + ":" + item.getCount()));
+                                    }
+                                    else if (ball_type.equalsIgnoreCase("ULTRA")){
+                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_ultra_ball, ball_type + " " + full_name[2] + ":" + item.getCount()));
+                                    }
+
                                 }
 
-                                mGroupItemList.add(new GroupItem(title_group, pokeBallTypeList, R.drawable.ic_pokeball));
+                                mGroupItemList.add(new GroupItem(title_group, pokeBallTypeList, R.drawable.ic_pokeballs));
 
-                            }else{
+                            } else {
                                 String[] full_name = item.getItemId().toString().split("_");
                                 String ball_type = full_name[1];
 
-                                if (!containsEncounteredChildItem(ball_type, pokeBallTypeList)){
-                                    pokeBallTypeList.add(new ChildItem(R.drawable.ic_pokeball, full_name[1]+" "+full_name[2] + ":" + item.getCount()));
+                                if (!containsEncounteredChildItem(ball_type, pokeBallTypeList)) {
+                                    if (ball_type.equalsIgnoreCase("POKE")){
+                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_poke_ball, ball_type + " " + full_name[2] + ":" + item.getCount()));
+                                    }
+                                    else if (ball_type.equalsIgnoreCase("GREAT")){
+                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_great_ball, ball_type + " " + full_name[2] + ":" + item.getCount()));
+                                    }
+                                    else if (ball_type.equalsIgnoreCase("ULTRA")){
+                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_ultra_ball, ball_type + " " + full_name[2] + ":" + item.getCount()));
+                                    }
                                 }
 
-                                mGroupItemList.set(mGroupItemList.indexOf(getGroupItem(title_group)), new GroupItem(getString(R.string.group_pokeballs), pokeBallTypeList, R.drawable.ic_pokeball)   );
-                            }
-                        } else
-                        if(item.getItemId().toString().contains("INCENSE")){
-                            title_group = getString(R.string.group_incenses);
-
-                            if (!containsEncounteredGroupItem(title_group)){
-
-                                String[] full_name = item.getItemId().toString().split("_");
-                                String incense_type = full_name[1];
-
-                                if (!containsEncounteredChildItem(incense_type, pokeBallTypeList)){
-                                    incenseTypeList.add(new ChildItem(R.drawable.ic_pokeball, full_name[1]+" "+full_name[2] + ":" + item.getCount()));
-                                }
-
-                                mGroupItemList.add(new GroupItem(title_group, incenseTypeList, R.drawable.ic_pokeball));
-
-                            }else{
-                                String[] full_name = item.getItemId().toString().split("_");
-                                String incense_type = full_name[1];
-
-                                if (!containsEncounteredChildItem(incense_type, pokeBallTypeList)){
-                                    incenseTypeList.add(new ChildItem(R.drawable.ic_pokeball, full_name[1]+" "+full_name[2] + ":" + item.getCount()));
-                                }
-
-                                mGroupItemList.set(mGroupItemList.indexOf(getGroupItem(title_group)), new GroupItem(getString(R.string.group_incenses), incenseTypeList, R.drawable.ic_pokeball)   );
+                                mGroupItemList.set(mGroupItemList.indexOf(getGroupItem(title_group)), new GroupItem(getString(R.string.group_pokeballs), pokeBallTypeList, R.drawable.ic_pokeballs));
                             }
                         }
 
+                        //INCENSES
+                        else if (item.getItemId().toString().contains("INCENSE")) {
+                            title_group = getString(R.string.group_incenses);
+
+                            if (!containsEncounteredGroupItem(title_group)) {
+
+                                String[] full_name = item.getItemId().toString().split("_");
+                                String incense_type = full_name[2];
+
+                                if (!containsEncounteredChildItem(incense_type, incenseTypeList)) {
+                                    if (incense_type.equalsIgnoreCase("ORDINARY")){
+                                        incenseTypeList.add(new ChildItem(R.drawable.ic_incense_ordinary, incense_type  + " " + full_name[1] + ":" + item.getCount()));
+                                    }
+                                }
+
+                                mGroupItemList.add(new GroupItem(title_group, incenseTypeList, R.drawable.ic_incenses));
+
+                            } else {
+                                String[] full_name = item.getItemId().toString().split("_");
+                                String incense_type = full_name[2];
+
+                                if (!containsEncounteredChildItem(incense_type, incenseTypeList)) {
+                                    if (incense_type.equalsIgnoreCase("ORDINARY")){
+                                        incenseTypeList.add(new ChildItem(R.drawable.ic_incense_ordinary, incense_type  + " " + full_name[1] + ":" + item.getCount()));
+                                    }
+                                }
+
+                                mGroupItemList.set(mGroupItemList.indexOf(getGroupItem(title_group)), new GroupItem(getString(R.string.group_incenses), incenseTypeList, R.drawable.ic_incenses));
+                            }
+                        }
+
+                        //POTIONS
+                        else if (item.getItemId().toString().contains("POTION")) {
+                            title_group = getString(R.string.group_potions);
+                            if (!containsEncounteredGroupItem(title_group)) {
+
+                                String[] full_name = item.getItemId().toString().split("_");
+                                String potion_type = full_name[1];
+
+                                if (!containsEncounteredChildItem(potion_type, potionTypeList)) {
+                                    if (potion_type.equalsIgnoreCase("POTION")){
+                                        potionTypeList.add(new ChildItem(R.drawable.ic_potion, potion_type + ":" + item.getCount()));
+                                    }
+                                    else if (potion_type.equalsIgnoreCase("SUPER")){
+                                        potionTypeList.add(new ChildItem(R.drawable.ic_great_potion, potion_type  + " " + full_name[2] + ":" + item.getCount()));
+                                    }
+                                    else if (potion_type.equalsIgnoreCase("HYPER")){
+                                        potionTypeList.add(new ChildItem(R.drawable.ic_hyper_potion, potion_type  + " " + full_name[2] + ":" + item.getCount()));
+                                    }
+                                    else if (potion_type.equalsIgnoreCase("MAX")){
+                                        potionTypeList.add(new ChildItem(R.drawable.ic_potions, potion_type  + " " + full_name[2] + ":" + item.getCount()));
+                                    }
+                                }
+
+                                mGroupItemList.add(new GroupItem(title_group, potionTypeList, R.drawable.ic_potions));
+
+                            } else {
+                                String[] full_name = item.getItemId().toString().split("_");
+                                String potion_type = full_name[1];
+
+                                if (!containsEncounteredChildItem(potion_type, potionTypeList)) {
+                                    if (potion_type.equalsIgnoreCase("POTION")){
+                                        potionTypeList.add(new ChildItem(R.drawable.ic_potion, potion_type + ":" + item.getCount()));
+                                    }
+                                    else if (potion_type.equalsIgnoreCase("SUPER")){
+                                        potionTypeList.add(new ChildItem(R.drawable.ic_great_potion, potion_type  + " " + full_name[2] + ":" + item.getCount()));
+                                    }
+                                    else if (potion_type.equalsIgnoreCase("HYPER")){
+                                        potionTypeList.add(new ChildItem(R.drawable.ic_hyper_potion, potion_type  + " " + full_name[2] + ":" + item.getCount()));
+                                    }
+                                    else if (potion_type.equalsIgnoreCase("MAX")){
+                                        potionTypeList.add(new ChildItem(R.drawable.ic_potions, potion_type  + " " + full_name[2] + ":" + item.getCount()));
+                                    }
+                                }
+
+                                mGroupItemList.set(mGroupItemList.indexOf(getGroupItem(title_group)), new GroupItem(getString(R.string.group_potions), potionTypeList, R.drawable.ic_potions));
+                            }
+                        }
+
+                        //BAITS
+                        else if (item.getItemId().toString().contains("DISK")) {
+                            title_group = getString(R.string.group_troydisks);
+                            if (!containsEncounteredGroupItem(title_group)) {
+
+                                String[] full_name = item.getItemId().toString().split("_");
+                                String disk_type = full_name[1];
+
+                                if (!containsEncounteredChildItem(disk_type, troyDiskTypeList)) {
+                                    if (disk_type.equalsIgnoreCase("TROY")){
+                                        troyDiskTypeList.add(new ChildItem(R.drawable.ic_bait, disk_type + " " + full_name[1] + ":" + item.getCount()));
+                                    }
+                                }
+
+                                mGroupItemList.add(new GroupItem(title_group, troyDiskTypeList, R.drawable.ic_baits));
+
+                            } else {
+                                String[] full_name = item.getItemId().toString().split("_");
+                                String disk_type = full_name[1];
+
+                                if (!containsEncounteredChildItem(disk_type, troyDiskTypeList)) {
+                                    if (disk_type.equalsIgnoreCase("TROY")){
+                                        troyDiskTypeList.add(new ChildItem(R.drawable.ic_bait, disk_type + ":" + item.getCount()));
+                                    }
+                                }
+                                mGroupItemList.set(mGroupItemList.indexOf(getGroupItem(title_group)), new GroupItem(getString(R.string.group_troydisks), troyDiskTypeList, R.drawable.ic_baits));
+                            }
+                        }
+
+                        //EGGS
+                        else if (item.getItemId().toString().contains("EGG")) {
+                            title_group = getString(R.string.group_eggs);
+                            if (!containsEncounteredGroupItem(title_group)) {
+
+                                String[] full_name = item.getItemId().toString().split("_");
+                                String egg_type = full_name[1];
+
+                                if (!containsEncounteredChildItem(egg_type, eggTypeList)) {
+                                    if (egg_type.equalsIgnoreCase("LUCKY")){
+                                        eggTypeList.add(new ChildItem(R.drawable.ic_egg, egg_type + " " + full_name[2] + ":" + item.getCount()));
+                                    }
+                                }
+
+                                mGroupItemList.add(new GroupItem(title_group, eggTypeList, R.drawable.ic_eggs));
+
+                            } else {
+                                String[] full_name = item.getItemId().toString().split("_");
+                                String egg_type = full_name[1];
+
+                                if (!containsEncounteredChildItem(egg_type, eggTypeList)) {
+                                    if (egg_type.equalsIgnoreCase("LUCKY")){
+                                        eggTypeList.add(new ChildItem(R.drawable.ic_egg, egg_type + " " + full_name[2] + ":" + item.getCount()));
+                                    }
+                                }
+                                mGroupItemList.set(mGroupItemList.indexOf(getGroupItem(title_group)), new GroupItem(getString(R.string.group_eggs), eggTypeList, R.drawable.ic_eggs));
+                            }
+                        }
+                        //INCUBATORS
+                        else if (item.getItemId().toString().contains("INCUBATOR")) {
+                            title_group = getString(R.string.group_incubators);
+                            if (!containsEncounteredGroupItem(title_group)) {
+
+                                String[] full_name = item.getItemId().toString().split("_");
+                                String incubator_type = full_name[2];
+
+                                if (!containsEncounteredChildItem(incubator_type, incubatorTypeList)) {
+
+                                    if (incubator_type.equalsIgnoreCase("BASIC")){
+                                        try{
+                                            incubatorTypeList.add(new ChildItem(R.drawable.ic_basic_unlimited_incubator, incubator_type+ " " +full_name[3]+ " "+full_name[1]+":" + item.getCount()));
+                                        }
+                                        catch (Exception e){
+
+                                            incubatorTypeList.add(new ChildItem(R.drawable.ic_basic_incubator, incubator_type+ " "+full_name[1]+":" + item.getCount()));
+                                            incubatorTypeList.add(new ChildItem(R.drawable.ic_basic_unlimited_incubator, "UNLIMITED"+ " " + full_name[1]+":" + 1));
+                                        }
+
+                                    }
+                                }
+
+                                mGroupItemList.add(new GroupItem(title_group, incubatorTypeList, R.drawable.ic_incubators));
+
+                            } else {
+                                String[] full_name = item.getItemId().toString().split("_");
+                                String incubator_type = full_name[1];
+
+                                if (!containsEncounteredChildItem(incubator_type, incubatorTypeList)) {
+                                    if (incubator_type.equalsIgnoreCase("BASIC")){
+                                        try{
+                                            incubatorTypeList.add(new ChildItem(R.drawable.ic_basic_unlimited_incubator, incubator_type+ " " +full_name[3]+ " "+full_name[1]+":" + item.getCount()));
+                                        }
+                                        catch (Exception e){
+
+                                            incubatorTypeList.add(new ChildItem(R.drawable.ic_basic_incubator, incubator_type+ " "+full_name[1]+":" + item.getCount()));
+                                            incubatorTypeList.add(new ChildItem(R.drawable.ic_basic_unlimited_incubator, "UNLIMITED"+ " " + full_name[1]+":" + 1));
+                                        }
+
+                                    }
+                                }
+                                mGroupItemList.set(mGroupItemList.indexOf(getGroupItem(title_group)), new GroupItem(getString(R.string.group_incubators), incubatorTypeList, R.drawable.ic_incubators));
+                            }
+                        }
+
+
+                        //REVIVES
+                        else if (item.getItemId().toString().contains("REVIVE")) {
+                            title_group = getString(R.string.group_revives);
+                            if (!containsEncounteredGroupItem(title_group)) {
+
+                                String[] full_name = item.getItemId().toString().split("_");
+                                String revive_type = full_name[1];
+
+                                if (!containsEncounteredChildItem(revive_type, reviveTypeList)) {
+                                    if (revive_type.equalsIgnoreCase("REVIVE")){
+                                        reviveTypeList.add(new ChildItem(R.drawable.ic_crystal, revive_type + ":" + item.getCount()));
+                                    }
+                                    else if(revive_type.equalsIgnoreCase("MAX")){
+                                        reviveTypeList.add(new ChildItem(R.drawable.ic_crystal, revive_type + full_name[2] +":" + item.getCount()));
+                                    }
+                                }
+
+                                mGroupItemList.add(new GroupItem(title_group, reviveTypeList, R.drawable.ic_crystal));
+
+                            } else {
+                                String[] full_name = item.getItemId().toString().split("_");
+                                String revive_type = full_name[1];
+
+                                if (!containsEncounteredChildItem(revive_type, reviveTypeList)) {
+                                    if (revive_type.equalsIgnoreCase("REVIVE")){
+                                        reviveTypeList.add(new ChildItem(R.drawable.ic_crystal, revive_type + ":" + item.getCount()));
+                                    }
+                                    else if(revive_type.equalsIgnoreCase("MAX")){
+                                        reviveTypeList.add(new ChildItem(R.drawable.ic_crystal, revive_type + full_name[2] +":" + item.getCount()));
+                                    }
+                                }
+                                mGroupItemList.set(mGroupItemList.indexOf(getGroupItem(title_group)), new GroupItem(getString(R.string.group_revives), reviveTypeList, R.drawable.ic_crystal));
+                            }
+                        }
+
+                        //BERRIES
+                        else if (item.getItemId().toString().contains("BERRY")) {
+                            title_group = getString(R.string.group_berries);
+                            if (!containsEncounteredGroupItem(title_group)) {
+
+                                String[] full_name = item.getItemId().toString().split("_");
+                                String berry_type = full_name[1];
+
+                                if (!containsEncounteredChildItem(berry_type, berryTypeList)) {
+                                    if (berry_type.equalsIgnoreCase("RAZZ")){
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                    }
+                                    else if (berry_type.equalsIgnoreCase("BLUK")){
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                    }
+                                    else if (berry_type.equalsIgnoreCase("NANAB")){
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                    }
+                                    else if (berry_type.equalsIgnoreCase("PINAP")){
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                    }
+                                    else if (berry_type.equalsIgnoreCase("WEPAR")){
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                    }
+                                }
+
+                                mGroupItemList.add(new GroupItem(title_group, berryTypeList, R.drawable.ic_berries));
+
+                            } else {
+                                String[] full_name = item.getItemId().toString().split("_");
+                                String berry_type = full_name[1];
+
+                                if (!containsEncounteredChildItem(berry_type, berryTypeList)) {
+                                    if (berry_type.equalsIgnoreCase("RAZZ")){
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                    }
+                                    else if (berry_type.equalsIgnoreCase("BLUK")){
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                    }
+                                    else if (berry_type.equalsIgnoreCase("NANAB")){
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                    }
+                                    else if (berry_type.equalsIgnoreCase("PINAP")){
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                    }
+                                    else if (berry_type.equalsIgnoreCase("WEPAR")){
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                    }
+                                }
+                                mGroupItemList.set(mGroupItemList.indexOf(getGroupItem(title_group)), new GroupItem(getString(R.string.group_berries), berryTypeList, R.drawable.ic_berries));
+                            }
+                        }
 
                     }
 
@@ -291,6 +555,7 @@ public class FragmentBag extends Fragment  {
 
             super.onProgressUpdate(data);
 
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(data[0]);
         }
 
         @Override
@@ -312,9 +577,9 @@ public class FragmentBag extends Fragment  {
             } else {
                 setHasOptionsMenu(false);
 
-                if (isDeviceOnline()){
+                if (isDeviceOnline()) {
                     showSnackBar(getString(R.string.snack_bar_error_with_pokemon), getString(R.string.snack_bar_error_with_pokemon_positive_btn), TASK_ITEMS);
-                }else{
+                } else {
                     showSnackBar(getString(R.string.snack_bar_error_with_internet_acces), getString(R.string.snack_bar_error_with_internet_acces_positive_btn), TASK_ITEMS);
                 }
 
@@ -361,7 +626,7 @@ public class FragmentBag extends Fragment  {
 
             super.onProgressUpdate(data);
 
-            ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(data[0]);
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(data[0]);
 
         }
 
@@ -395,7 +660,7 @@ public class FragmentBag extends Fragment  {
 
     public GroupItem getGroupItem(String titleGroup) {
 
-        for (GroupItem groupItem: mGroupItemList) {
+        for (GroupItem groupItem : mGroupItemList) {
             if (String.valueOf(groupItem.getTitle()).equalsIgnoreCase(String.valueOf(titleGroup))) {
                 return groupItem;
             }
@@ -465,7 +730,7 @@ public class FragmentBag extends Fragment  {
                     public void onClick(View v) {
                         if (buttonTitle.equalsIgnoreCase("Reintentar")) {
 
-                            if (task == TASK_ITEMS){
+                            if (task == TASK_ITEMS) {
                                 mGetItemsTask = new GetItemsTask();
 
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -473,8 +738,7 @@ public class FragmentBag extends Fragment  {
                                 } else {
                                     mGetItemsTask.execute();
                                 }
-                            }
-                            else if (task == TASK_DELETE){
+                            } else if (task == TASK_DELETE) {
 
                             }
 

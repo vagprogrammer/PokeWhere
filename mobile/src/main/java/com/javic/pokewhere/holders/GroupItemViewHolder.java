@@ -30,6 +30,9 @@ public class GroupItemViewHolder extends GroupViewHolder {
         tv_item.setText(group.getTitle());
     }
 
+    public void setItemImage(GroupItem group){
+        img_item.setImageResource(group.getIconResId());
+    }
 
     @Override
     public void expand() {

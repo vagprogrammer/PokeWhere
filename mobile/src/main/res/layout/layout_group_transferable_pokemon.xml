@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
-    android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
 
     <!-- A CardView that contains a TextView -->
     <android.support.v7.widget.CardView
         android:id="@+id/card_view"
-        android:layout_gravity="center"
         android:layout_width="match_parent"
         android:layout_height="60dp"
+        android:layout_gravity="center"
         card_view:cardUseCompatPadding="true"
         card_view:contentPadding="10dp">
 
@@ -18,37 +18,75 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-        <ImageView
-            android:id="@+id/img_filtro"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@mipmap/ic_launcher"
-            android:layout_gravity="center_vertical"
+            <TextView
+            android:id="@+id/tv_child_count"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"/>
+            android:layout_alignParentStart="true"
+            android:gravity="center_vertical"
+            android:text="100"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textStyle="bold"
+            android:typeface="monospace" />
+
+            <ImageView
+                android:id="@+id/img_filtro"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_toRightOf="@+id/tv_child_count"
+                android:layout_toEndOf="@+id/tv_child_count"
+                android:layout_gravity="center_vertical"
+                android:src="@mipmap/ic_launcher" />
 
             <TextView
                 android:id="@+id/tv_filtro"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:typeface="monospace"
-                android:text="TITLE FOR FILTER"
-                android:gravity="center_vertical"
-                android:textStyle="bold"
                 android:layout_toRightOf="@+id/img_filtro"
                 android:layout_toEndOf="@+id/img_filtro"
+                android:layout_toLeftOf="@+id/img_candies"
+                android:layout_toStartOf="@+id/img_candies"
+                android:gravity="center_vertical"
+                android:text="TITLE"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textStyle="bold"
+                android:typeface="monospace" />
+
+            <ImageView
+                android:id="@+id/img_candies"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:padding="2dp"
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_candie"
+                android:layout_toLeftOf="@+id/tv_candies" />
+
+            <TextView
+                android:id="@+id/tv_candies"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_toLeftOf="@+id/img_arrow_filtro"
-                android:layout_toStartOf="@+id/img_arrow_filtro"/>
+                android:layout_toStartOf="@+id/img_arrow_filtro"
+                android:layout_marginRight="10dp"
+                android:layout_marginEnd="10dp"
+                android:gravity="center_vertical"
+                android:text="100"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textStyle="bold"
+                android:typeface="monospace"
+                android:maxLines="1"/>
 
             <ImageView
                 android:id="@+id/img_arrow_filtro"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_arrow_down"
-                android:layout_centerVertical="true"
+                android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
-                android:layout_alignParentEnd="true"/>
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_arrow_down" />
+
+
 
         </RelativeLayout>
 

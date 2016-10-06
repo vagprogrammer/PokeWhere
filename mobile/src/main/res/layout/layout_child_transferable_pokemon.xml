@@ -1,19 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="50dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
     android:padding="5dp">
 
-    <CheckedTextView
-        android:id="@+id/tv_opcion"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Medium Text"
-        android:gravity="center_vertical"
-        android:paddingLeft="10dp"
-        android:paddingStart="10dp"
-        android:checkMark="?android:attr/listChoiceIndicatorMultiple" />
+        android:layout_height="50dp">
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_centerInParent="true"
+            android:text="ABRITA"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold"
+            android:typeface="monospace" />
+
+        <ImageView
+            android:id="@+id/img_cp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_toRightOf="@+id/tv_title"
+            android:layout_toEndOf="@+id/tv_title"
+            android:layout_centerInParent="true"
+            android:src="@drawable/ic_cp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginStart="5dp"/>
+
+        <TextView
+            android:id="@+id/tv_cp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/img_cp"
+            android:layout_toEndOf="@+id/img_cp"
+            android:layout_centerInParent="true"
+            android:text="2500"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold"
+            android:typeface="monospace" />
+
+        <ImageView
+            android:id="@+id/img_bookmark"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_toLeftOf="@+id/tv_opcion"
+            android:layout_toStartOf="@+id/tv_opcion"
+            android:layout_centerInParent="true"
+            android:src="@drawable/ic_bookmark"
+            android:layout_marginLeft="5dp"
+            android:layout_marginStart="5dp" />
+
+        <CheckedTextView
+            android:id="@+id/tv_opcion"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:checkMark="?android:attr/listChoiceIndicatorMultiple"
+            android:gravity="center_vertical"
+            android:paddingLeft="10dp"
+            android:paddingStart="10dp"
+            android:text="IV: 80%"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+    </RelativeLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/color_background_stroke_user_profile"/>
 
 </LinearLayout>

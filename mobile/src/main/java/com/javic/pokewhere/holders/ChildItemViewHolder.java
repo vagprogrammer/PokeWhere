@@ -21,9 +21,14 @@ public class ChildItemViewHolder extends ChildViewHolder {
     public ChildItemViewHolder(View itemView) {
         super(itemView);
         tv_child_item = (TextView) itemView.findViewById(R.id.tv_child_item);
+        img_child_item = (ImageView) itemView.findViewById(R.id.img_child_item);
     }
 
-    public void setItem(String name) {
+    public void setChildItemTitle(String name) {
         tv_child_item.setText(name);
+    }
+
+    public void setChildItemImage(int resImage) {
+        img_child_item.setImageResource(resImage);
     }
 }

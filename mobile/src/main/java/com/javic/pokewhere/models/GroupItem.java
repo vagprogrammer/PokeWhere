@@ -2,7 +2,6 @@ package com.javic.pokewhere.models;
 
 import android.annotation.SuppressLint;
 
-import com.thoughtbot.expandablecheckrecyclerview.models.MultiCheckExpandableGroup;
 import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
 
 import java.util.List;
@@ -12,15 +11,15 @@ import java.util.List;
  */
 @SuppressLint("ParcelCreator")
 public class GroupItem extends ExpandableGroup<ChildItem> {
-    private int iconResId;
+    private int iconRes;
 
     public GroupItem(String title, List items, int iconRes) {
         super(title, items);
 
-        this.iconResId = iconResId;
+        this.iconRes = iconRes;
     }
 
     public int getIconResId() {
-        return iconResId;
+        return iconRes;
     }
 }
