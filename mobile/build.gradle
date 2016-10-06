@@ -58,6 +58,6 @@ dependencies {
     compile 'com.github.arimorty:floatingsearchview:2.0.3'
     compile 'com.thoughtbot:expandablerecyclerview:1.0'
     compile 'com.thoughtbot:expandablecheckrecyclerview:0.3'
-    compile 'com.vanniktech:vntnumberpickerpreference:1.0.0'
+    compile 'biz.kasual:materialnumberpicker:1.2.1'
     testCompile 'junit:junit:4.12'
 }

@@ -238,35 +238,41 @@ public class FragmentMapa extends Fragment implements
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mapView = (MapView) mView.findViewById(R.id.map);
-        mSearchView = (FloatingSearchView) mView.findViewById(R.id.floating_search_view);
-        mUserMarker = (ImageView) mView.findViewById(R.id.user_marker);
-        mGetPokemonsButton = (FloatingActionButton) mView.findViewById(R.id.fab);
+        if (mPokemonGo!=null){
 
-        mGetPokemonsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            mListener.onFragmentCreatedViewStatus(Constants.FRAGMENT_MAPA);
 
-                attemptSearch();
-            }
-        });
+            mapView = (MapView) mView.findViewById(R.id.map);
+            mSearchView = (FloatingSearchView) mView.findViewById(R.id.floating_search_view);
+            mUserMarker = (ImageView) mView.findViewById(R.id.user_marker);
+            mGetPokemonsButton = (FloatingActionButton) mView.findViewById(R.id.fab);
 
-        // First we need to check availability of play services
-        if (checkPlayServices()) {
+            mGetPokemonsButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
 
-            // Building the GoogleApi client
-            buildGoogleApiClient();
+                    attemptSearch();
+                }
+            });
 
-            //Biulding the GoogleMap
-            if (mapView != null) {
-                // Initialise the MapView
-                mapView.onCreate(null);
-                mapView.onResume();
+            // First we need to check availability of play services
+            if (checkPlayServices()) {
 
-                // Set the map ready callback to receive the GoogleMap object
-                mapView.getMapAsync(this);
+                // Building the GoogleApi client
+                buildGoogleApiClient();
+
+                //Biulding the GoogleMap
+                if (mapView != null) {
+                    // Initialise the MapView
+                    mapView.onCreate(null);
+                    mapView.onResume();
+
+                    // Set the map ready callback to receive the GoogleMap object
+                    mapView.getMapAsync(this);
+                }
             }
         }
+
     }
 
     @Override
@@ -392,8 +398,8 @@ public class FragmentMapa extends Fragment implements
         setUpGoogleMap();
         setUpSearchView();
 
-        mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_MAPA);
-
+        //show progressBar
+        mListener.showProgress(false);
         mGoogleApiClient.connect();
 
     }

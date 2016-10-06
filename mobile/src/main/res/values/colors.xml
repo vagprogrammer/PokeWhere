@@ -18,6 +18,10 @@
     <color name="color_background_login">#5fb0c9</color>
 
 
+    <color name="color_background_recycler">#FAFAFA</color>
+    <color name="color_background_item">#EEEEEE</color>
+
+
 
 
 

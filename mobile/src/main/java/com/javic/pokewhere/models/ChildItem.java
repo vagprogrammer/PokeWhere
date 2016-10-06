@@ -8,13 +8,17 @@ import android.os.Parcelable;
  */
 public class ChildItem implements Parcelable{
 
-    private int image;
     private String title;
+    private int itemCount;
+    private int image;
 
-    public ChildItem(int image, String title) {
+    public ChildItem(int image, String title, int itemCount) {
         this.image = image;
         this.title = title;
+        this.itemCount = itemCount;
     }
+
+
 
     public int getImage() {
         return image;
@@ -32,15 +36,25 @@ public class ChildItem implements Parcelable{
         this.title = title;
     }
 
+    public int getItemCount() {
+        return itemCount;
+    }
+
+    public void setItemCount(int itemCount) {
+        this.itemCount = itemCount;
+    }
+
     protected ChildItem(Parcel in){
         image = in.readInt();
         title = in.readString();
+        itemCount = in.readInt();
     }
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeInt(image);
         parcel.writeString(title);
+        parcel.writeInt(itemCount);
     }
 
     @Override

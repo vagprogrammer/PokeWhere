@@ -50,7 +50,8 @@ public class FragmentBlank extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_BLANK);
+        mListener.onFragmentCreatedViewStatus(Constants.FRAGMENT_BLANK);
+        mListener.showProgress(false);
     }
 
 

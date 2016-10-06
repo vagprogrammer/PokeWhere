@@ -165,6 +165,8 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
 
         if (mPokemonGo != null) {
 
+            mListener.onFragmentCreatedViewStatus(Constants.FRAGMENT_TRANSFER);
+
             if (mFiltrosTask==null){
                 mFiltrosTask = new FiltrosTask();
 
@@ -248,7 +250,7 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
                 }
 
             } else {
-                showToast("No puedes transferir un pokémon favorito", Toast.LENGTH_SHORT);
+                showToast("No puedes transferir un pokémon favorito", 8500);
                 group.onChildClicked(childIndex, false);
             }
         } else {
@@ -263,9 +265,13 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
         @Override
         protected void onPreExecute() {
 
+            //Show the progressBar
+            mListener.showProgress(true);
+
             mUserPokemonList = new ArrayList<>();
             mFiltrosPokemonList = new ArrayList<>();
             mTransferablePokemonList = new ArrayList<>();
+
 
             super.onPreExecute();
         }
@@ -355,6 +361,9 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
             mFiltrosTask = null;
             setActionBarTitle(String.valueOf(totalPokemons) + "/"+ String.valueOf(pokemonStorage) + " pokemons");
 
+            //Show the progressBar
+            mListener.showProgress(false);
+
             if (succes) {
                 //instantiate your adapter with the list of bands
                 mAdpaterChildTransferablePokemon = new AdapterChildTransferablePokemon(mFiltrosPokemonList, mContext);
@@ -362,7 +371,6 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
                 mRecyclerView.setLayoutManager(mLayoutManager);
                 mRecyclerView.setAdapter(mAdpaterChildTransferablePokemon);
 
-                mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_TRANSFER);
             } else {
                 if (isDeviceOnline()) {
                     setActionBarTitle(getString(R.string.snack_bar_error_with_pokemon));
@@ -370,9 +378,6 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
                 } else {
                     showSnackBar(getString(R.string.snack_bar_error_with_internet_acces), getString(R.string.snack_bar_error_with_internet_acces_positive_btn), TASK_FILTROS);
                 }
-
-                mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_TRANSFER);
-
             }
         }
 
@@ -411,6 +416,7 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
                                 pokemonToTransfer.debug();
                                 ReleasePokemonResponseOuterClass.ReleasePokemonResponse.Result result = pokemonToTransfer.transferPokemon();
                                 publishProgress(result.toString());
+
                                 sleep(300);
                                 mPokemonGo.getInventories().updateInventories(true);
                             }

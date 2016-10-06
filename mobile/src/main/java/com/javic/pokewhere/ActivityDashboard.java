@@ -31,6 +31,7 @@ import com.javic.pokewhere.fragments.FragmentBlank;
 import com.javic.pokewhere.fragments.FragmentMapa;
 import com.javic.pokewhere.fragments.FragmentTransfer;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
+import com.javic.pokewhere.interfaces.OnRecyclerViewItemClickListenner;
 import com.javic.pokewhere.services.ServiceFloatingMap;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
@@ -42,7 +43,7 @@ import POGOProtos.Data.PlayerDataOuterClass;
 import okhttp3.OkHttpClient;
 
 public class ActivityDashboard extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentCreatedViewListener {
+        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentCreatedViewListener, OnRecyclerViewItemClickListenner{
 
     private static final String TAG = ActivityDashboard.class.getSimpleName();
 
@@ -231,6 +232,13 @@ public class ActivityDashboard extends AppCompatActivity
 
     }
 
+    @Override
+    public void OnViewItemClick(Object childItem) {
+        if (mFragmentBag!=null){
+            mFragmentBag.startAction(childItem);
+        }
+    }
+
     /**
      * Represents an asynchronous get pokemons
      * with a location.
@@ -345,7 +353,7 @@ public class ActivityDashboard extends AppCompatActivity
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    private void showProgress(final boolean show) {
+    private void showProgressView(final boolean show) {
         // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
         // for very easy animations. If available, use these APIs to fade-in
         // the progress spinner.
@@ -460,13 +468,11 @@ public class ActivityDashboard extends AppCompatActivity
     }
 
     @Override
-    public void onFragmentCreatedViewStatus(Boolean status, int visibleFragment) {
+    public void onFragmentCreatedViewStatus(int visibleFragment) {
 
         if (visibleFragment != Constants.FRAGMENT_BLANK){
             this.visibleFragment = visibleFragment;
         }
-
-        showProgress(status);
     }
 
     @Override
@@ -494,6 +500,11 @@ public class ActivityDashboard extends AppCompatActivity
             default:
                 break;
         }
+    }
+
+    @Override
+    public void showProgress(Boolean show) {
+        showProgressView(show);
     }
 
 

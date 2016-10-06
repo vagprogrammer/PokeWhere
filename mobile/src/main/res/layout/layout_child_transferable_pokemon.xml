@@ -3,7 +3,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="5dp">
+    android:paddingLeft="40dp"
+    android:paddingRight="5dp"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp"
+    android:background="@color/color_background_item">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -19,7 +23,8 @@
             android:text="ABRITA"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textStyle="bold"
-            android:typeface="monospace" />
+            android:typeface="monospace"
+            android:maxLength="10"/>
 
         <ImageView
             android:id="@+id/img_cp"

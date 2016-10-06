@@ -17,14 +17,14 @@ import static android.view.animation.Animation.RELATIVE_TO_SELF;
 /**
  * Created by franciscojimenezjimenez on 12/09/16.
  */
-public class GroupTransferablePokemonViewHolder2 extends GroupViewHolder implements GroupExpandCollapseListener {
+public class GroupTransferablePokemonViewHolder extends GroupViewHolder implements GroupExpandCollapseListener {
     private ImageView img_filtro;
     private TextView tv;
     private TextView tv_candies;
     private TextView tv_child_count;
     private ImageView img_arrow;
 
-    public GroupTransferablePokemonViewHolder2(View itemView) {
+    public GroupTransferablePokemonViewHolder(View itemView) {
         super(itemView);
         tv = (TextView) itemView.findViewById(R.id.tv_filtro);
         tv_candies = (TextView) itemView.findViewById(R.id.tv_candies);

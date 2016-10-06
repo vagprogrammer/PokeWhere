@@ -1,9 +1,10 @@
 package com.javic.pokewhere.fragments;
 
-
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -12,6 +13,7 @@ import android.provider.Settings;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -23,11 +25,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
+import com.google.android.gms.wearable.DataApi;
 import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.adapters.AdapterChildItem;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
+import com.javic.pokewhere.interfaces.OnRecyclerViewItemClickListenner;
 import com.javic.pokewhere.models.ChildItem;
 import com.javic.pokewhere.models.GroupItem;
 import com.javic.pokewhere.util.Constants;
@@ -35,11 +40,17 @@ import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.Item;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+
+import POGOProtos.Inventory.Item.ItemIdOuterClass;
+import biz.kasual.materialnumberpicker.MaterialNumberPicker;
 
 public class FragmentBag extends Fragment {
 
     private static final String TAG = FragmentBag.class.getSimpleName();
+
     private static final int TASK_ITEMS = 0;
     private static final int TASK_DELETE = 1;
 
@@ -136,6 +147,9 @@ public class FragmentBag extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         if (mPokemonGo != null) {
+
+            mListener.onFragmentCreatedViewStatus(Constants.FRAGMENT_BAG);
+
             if (mGetItemsTask == null) {
                 mGetItemsTask = new GetItemsTask();
 
@@ -186,13 +200,16 @@ public class FragmentBag extends Fragment {
         mListener = null;
     }
 
-
     public class GetItemsTask extends AsyncTask<Void, String, Boolean> {
 
 
         @Override
         protected void onPreExecute() {
+            //Show the progressBar
+            mListener.showProgress(true);
+
             mGroupItemList = new ArrayList<>();
+
             super.onPreExecute();
         }
 
@@ -233,18 +250,21 @@ public class FragmentBag extends Fragment {
 
                                 if (!containsEncounteredChildItem(ball_type, pokeBallTypeList)) {
                                     if (ball_type.equalsIgnoreCase("POKE")){
-                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_poke_ball, ball_type + " " + full_name[2] + ":" + item.getCount()));
+                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_poke_ball, ball_type + " " + full_name[2],item.getCount()));
                                     }
                                     else if (ball_type.equalsIgnoreCase("GREAT")){
-                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_great_ball, ball_type + " " + full_name[2] + ":" + item.getCount()));
+                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_great_ball, ball_type + " " + full_name[2],item.getCount()));
                                     }
                                     else if (ball_type.equalsIgnoreCase("ULTRA")){
-                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_ultra_ball, ball_type + " " + full_name[2] + ":" + item.getCount()));
+                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_ultra_ball, ball_type + " " + full_name[2],item.getCount()));
+                                    }
+                                    else if (ball_type.equalsIgnoreCase("MASTER")){
+                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_master_ball, ball_type + " " + full_name[2],item.getCount()));
                                     }
 
                                 }
 
-                                mGroupItemList.add(new GroupItem(title_group, pokeBallTypeList, R.drawable.ic_pokeballs));
+                                mGroupItemList.add(new GroupItem(title_group, pokeBallTypeList, R.drawable.ic_poke_ball));
 
                             } else {
                                 String[] full_name = item.getItemId().toString().split("_");
@@ -252,17 +272,20 @@ public class FragmentBag extends Fragment {
 
                                 if (!containsEncounteredChildItem(ball_type, pokeBallTypeList)) {
                                     if (ball_type.equalsIgnoreCase("POKE")){
-                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_poke_ball, ball_type + " " + full_name[2] + ":" + item.getCount()));
+                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_poke_ball, ball_type + " " + full_name[2],item.getCount()));
                                     }
                                     else if (ball_type.equalsIgnoreCase("GREAT")){
-                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_great_ball, ball_type + " " + full_name[2] + ":" + item.getCount()));
+                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_great_ball, ball_type + " " + full_name[2],item.getCount()));
                                     }
                                     else if (ball_type.equalsIgnoreCase("ULTRA")){
-                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_ultra_ball, ball_type + " " + full_name[2] + ":" + item.getCount()));
+                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_ultra_ball, ball_type + " " + full_name[2],item.getCount()));
+                                    }
+                                    else if (ball_type.equalsIgnoreCase("MASTER")){
+                                        pokeBallTypeList.add(new ChildItem(R.drawable.ic_master_ball, ball_type + " " + full_name[2],item.getCount()));
                                     }
                                 }
 
-                                mGroupItemList.set(mGroupItemList.indexOf(getGroupItem(title_group)), new GroupItem(getString(R.string.group_pokeballs), pokeBallTypeList, R.drawable.ic_pokeballs));
+                                mGroupItemList.set(mGroupItemList.indexOf(getGroupItem(title_group)), new GroupItem(getString(R.string.group_pokeballs), pokeBallTypeList, R.drawable.ic_poke_ball));
                             }
                         }
 
@@ -276,8 +299,15 @@ public class FragmentBag extends Fragment {
                                 String incense_type = full_name[2];
 
                                 if (!containsEncounteredChildItem(incense_type, incenseTypeList)) {
-                                    if (incense_type.equalsIgnoreCase("ORDINARY")){
-                                        incenseTypeList.add(new ChildItem(R.drawable.ic_incense_ordinary, incense_type  + " " + full_name[1] + ":" + item.getCount()));
+
+                                    if (incense_type.equalsIgnoreCase("ORDINARY")) {
+                                        incenseTypeList.add(new ChildItem(R.drawable.ic_incense_ordinary, incense_type  + " " + full_name[1],item.getCount()));
+                                    } else if (incense_type.equalsIgnoreCase("COOL")) {
+                                        incenseTypeList.add(new ChildItem(R.drawable.ic_incense_ordinary, incense_type  + " " + full_name[1],item.getCount()));
+                                    } else if (incense_type.equalsIgnoreCase("FLORAL")) {
+                                        incenseTypeList.add(new ChildItem(R.drawable.ic_incense_ordinary, incense_type  + " " + full_name[1],item.getCount()));
+                                    } else if (incense_type.equalsIgnoreCase("SPICY")) {
+                                        incenseTypeList.add(new ChildItem(R.drawable.ic_incense_ordinary, incense_type  + " " + full_name[1],item.getCount()));
                                     }
                                 }
 
@@ -288,8 +318,14 @@ public class FragmentBag extends Fragment {
                                 String incense_type = full_name[2];
 
                                 if (!containsEncounteredChildItem(incense_type, incenseTypeList)) {
-                                    if (incense_type.equalsIgnoreCase("ORDINARY")){
-                                        incenseTypeList.add(new ChildItem(R.drawable.ic_incense_ordinary, incense_type  + " " + full_name[1] + ":" + item.getCount()));
+                                    if (incense_type.equalsIgnoreCase("ORDINARY")) {
+                                        incenseTypeList.add(new ChildItem(R.drawable.ic_incense_ordinary, incense_type  + " " + full_name[1],item.getCount()));
+                                    } else if (incense_type.equalsIgnoreCase("COOL")) {
+                                        incenseTypeList.add(new ChildItem(R.drawable.ic_incense_ordinary, incense_type  + " " + full_name[1],item.getCount()));
+                                    } else if (incense_type.equalsIgnoreCase("FLORAL")) {
+                                        incenseTypeList.add(new ChildItem(R.drawable.ic_incense_ordinary, incense_type  + " " + full_name[1],item.getCount()));
+                                    } else if (incense_type.equalsIgnoreCase("SPICY")) {
+                                        incenseTypeList.add(new ChildItem(R.drawable.ic_incense_ordinary, incense_type  + " " + full_name[1],item.getCount()));
                                     }
                                 }
 
@@ -307,16 +343,16 @@ public class FragmentBag extends Fragment {
 
                                 if (!containsEncounteredChildItem(potion_type, potionTypeList)) {
                                     if (potion_type.equalsIgnoreCase("POTION")){
-                                        potionTypeList.add(new ChildItem(R.drawable.ic_potion, potion_type + ":" + item.getCount()));
+                                        potionTypeList.add(new ChildItem(R.drawable.ic_potion, potion_type,item.getCount()));
                                     }
                                     else if (potion_type.equalsIgnoreCase("SUPER")){
-                                        potionTypeList.add(new ChildItem(R.drawable.ic_great_potion, potion_type  + " " + full_name[2] + ":" + item.getCount()));
+                                        potionTypeList.add(new ChildItem(R.drawable.ic_great_potion, potion_type  + " " + full_name[2],item.getCount()));
                                     }
                                     else if (potion_type.equalsIgnoreCase("HYPER")){
-                                        potionTypeList.add(new ChildItem(R.drawable.ic_hyper_potion, potion_type  + " " + full_name[2] + ":" + item.getCount()));
+                                        potionTypeList.add(new ChildItem(R.drawable.ic_hyper_potion, potion_type  + " " + full_name[2],item.getCount()));
                                     }
                                     else if (potion_type.equalsIgnoreCase("MAX")){
-                                        potionTypeList.add(new ChildItem(R.drawable.ic_potions, potion_type  + " " + full_name[2] + ":" + item.getCount()));
+                                        potionTypeList.add(new ChildItem(R.drawable.ic_potions, potion_type  + " " + full_name[2],item.getCount()));
                                     }
                                 }
 
@@ -328,16 +364,16 @@ public class FragmentBag extends Fragment {
 
                                 if (!containsEncounteredChildItem(potion_type, potionTypeList)) {
                                     if (potion_type.equalsIgnoreCase("POTION")){
-                                        potionTypeList.add(new ChildItem(R.drawable.ic_potion, potion_type + ":" + item.getCount()));
+                                        potionTypeList.add(new ChildItem(R.drawable.ic_potion, potion_type,item.getCount()));
                                     }
                                     else if (potion_type.equalsIgnoreCase("SUPER")){
-                                        potionTypeList.add(new ChildItem(R.drawable.ic_great_potion, potion_type  + " " + full_name[2] + ":" + item.getCount()));
+                                        potionTypeList.add(new ChildItem(R.drawable.ic_great_potion, potion_type  + " " + full_name[2] , item.getCount()));
                                     }
                                     else if (potion_type.equalsIgnoreCase("HYPER")){
-                                        potionTypeList.add(new ChildItem(R.drawable.ic_hyper_potion, potion_type  + " " + full_name[2] + ":" + item.getCount()));
+                                        potionTypeList.add(new ChildItem(R.drawable.ic_hyper_potion, potion_type  + " " + full_name[2],item.getCount()));
                                     }
                                     else if (potion_type.equalsIgnoreCase("MAX")){
-                                        potionTypeList.add(new ChildItem(R.drawable.ic_potions, potion_type  + " " + full_name[2] + ":" + item.getCount()));
+                                        potionTypeList.add(new ChildItem(R.drawable.ic_potions, potion_type  + " " + full_name[2] ,item.getCount()));
                                     }
                                 }
 
@@ -355,7 +391,7 @@ public class FragmentBag extends Fragment {
 
                                 if (!containsEncounteredChildItem(disk_type, troyDiskTypeList)) {
                                     if (disk_type.equalsIgnoreCase("TROY")){
-                                        troyDiskTypeList.add(new ChildItem(R.drawable.ic_bait, disk_type + " " + full_name[1] + ":" + item.getCount()));
+                                        troyDiskTypeList.add(new ChildItem(R.drawable.ic_bait, disk_type + " " + full_name[2],item.getCount()));
                                     }
                                 }
 
@@ -367,7 +403,7 @@ public class FragmentBag extends Fragment {
 
                                 if (!containsEncounteredChildItem(disk_type, troyDiskTypeList)) {
                                     if (disk_type.equalsIgnoreCase("TROY")){
-                                        troyDiskTypeList.add(new ChildItem(R.drawable.ic_bait, disk_type + ":" + item.getCount()));
+                                        troyDiskTypeList.add(new ChildItem(R.drawable.ic_bait, disk_type + " " + full_name[2],item.getCount()));
                                     }
                                 }
                                 mGroupItemList.set(mGroupItemList.indexOf(getGroupItem(title_group)), new GroupItem(getString(R.string.group_troydisks), troyDiskTypeList, R.drawable.ic_baits));
@@ -384,7 +420,7 @@ public class FragmentBag extends Fragment {
 
                                 if (!containsEncounteredChildItem(egg_type, eggTypeList)) {
                                     if (egg_type.equalsIgnoreCase("LUCKY")){
-                                        eggTypeList.add(new ChildItem(R.drawable.ic_egg, egg_type + " " + full_name[2] + ":" + item.getCount()));
+                                        eggTypeList.add(new ChildItem(R.drawable.ic_egg, egg_type + " " + full_name[2],item.getCount()));
                                     }
                                 }
 
@@ -396,7 +432,7 @@ public class FragmentBag extends Fragment {
 
                                 if (!containsEncounteredChildItem(egg_type, eggTypeList)) {
                                     if (egg_type.equalsIgnoreCase("LUCKY")){
-                                        eggTypeList.add(new ChildItem(R.drawable.ic_egg, egg_type + " " + full_name[2] + ":" + item.getCount()));
+                                        eggTypeList.add(new ChildItem(R.drawable.ic_egg, egg_type + " " + full_name[2] ,item.getCount()));
                                     }
                                 }
                                 mGroupItemList.set(mGroupItemList.indexOf(getGroupItem(title_group)), new GroupItem(getString(R.string.group_eggs), eggTypeList, R.drawable.ic_eggs));
@@ -414,12 +450,10 @@ public class FragmentBag extends Fragment {
 
                                     if (incubator_type.equalsIgnoreCase("BASIC")){
                                         try{
-                                            incubatorTypeList.add(new ChildItem(R.drawable.ic_basic_unlimited_incubator, incubator_type+ " " +full_name[3]+ " "+full_name[1]+":" + item.getCount()));
+                                            incubatorTypeList.add(new ChildItem(R.drawable.ic_basic_unlimited_incubator, full_name[3]+ " "+full_name[1],item.getCount()));
                                         }
                                         catch (Exception e){
-
-                                            incubatorTypeList.add(new ChildItem(R.drawable.ic_basic_incubator, incubator_type+ " "+full_name[1]+":" + item.getCount()));
-                                            incubatorTypeList.add(new ChildItem(R.drawable.ic_basic_unlimited_incubator, "UNLIMITED"+ " " + full_name[1]+":" + 1));
+                                            incubatorTypeList.add(new ChildItem(R.drawable.ic_basic_incubator, incubator_type+ " "+full_name[1],item.getCount()));
                                         }
 
                                     }
@@ -434,12 +468,12 @@ public class FragmentBag extends Fragment {
                                 if (!containsEncounteredChildItem(incubator_type, incubatorTypeList)) {
                                     if (incubator_type.equalsIgnoreCase("BASIC")){
                                         try{
-                                            incubatorTypeList.add(new ChildItem(R.drawable.ic_basic_unlimited_incubator, incubator_type+ " " +full_name[3]+ " "+full_name[1]+":" + item.getCount()));
+                                            incubatorTypeList.add(new ChildItem(R.drawable.ic_basic_unlimited_incubator, incubator_type+ " " +full_name[3]+ " "+full_name[1],item.getCount()));
                                         }
                                         catch (Exception e){
 
-                                            incubatorTypeList.add(new ChildItem(R.drawable.ic_basic_incubator, incubator_type+ " "+full_name[1]+":" + item.getCount()));
-                                            incubatorTypeList.add(new ChildItem(R.drawable.ic_basic_unlimited_incubator, "UNLIMITED"+ " " + full_name[1]+":" + 1));
+                                            incubatorTypeList.add(new ChildItem(R.drawable.ic_basic_incubator, incubator_type+ " "+full_name[1],item.getCount()));
+                                            incubatorTypeList.add(new ChildItem(R.drawable.ic_basic_unlimited_incubator, "UNLIMITED"+ " " + full_name[1],1));
                                         }
 
                                     }
@@ -459,10 +493,10 @@ public class FragmentBag extends Fragment {
 
                                 if (!containsEncounteredChildItem(revive_type, reviveTypeList)) {
                                     if (revive_type.equalsIgnoreCase("REVIVE")){
-                                        reviveTypeList.add(new ChildItem(R.drawable.ic_crystal, revive_type + ":" + item.getCount()));
+                                        reviveTypeList.add(new ChildItem(R.drawable.ic_crystal, revive_type ,item.getCount()));
                                     }
                                     else if(revive_type.equalsIgnoreCase("MAX")){
-                                        reviveTypeList.add(new ChildItem(R.drawable.ic_crystal, revive_type + full_name[2] +":" + item.getCount()));
+                                        reviveTypeList.add(new ChildItem(R.drawable.ic_crystal, revive_type + full_name[2] ,item.getCount()));
                                     }
                                 }
 
@@ -474,10 +508,10 @@ public class FragmentBag extends Fragment {
 
                                 if (!containsEncounteredChildItem(revive_type, reviveTypeList)) {
                                     if (revive_type.equalsIgnoreCase("REVIVE")){
-                                        reviveTypeList.add(new ChildItem(R.drawable.ic_crystal, revive_type + ":" + item.getCount()));
+                                        reviveTypeList.add(new ChildItem(R.drawable.ic_crystal, revive_type ,item.getCount()));
                                     }
                                     else if(revive_type.equalsIgnoreCase("MAX")){
-                                        reviveTypeList.add(new ChildItem(R.drawable.ic_crystal, revive_type + full_name[2] +":" + item.getCount()));
+                                        reviveTypeList.add(new ChildItem(R.drawable.ic_crystal, revive_type + full_name[2] ,item.getCount()));
                                     }
                                 }
                                 mGroupItemList.set(mGroupItemList.indexOf(getGroupItem(title_group)), new GroupItem(getString(R.string.group_revives), reviveTypeList, R.drawable.ic_crystal));
@@ -494,19 +528,19 @@ public class FragmentBag extends Fragment {
 
                                 if (!containsEncounteredChildItem(berry_type, berryTypeList)) {
                                     if (berry_type.equalsIgnoreCase("RAZZ")){
-                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2],item.getCount()));
                                     }
                                     else if (berry_type.equalsIgnoreCase("BLUK")){
-                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] ,item.getCount()));
                                     }
                                     else if (berry_type.equalsIgnoreCase("NANAB")){
-                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] ,item.getCount()));
                                     }
                                     else if (berry_type.equalsIgnoreCase("PINAP")){
-                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] ,item.getCount()));
                                     }
                                     else if (berry_type.equalsIgnoreCase("WEPAR")){
-                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] ,item.getCount()));
                                     }
                                 }
 
@@ -518,26 +552,36 @@ public class FragmentBag extends Fragment {
 
                                 if (!containsEncounteredChildItem(berry_type, berryTypeList)) {
                                     if (berry_type.equalsIgnoreCase("RAZZ")){
-                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] ,item.getCount()));
                                     }
                                     else if (berry_type.equalsIgnoreCase("BLUK")){
-                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] ,item.getCount()));
                                     }
                                     else if (berry_type.equalsIgnoreCase("NANAB")){
-                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] ,item.getCount()));
                                     }
                                     else if (berry_type.equalsIgnoreCase("PINAP")){
-                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] ,item.getCount()));
                                     }
                                     else if (berry_type.equalsIgnoreCase("WEPAR")){
-                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] +":" + item.getCount()));
+                                        berryTypeList.add(new ChildItem(R.drawable.ic_berrie, berry_type + " " + full_name[2] ,item.getCount()));
                                     }
                                 }
                                 mGroupItemList.set(mGroupItemList.indexOf(getGroupItem(title_group)), new GroupItem(getString(R.string.group_berries), berryTypeList, R.drawable.ic_berries));
                             }
                         }
 
-                    }
+                    } //Termina el for
+
+                    // Sorting
+                    Collections.sort(mGroupItemList, new Comparator<GroupItem>() {
+
+                        @Override
+                        public int compare(GroupItem groupItem1, GroupItem groupItem2) {
+
+                            return groupItem1.getTitle().compareTo(groupItem2.getTitle());
+                        }
+                    });
 
                 }
                 return true;
@@ -563,6 +607,8 @@ public class FragmentBag extends Fragment {
 
             mGetItemsTask = null;
 
+            mListener.showProgress(false);
+
             if (succes) {
 
                 setHasOptionsMenu(true);
@@ -572,7 +618,6 @@ public class FragmentBag extends Fragment {
                 mRecyclerView.setLayoutManager(mLayoutManager);
                 mRecyclerView.setAdapter(mAdapterChildItem);
 
-                mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_BAG);
 
             } else {
                 setHasOptionsMenu(false);
@@ -583,7 +628,6 @@ public class FragmentBag extends Fragment {
                     showSnackBar(getString(R.string.snack_bar_error_with_internet_acces), getString(R.string.snack_bar_error_with_internet_acces_positive_btn), TASK_ITEMS);
                 }
 
-                mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_TRANSFER);
             }
         }
 
@@ -597,24 +641,28 @@ public class FragmentBag extends Fragment {
 
     public class DeleteItemsTask extends AsyncTask<Void, String, Boolean> {
 
+        private ItemIdOuterClass.ItemId itemId;
+        private int itemsToDelete;
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
         }
 
+        public DeleteItemsTask(ItemIdOuterClass.ItemId itemId, int itemsToDelete){
+            this.itemId = itemId;
+            this.itemsToDelete = itemsToDelete;
+        }
         @Override
         protected Boolean doInBackground(Void... params) {
 
             try {
-
-                //To update the list
-                mListener.onFragmentCreatedViewStatus(true, Constants.FRAGMENT_BAG);
-
+                publishProgress("Borrando Items...");
+                mPokemonGo.getInventories().getItemBag().removeItem(itemId,itemsToDelete);
                 return true;
 
             } catch (Exception e) {
                 Log.i(TAG, e.getMessage());
-
                 return false;
             }
 
@@ -637,15 +685,18 @@ public class FragmentBag extends Fragment {
 
             if (succes) {
 
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mAdapterChildItem.notifyDataSetChanged();
-                        mListener.onFragmentCreatedViewStatus(false, Constants.FRAGMENT_BAG);
-                    }
-                });
-            } else {
+                if (mGetItemsTask == null) {
+                    mGetItemsTask = new GetItemsTask();
 
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                        mGetItemsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    } else {
+                        mGetItemsTask.execute();
+                    }
+                }
+
+            } else {
+                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Ocurrio un error");
             }
         }
 
@@ -751,6 +802,174 @@ public class FragmentBag extends Fragment {
 
         mSnackBar.show();
 
+    }
+
+    public void startAction(Object childItem){
+
+        final ChildItem mChildItem = (ChildItem) childItem;
+        if (mChildItem.getItemCount()>0){
+            final MaterialNumberPicker numberPicker = new MaterialNumberPicker.Builder(mContext)
+                    .minValue(1)
+                    .maxValue(mChildItem.getItemCount())
+                    .defaultValue(1)
+                    .backgroundColor(Color.WHITE)
+                    .separatorColor(Color.TRANSPARENT)
+                    .textColor(Color.BLACK)
+                    .textSize(20)
+                    .enableFocusability(false)
+                    .wrapSelectorWheel(true)
+                    .build();
+
+
+            new AlertDialog.Builder(mContext)
+                    .setTitle("Cuántos " + mChildItem.getTitle() + " quieres tirar")
+                    .setView(numberPicker)
+                    .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            //Toast.makeText(mContext, "You picked : " + String.valueOf(numberPicker.getValue()), Toast.LENGTH_SHORT).show();
+                            if (mDeleteItemsTask == null) {
+                                mDeleteItemsTask = new DeleteItemsTask(getItemId(mChildItem), numberPicker.getValue());
+
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                                    mDeleteItemsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                } else {
+                                    mDeleteItemsTask.execute();
+                                }
+                            }
+                        }
+                    })
+
+                    .setNegativeButton(getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    })
+                    .show();
+        }
+        else{
+            Toast.makeText(mContext, "No tienes "+ mChildItem.getTitle(), Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+
+    public ItemIdOuterClass.ItemId getItemId(ChildItem mChildItem){
+        ItemIdOuterClass.ItemId item = null;
+
+        if (mChildItem.getTitle().contains("BALL")) {
+            String[] fullItemName = mChildItem.getTitle().split(" ");
+            String item_type = fullItemName[0];
+
+            if (item_type.equalsIgnoreCase("POKE")) {
+                item = ItemIdOuterClass.ItemId.ITEM_POKE_BALL;
+            } else if (item_type.equalsIgnoreCase("GREAT")) {
+                item = ItemIdOuterClass.ItemId.ITEM_GREAT_BALL;
+            } else if (item_type.equalsIgnoreCase("ULTRA")) {
+                item = ItemIdOuterClass.ItemId.ITEM_ULTRA_BALL;
+            } else if (item_type.equalsIgnoreCase("MASTER")) {
+                item = ItemIdOuterClass.ItemId.ITEM_MASTER_BALL;
+            }
+        }
+        else if (mChildItem.getTitle().contains("POTION"))
+        {
+            String[] fullItemName = mChildItem.getTitle().split(" ");
+            String item_type = fullItemName[0];
+
+            if (item_type.equalsIgnoreCase("POTION")) {
+                item = ItemIdOuterClass.ItemId.ITEM_POTION;
+            } else if (item_type.equalsIgnoreCase("SUPER")) {
+                item = ItemIdOuterClass.ItemId.ITEM_SUPER_POTION;
+            } else if (item_type.equalsIgnoreCase("HYPER")) {
+                item = ItemIdOuterClass.ItemId.ITEM_HYPER_POTION;
+            } else if (item_type.equalsIgnoreCase("MAX")) {
+                item = ItemIdOuterClass.ItemId.ITEM_MAX_POTION;
+            }
+        }
+
+        else if (mChildItem.getTitle().contains("INCENSE"))
+        {
+            String[] fullItemName = mChildItem.getTitle().split(" ");
+            String item_type = fullItemName[0];
+
+            if (item_type.equalsIgnoreCase("ORDINARY")) {
+                item = ItemIdOuterClass.ItemId.ITEM_INCENSE_ORDINARY;
+            } else if (item_type.equalsIgnoreCase("COOL")) {
+                item = ItemIdOuterClass.ItemId.ITEM_INCENSE_COOL;
+            } else if (item_type.equalsIgnoreCase("FLORAL")) {
+                item = ItemIdOuterClass.ItemId.ITEM_INCENSE_FLORAL;
+            } else if (item_type.equalsIgnoreCase("SPICY")) {
+                item = ItemIdOuterClass.ItemId.ITEM_INCENSE_SPICY;
+            }
+        }
+
+        else if (mChildItem.getTitle().contains("BERRY"))
+        {
+            String[] fullItemName = mChildItem.getTitle().split(" ");
+            String item_type = fullItemName[0];
+
+            if (item_type.equalsIgnoreCase("RAZZ")) {
+                item = ItemIdOuterClass.ItemId.ITEM_RAZZ_BERRY;
+            } else if (item_type.equalsIgnoreCase("BLUK")) {
+                item = ItemIdOuterClass.ItemId.ITEM_BLUK_BERRY;
+            } else if (item_type.equalsIgnoreCase("NANAB")) {
+                item = ItemIdOuterClass.ItemId.ITEM_NANAB_BERRY;
+            } else if (item_type.equalsIgnoreCase("PINAP")) {
+                item = ItemIdOuterClass.ItemId.ITEM_PINAP_BERRY;
+            } else if (item_type.equalsIgnoreCase("WEPAR")) {
+                item = ItemIdOuterClass.ItemId.ITEM_WEPAR_BERRY;
+            }
+        }
+
+
+        else if (mChildItem.getTitle().contains("DISK"))
+        {
+            String[] fullItemName = mChildItem.getTitle().split(" ");
+            String item_type = fullItemName[0];
+
+            if (item_type.equalsIgnoreCase("TROY")) {
+                item = ItemIdOuterClass.ItemId.ITEM_TROY_DISK;
+            }
+        }
+
+        else if (mChildItem.getTitle().contains("REVIVE"))
+        {
+            String[] fullItemName = mChildItem.getTitle().split(" ");
+            String item_type = fullItemName[0];
+
+            if (item_type.equalsIgnoreCase("REVIVE")) {
+                item = ItemIdOuterClass.ItemId.ITEM_REVIVE;
+            }
+            else if (item_type.equalsIgnoreCase("MAX")) {
+                item = ItemIdOuterClass.ItemId.ITEM_MAX_REVIVE;
+            }
+        }
+
+        else if (mChildItem.getTitle().contains("INCUBATOR"))
+        {
+            String[] fullItemName = mChildItem.getTitle().split(" ");
+            String item_type = fullItemName[0];
+
+            if (item_type.equalsIgnoreCase("BASIC")) {
+                item = ItemIdOuterClass.ItemId.ITEM_INCUBATOR_BASIC;
+            }
+            else if (item_type.equalsIgnoreCase("UNLIMITED")) {
+                item = ItemIdOuterClass.ItemId.ITEM_INCUBATOR_BASIC_UNLIMITED;
+            }
+        }
+
+        else if (mChildItem.getTitle().contains("EGG"))
+        {
+            String[] fullItemName = mChildItem.getTitle().split(" ");
+            String item_type = fullItemName[0];
+
+            if (item_type.equalsIgnoreCase("LUCKY")) {
+                item = ItemIdOuterClass.ItemId.ITEM_LUCKY_EGG;
+            }
+        }
+
+
+        return item;
     }
 
 }

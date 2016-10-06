@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.holders.ChildTransferablePokemonViewHolder;
-import com.javic.pokewhere.holders.GroupTransferablePokemonViewHolder2;
+import com.javic.pokewhere.holders.GroupTransferablePokemonViewHolder;
 import com.javic.pokewhere.models.ChildTransferablePokemon;
 import com.javic.pokewhere.models.GroupTransferablePokemon;
 import com.thoughtbot.expandablecheckrecyclerview.CheckableChildRecyclerViewAdapter;
@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Created by franciscojimenezjimenez on 12/09/16.
  */
-public class AdapterChildTransferablePokemon extends CheckableChildRecyclerViewAdapter<GroupTransferablePokemonViewHolder2, ChildTransferablePokemonViewHolder> {
+public class AdapterChildTransferablePokemon extends CheckableChildRecyclerViewAdapter<GroupTransferablePokemonViewHolder, ChildTransferablePokemonViewHolder> {
 
     private Context mContext;
 
@@ -49,14 +49,14 @@ public class AdapterChildTransferablePokemon extends CheckableChildRecyclerViewA
     }
 
     @Override
-    public GroupTransferablePokemonViewHolder2 onCreateGroupViewHolder(ViewGroup parent, int viewType) {
+    public GroupTransferablePokemonViewHolder onCreateGroupViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.layout_group_transferable_pokemon, parent, false);
-        return new GroupTransferablePokemonViewHolder2(view);
+        return new GroupTransferablePokemonViewHolder(view);
     }
 
     @Override
-    public void onBindGroupViewHolder(GroupTransferablePokemonViewHolder2 holder, int flatPosition, final ExpandableGroup group) {
+    public void onBindGroupViewHolder(GroupTransferablePokemonViewHolder holder, int flatPosition, final ExpandableGroup group) {
         final GroupTransferablePokemon g = (GroupTransferablePokemon) group;
         final int pokemonIdNumber = g.getPokemonIdNumber();
         holder.setTexts(g);

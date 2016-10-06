@@ -13,6 +13,7 @@ package com.javic.pokewhere.interfaces;
 
 public interface OnFragmentCreatedViewListener {
 
-    void onFragmentCreatedViewStatus(Boolean status, int visibleFragment);
+    void onFragmentCreatedViewStatus(int visibleFragment);
     void onFragmentActionPerform(int action);
+    void showProgress(Boolean show);
 }

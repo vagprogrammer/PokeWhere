@@ -39,6 +39,9 @@ public class ChildTransferablePokemonViewHolder extends CheckableChildViewHolder
         if (child.getFavorite()){
             img_bookmark.setVisibility(View.VISIBLE);
         }
+        else {
+            img_bookmark.setVisibility(View.INVISIBLE);
+        }
         tv_title.setText(child.getTitle());
         tv_cp.setText(String.valueOf(child.getCp()));
         tv.setText("IV:"+String.valueOf(child.getIv()) + "%");
