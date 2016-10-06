@@ -37,10 +37,10 @@ public class ChildTransferablePokemonViewHolder extends CheckableChildViewHolder
 
     public void setUp(ChildTransferablePokemon child) {
         if (child.getFavorite()){
-            img_bookmark.setImageResource(R.drawable.ic_bookmarked);
+            img_bookmark.setVisibility(View.VISIBLE);
         }
         tv_title.setText(child.getTitle());
-        tv_cp.setText("IV: "+String.valueOf(child.getCp()));
-        tv.setText(String.valueOf(child.getIv()));
+        tv_cp.setText(String.valueOf(child.getCp()));
+        tv.setText("IV:"+String.valueOf(child.getIv()) + "%");
     }
 }

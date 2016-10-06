@@ -51,9 +51,10 @@
             android:layout_toLeftOf="@+id/tv_opcion"
             android:layout_toStartOf="@+id/tv_opcion"
             android:layout_centerInParent="true"
-            android:src="@drawable/ic_bookmark"
+            android:src="@drawable/ic_bookmarked"
             android:layout_marginLeft="5dp"
-            android:layout_marginStart="5dp" />
+            android:layout_marginStart="5dp"
+            android:visibility="invisible"/>
 
         <CheckedTextView
             android:id="@+id/tv_opcion"
@@ -66,7 +67,8 @@
             android:paddingLeft="10dp"
             android:paddingStart="10dp"
             android:text="IV: 80%"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="@color/black"/>
     </RelativeLayout>
 
     <View
