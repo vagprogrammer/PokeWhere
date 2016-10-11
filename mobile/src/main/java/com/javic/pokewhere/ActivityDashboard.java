@@ -36,14 +36,17 @@ import com.javic.pokewhere.services.ServiceFloatingMap;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.Stats;
+import com.pokegoapi.auth.GoogleAutoCredentialProvider;
 import com.pokegoapi.auth.GoogleUserCredentialProvider;
 import com.pokegoapi.auth.PtcCredentialProvider;
+import com.pokegoapi.exceptions.LoginFailedException;
+import com.pokegoapi.exceptions.RemoteServerException;
 
 import POGOProtos.Data.PlayerDataOuterClass;
 import okhttp3.OkHttpClient;
 
 public class ActivityDashboard extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentCreatedViewListener, OnRecyclerViewItemClickListenner{
+        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentCreatedViewListener, OnRecyclerViewItemClickListenner {
 
     private static final String TAG = ActivityDashboard.class.getSimpleName();
 
@@ -65,10 +68,10 @@ public class ActivityDashboard extends AppCompatActivity
     private PokemonGo mGO;
 
     //Variables
-    private String mUserName="";
-    private int mUserTeam=0;
-    private int mUserLevel =0;
-    private long mUserExperience =0;
+    private String mUserName = "";
+    private int mUserTeam = 0;
+    private int mUserLevel = 0;
+    private long mUserExperience = 0;
     private int visibleFragment = Constants.FRAGMENT_MAPA;
 
     // Activity UI
@@ -82,10 +85,16 @@ public class ActivityDashboard extends AppCompatActivity
     //Task
     ConnectWithPokemonGoTask mConnectTask;
 
+    //Variables
+    private Boolean isGoogleAccount;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        isGoogleAccount = getGooglePref(Constants.KEY_PREF_GOOGLE);
 
         //Get elemtns of UI
         mView = findViewById(R.id.layout_main_content);
@@ -112,6 +121,16 @@ public class ActivityDashboard extends AppCompatActivity
         if (mGO == null) {
             mConnectTask = new ConnectWithPokemonGoTask();
             mConnectTask.execute();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (mConnectTask != null) {
+            Log.i(TAG, "CONNECT_WITH_POKEMON_TASK: cancel:true");
+            mConnectTask.cancel(true);
         }
     }
 
@@ -156,7 +175,7 @@ public class ActivityDashboard extends AppCompatActivity
 
     public void setFragment(int position) {
 
-        FragmentManager fragmentManager= getSupportFragmentManager();
+        FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         switch (position) {
@@ -234,7 +253,7 @@ public class ActivityDashboard extends AppCompatActivity
 
     @Override
     public void OnViewItemClick(Object childItem) {
-        if (mFragmentBag!=null){
+        if (mFragmentBag != null) {
             mFragmentBag.startAction(childItem);
         }
     }
@@ -247,48 +266,61 @@ public class ActivityDashboard extends AppCompatActivity
 
         @Override
         protected void onPreExecute() {
+            Log.i(TAG, "CONNECT_WITH_POKEMON_TASK: onPreExecute");
             super.onPreExecute();
             showProgress(true);
         }
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            try{
-                publishProgress("Conectando con los servidores de PokemonGO...");
+            Log.i(TAG, "CONNECT_WITH_POKEMON_TASK: doInBackground: start");
+            try {
+                try {
+                    publishProgress("Conectando con los servidores de Pkemon GO...");
 
-                if (!getPref(Constants.KEY_PREF_REFRESH_TOKEN).equalsIgnoreCase("")) {
-                    //User is logged in with Google Account
                     mGO = new PokemonGo(httpClient);
-                    mGO.login(new GoogleUserCredentialProvider(httpClient, getPref(Constants.KEY_PREF_REFRESH_TOKEN)));
 
-                } else {
-                    //User is logged in with username and password
-                    mGO = new PokemonGo(httpClient);
-                    mGO.login(new PtcCredentialProvider(httpClient, getPref(Constants.KEY_PREF_USER_EMAIL), getPref(Constants.KEY_PREF_USER_PASS)));
+                    if (!getPref(Constants.KEY_PREF_REFRESH_TOKEN).equalsIgnoreCase("")) {
+                        //User is logged in with Google Account
+                        mGO.login(new GoogleUserCredentialProvider(httpClient, getPref(Constants.KEY_PREF_REFRESH_TOKEN)));
+                    } else {
+                        //User is logged in with username and password
+                        if (isGoogleAccount) {
+                            mGO.login(new GoogleAutoCredentialProvider(httpClient, getPref(Constants.KEY_PREF_USER_EMAIL), getPref(Constants.KEY_PREF_USER_PASS)));
+                        } else {
+                            mGO.login(new PtcCredentialProvider(httpClient, getPref(Constants.KEY_PREF_USER_EMAIL), getPref(Constants.KEY_PREF_USER_PASS)));
+                        }
+
+                    }
+
+                    if (mGO != null) {
+
+                        publishProgress("Obteniendo información del usuario...");
+                        sleep(1000);
+                        final PlayerDataOuterClass.PlayerData playerData = mGO.getPlayerProfile().getPlayerData();
+
+                        publishProgress("Obteniendo información de la cuenta...");
+                        sleep(1000);
+                        final Stats stats = mGO.getPlayerProfile().getStats();
+
+                        mUserName = playerData.getUsername();
+                        mUserTeam = playerData.getTeamValue();
+                        mUserLevel = stats.getLevel();
+                        mUserExperience = stats.getExperience();
+
+                        return true;
+                    }
+                } catch (LoginFailedException | RemoteServerException e) {
+                    Log.i(TAG, "GET_ITEMS_TASK: doInBackground: login or remote_server exception");
+                    Log.i(TAG, e.toString());
+                    return false;
                 }
 
-
-                if (mGO!=null){
-
-                    publishProgress("Obteniendo información del usuario...");
-                    sleep(1000);
-                    final PlayerDataOuterClass.PlayerData playerData = mGO.getPlayerProfile().getPlayerData();
-
-                    publishProgress("Obteniendo información de la cuenta...");
-                    sleep(1000);
-                    final Stats stats = mGO.getPlayerProfile().getStats();
-
-                    mUserName = playerData.getUsername();
-                    mUserTeam = playerData.getTeamValue();
-                    mUserLevel = stats.getLevel();
-                    mUserExperience = stats.getExperience();
-
-                    return true;
-                }
-            }
-            catch (Exception e){
+            } catch (Exception e) {
+                Log.i(TAG, "GET_ITEMS_TASK: doInBackground: general exception");
                 Log.i(TAG, e.toString());
                 return false;
+
             }
 
             return false;
@@ -297,31 +329,32 @@ public class ActivityDashboard extends AppCompatActivity
         @Override
         protected void onProgressUpdate(String... message) {
             super.onProgressUpdate(message);
-
+            Log.i(TAG, "CONNECT_WITH_POKEMON_TASK: onProgressUpdate: " + message[0]);
             Toast.makeText(ActivityDashboard.this, message[0], Toast.LENGTH_SHORT).show();
 
         }
 
         @Override
         protected void onPostExecute(Boolean succes) {
-            mConnectTask = null;
-            //showProgress(false);
+            Log.i(TAG, "CONNECT_WITH_POKEMON_TASK: onPostExecute: " + succes.toString());
 
-            if (succes){
+            mConnectTask = null;
+
+            if (succes) {
 
                 mNavHeaderTitle.setText(mUserName);
 
-                mNavHeaderSubtitle.setText("Nivel: " + String.valueOf(mUserLevel)+ " Experience: " + mUserExperience);
+                mNavHeaderSubtitle.setText("Nivel: " + String.valueOf(mUserLevel) + " Experience: " + mUserExperience);
 
                 switch (mUserTeam) {
                     case 1:
-                        mNavHeaderImage.setImageResource(R.drawable.ic_team_yellow);
-                        break;
-                    case 2:
                         mNavHeaderImage.setImageResource(R.drawable.ic_team_blue);
                         break;
-                    case 3:
+                    case 2:
                         mNavHeaderImage.setImageResource(R.drawable.ic_team_red);
+                        break;
+                    case 3:
+                        mNavHeaderImage.setImageResource(R.drawable.ic_team_yellow);
                         break;
                     default:
                         mNavHeaderImage.setImageResource(R.drawable.ic_gym_team_white);
@@ -330,16 +363,15 @@ public class ActivityDashboard extends AppCompatActivity
 
                 setFragment(visibleFragment);
                 mNavigationView.getMenu().getItem(visibleFragment).setChecked(true);
-            }
-            else{
+            } else {
 
                 setFragment(Constants.FRAGMENT_BLANK);
                 mNavigationView.getMenu().getItem(visibleFragment).setChecked(false);
 
-                if (isDeviceOnline()){
+                if (isDeviceOnline()) {
                     showSnackBar(getString(R.string.snack_bar_error_with_pokemon), getString(R.string.snack_bar_error_with_pokemon_positive_btn));
 
-                }else{
+                } else {
                     showSnackBar(getString(R.string.snack_bar_error_with_internet_acces), getString(R.string.snack_bar_error_with_internet_acces_positive_btn));
                 }
 
@@ -348,6 +380,7 @@ public class ActivityDashboard extends AppCompatActivity
 
         @Override
         protected void onCancelled() {
+            Log.i(TAG, "CONNECT_WITH_POKEMON_TASK: onCancelled");
             mConnectTask = null;
         }
     }
@@ -365,7 +398,7 @@ public class ActivityDashboard extends AppCompatActivity
                     show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    mContainerFormView.setVisibility(show ? View.GONE : View.VISIBLE );
+                    mContainerFormView.setVisibility(show ? View.GONE : View.VISIBLE);
                 }
             });
 
@@ -374,14 +407,14 @@ public class ActivityDashboard extends AppCompatActivity
                     show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE );
+                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
                 }
             });
         } else {
             // The ViewPropertyAnimator APIs are not available, so simply show
             // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE: View.GONE );
-            mContainerFormView.setVisibility(show ? View.GONE: View.VISIBLE  );
+            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            mContainerFormView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
     }
 
@@ -420,7 +453,7 @@ public class ActivityDashboard extends AppCompatActivity
 
                         if (buttonTitle.equalsIgnoreCase("Reintentar")) {
 
-                            if (mConnectTask==null){
+                            if (mConnectTask == null) {
                                 mConnectTask = new ConnectWithPokemonGoTask();
                                 mConnectTask.execute();
                             }
@@ -440,17 +473,25 @@ public class ActivityDashboard extends AppCompatActivity
     }
 
     private String getPref(String KEY_PREF) {
+        SharedPreferences prefsPokeWhere = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
+        String pref = prefsPokeWhere.getString(KEY_PREF, "");
+        return pref;
+    }
+
+    private Boolean getGooglePref(String KEY_PREF) {
 
         SharedPreferences prefsPokeWhere = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
 
-            String pref = prefsPokeWhere.getString(KEY_PREF, "");
-            return pref;
+        Boolean googlePref = prefsPokeWhere.getBoolean(KEY_PREF, false);
 
+        return googlePref;
     }
 
     public void deleteCredentials() {
         SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs_user.edit();
+
+        editor.putBoolean(Constants.KEY_PREF_GOOGLE, false);
 
         editor.putString(Constants.KEY_PREF_USER_EMAIL, "");
         editor.putString(Constants.KEY_PREF_USER_PASS, "");
@@ -470,7 +511,7 @@ public class ActivityDashboard extends AppCompatActivity
     @Override
     public void onFragmentCreatedViewStatus(int visibleFragment) {
 
-        if (visibleFragment != Constants.FRAGMENT_BLANK){
+        if (visibleFragment != Constants.FRAGMENT_BLANK) {
             this.visibleFragment = visibleFragment;
         }
     }
@@ -491,7 +532,7 @@ public class ActivityDashboard extends AppCompatActivity
 
 
             case Constants.ACTION_REFRESH_TOKEN:
-                if (mConnectTask==null){
+                if (mConnectTask == null) {
                     mConnectTask = new ConnectWithPokemonGoTask();
                     mConnectTask.execute();
                 }

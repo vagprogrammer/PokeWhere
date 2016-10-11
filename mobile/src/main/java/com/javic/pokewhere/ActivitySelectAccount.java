@@ -8,16 +8,22 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
@@ -40,6 +46,8 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import okhttp3.OkHttpClient;
+
+import static com.javic.pokewhere.R.id.google_sign_in_button_secure;
 
 public class ActivitySelectAccount extends AppCompatActivity implements View.OnClickListener {
 
@@ -72,6 +80,11 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
      */
     private GoogleTokenTask mGTokenTask= null;
 
+    /**
+     * Keep track of the login task to ensure we can cancel it if requested.
+     */
+    private GoogleTokenTask2 mGTokenTask2= null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,12 +96,25 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
-        final Button mEmailLogInButton = (Button) findViewById(R.id.email_sign_in_button);
-        mEmailLogInButton.setOnClickListener(this);
+        final Button mPTCLogInButton = (Button) findViewById(R.id.ptc_sign_in_button);
+        mPTCLogInButton.setOnClickListener(this);
 
         final Button mGoogleLogInButton = (Button)findViewById(R.id.google_sign_in_button);
         mGoogleLogInButton.setOnClickListener(this);
 
+        final Button mGoogleLogInButtonSecure = (Button)findViewById(R.id.google_sign_in_button_secure);
+        mGoogleLogInButtonSecure.setOnClickListener(this);
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (mGTokenTask2 != null) {
+            showProgress(false);
+            mGTokenTask2.cancel(true);
+        }
     }
 
     /**
@@ -163,6 +189,7 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
             try {
 
                 token = GoogleAuthUtil.getToken(mActivity, mEmail, mScope);
+
                 makePostRequest();
                 // makePostRequest2();
 
@@ -233,6 +260,73 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
         @Override
         protected void onCancelled() {
             mGTokenTask = null;
+            showProgress(false);
+        }
+    }
+
+
+
+    /**
+     * Represents an asynchronous Gets an authentication token from Google
+     */
+    public class GoogleTokenTask2 extends AsyncTask<Void, Void, Boolean> {
+
+        private String mToken;
+
+        GoogleTokenTask2(String mToken) {
+            this.mToken = mToken;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+            if (mToken==null){
+                return false;
+            }else{
+
+                final OkHttpClient httpClient = new OkHttpClient();
+
+                try {
+                    final GoogleUserCredentialProvider provider = new GoogleUserCredentialProvider(httpClient);
+
+                    provider.login(mToken);
+
+                    mParamRefreshToken = provider.getRefreshToken();
+
+                    saveRefreshToken(mParamRefreshToken);
+
+                    PokemonGo go = new PokemonGo(httpClient);
+                    go.login(provider);
+
+                } catch (LoginFailedException | RemoteServerException e) {
+                    e.printStackTrace();
+                    return false;
+                }
+
+
+                return true;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            mGTokenTask2 = null;
+            showProgress(false);
+
+            if (success) {
+
+                Intent intent = new Intent(ActivitySelectAccount.this, ActivityDashboard.class);
+                startActivity(intent);
+
+                finish();
+            } else {
+                showMessage(getString(R.string.message_json_request_error));
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+            mGTokenTask2 = null;
             showProgress(false);
         }
     }
@@ -378,15 +472,82 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
     public void onClick(View view) {
 
         switch (view.getId()){
-            case R.id.email_sign_in_button:
-                startActivity(new Intent(this, ActivityLogin.class));
+            case R.id.ptc_sign_in_button:
+                Intent ptcIntent = new Intent(this, ActivityLogin.class);
+                ptcIntent.putExtra("login","PTC");
+                startActivity(ptcIntent);
                 break;
 
             case R.id.google_sign_in_button:
-                getUsername();
+                //getUsername();
+                Intent googleIntent = new Intent(this, ActivityLogin.class);
+                googleIntent.putExtra("login","Google");
+                startActivity(googleIntent);
+                break;
+            case google_sign_in_button_secure:
+                showD();
                 break;
         }
 
     }
+
+    public void showD(){
+
+        MaterialDialog.Builder builder;
+        MaterialDialog dialog;
+
+        boolean wrapInScrollView = true;
+
+        builder = new MaterialDialog.Builder(this)
+                .title(R.string.google_account_secure)
+                .customView(R.layout.layout_google_login_secure, wrapInScrollView)
+                .positiveText(R.string.btn_send_token)
+                .autoDismiss(false)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        View view = dialog.getCustomView();
+                        TextView tv_token = (TextView) view.findViewById(R.id.etv_token);
+
+                        if (!TextUtils.isEmpty(tv_token.getText().toString())){
+
+                            if (isDeviceOnline()) {
+
+                                if (mGTokenTask2 == null) {
+                                    showProgress(true);
+                                    mGTokenTask2 = new GoogleTokenTask2(tv_token.getText().toString());
+                                    mGTokenTask2.execute();
+
+                                    dialog.dismiss();
+                                }
+
+                            } else {
+                                Toast.makeText(ActivitySelectAccount.this, R.string.snack_bar_error_with_internet_acces, Toast.LENGTH_LONG).show();
+                            }
+
+
+                        }
+                    }
+                });
+        dialog = builder.build();
+        dialog.show();
+
+        View view = dialog.getCustomView();
+        Button btn = (Button) view.findViewById(R.id.btn_getToken);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getToken();
+            }
+        });
+
+
+    }
+
+    public void getToken(){
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(GoogleUserCredentialProvider.LOGIN_URL));
+        startActivity(browserIntent);
+    }
+
 }
 

@@ -20,6 +20,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -35,6 +36,7 @@ import android.widget.Toast;
 
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
+import com.pokegoapi.auth.GoogleAutoCredentialProvider;
 import com.pokegoapi.auth.PtcCredentialProvider;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
@@ -45,6 +47,8 @@ import okhttp3.OkHttpClient;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
+//https://security.google.com/settings/security/apppasswords
+//Keep in mind, it requires 2 step verification to be enabled
 /**
  * A login screen that offers login via email/password.
  */
@@ -57,9 +61,6 @@ public class ActivityLogin extends AppCompatActivity{
      */
     private static final int REQUEST_PERMISSION_READ_CONTACTS = 0;
 
-    private OkHttpClient httpClient = new OkHttpClient();
-    private PokemonGo mGO;
-
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
@@ -68,23 +69,37 @@ public class ActivityLogin extends AppCompatActivity{
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-    private UserLoginTask mContactsTask = null;
+    private ContactsTask mContactsTask = null;
 
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    private TextView mTVTitle;
+
+    //Variables
+    private OkHttpClient httpClient = new OkHttpClient();
+    private PokemonGo mGO;
+    private Boolean isGoogleAccount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        Bundle extras = getIntent().getExtras();
+
+        if (extras!= null){
+            isGoogleAccount =  (extras.getString("login").equalsIgnoreCase("Google")) ? true : false;
+        }
+
         // Set up the login form.
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         mPasswordView = (EditText) findViewById(R.id.password);
+        mTVTitle = (TextView) findViewById(R.id.tv_login_title);
 
         final Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
 
@@ -150,14 +165,23 @@ public class ActivityLogin extends AppCompatActivity{
             }
         });
 
+        if (isGoogleAccount){
+            mTVTitle.setText(getString(R.string.google_account_credentials));
+            mEmailView.setHint(getString(R.string.prompt_email));
+        }
+        else {
+            mTVTitle.setText(getString(R.string.ptc_account));
+            mEmailView.setHint(getString(R.string.prompt_nickname));
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        populateAutoComplete();
-
+        if (isGoogleAccount) {
+            populateAutoComplete();
+        }
     }
 
     @Override
@@ -165,12 +189,12 @@ public class ActivityLogin extends AppCompatActivity{
         super.onPause();
 
         if(mAuthTask!=null){
-
+            Log.i(TAG, "USER_LOGIN_TASK: cancel:true");
             mAuthTask.cancel(true);
-            Toast.makeText(ActivityLogin.this, getString(R.string.error_login), Toast.LENGTH_SHORT).show();
         }
 
         if(mContactsTask!=null){
+            Log.i(TAG, "CONTACTS_TASK: cancel:true");
             mContactsTask.cancel(true);
         }
     }
@@ -180,8 +204,8 @@ public class ActivityLogin extends AppCompatActivity{
         if (!mayRequestContacts()) {
             return;
         }
-
-        new ContactsTask().execute();
+        mContactsTask = new ContactsTask();
+        mContactsTask.execute((Void) null);
     }
 
     private boolean mayRequestContacts() {
@@ -248,22 +272,32 @@ public class ActivityLogin extends AppCompatActivity{
         boolean cancel = false;
         View focusView = null;
 
-        // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
-            mPasswordView.setError(getString(R.string.error_invalid_password));
+        // Check if the user entered a password.
+        if (TextUtils.isEmpty(password)) {
+            mPasswordView.setError(getString(R.string.error_field_required));
             focusView = mPasswordView;
             cancel = true;
+        }else if(isGoogleAccount){
+            // Check for a valid password.
+            if (!isPasswordValid(password)){
+                mPasswordView.setError(getString(R.string.error_invalid_password));
+                focusView = mPasswordView;
+                cancel = true;
+            }
         }
 
-        // Check for a valid email address.
+        // Check for a empty textView.
         if (TextUtils.isEmpty(email)) {
             mEmailView.setError(getString(R.string.error_field_required));
             focusView = mEmailView;
             cancel = true;
-        } else if (!isEmailValid(email)) {
-            mEmailView.setError(getString(R.string.error_invalid_email));
-            focusView = mEmailView;
-            cancel = true;
+        } else if (isGoogleAccount) {
+            // Check for a valid email address.
+            if (!isEmailValid(email)) {
+                mEmailView.setError(getString(R.string.error_invalid_email));
+                focusView = mEmailView;
+                cancel = true;
+            }
         }
 
         if (cancel) {
@@ -287,13 +321,16 @@ public class ActivityLogin extends AppCompatActivity{
     }
 
     private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
-        return !email.isEmpty();
-        //return email.contains("@") || email.contains("vagtest123");
+
+        if (isGoogleAccount){
+            return email.contains("@");
+        }
+        else{
+            return !email.isEmpty();
+        }
     }
 
     private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
         return password.length() > 3;
     }
 
@@ -343,41 +380,59 @@ public class ActivityLogin extends AppCompatActivity{
         private final String mPassword;
 
         UserLoginTask(String email, String password) {
+
+            Log.i(TAG, "USER_LOGIN_TASK: constructor");
+
             mEmail = email;
             mPassword = password;
         }
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
+
+            Log.i(TAG, "USER_LOGIN_TASK: doInBackground:start");
+
             try {
                 try {
 
-                    mGO = new PokemonGo(httpClient);
+                    while (!isCancelled()){
+                        mGO = new PokemonGo(httpClient);
 
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        if (isGoogleAccount){
+                            mGO.login(new GoogleAutoCredentialProvider(httpClient, mEmail, mPassword));
+                        }else{
+                            mGO.login(new PtcCredentialProvider(httpClient, mEmail, mPassword));
+                        }
+
+                        Log.i(TAG, "USER_LOGIN_TASK: doInBackground:true");
+                        return true;
                     }
 
-                    mGO.login(new PtcCredentialProvider(httpClient, mEmail, mPassword));
-
-
-                    return true;
                 } catch (LoginFailedException | RemoteServerException e) {
-                    e.printStackTrace();
+                    Log.i(TAG, "USER_LOGIN_TASK: doInBackground: login or remote_server exception");
+                    Log.i(TAG, e.toString());
                     return false;
                 }
-            }
-            catch (Exception e){
-                e.printStackTrace();
+
+            } catch (Exception e) {
+                Log.i(TAG, "USER_LOGIN_TASK: doInBackground: general exception");
+                Log.i(TAG, e.toString());
                 return false;
+
             }
+
+            return false;
         }
 
         @Override
         protected void onPostExecute(final Boolean success) {
+            Log.i(TAG, "USER_LOGIN_TASK: onPostExecute");
             mAuthTask = null;
             showProgress(false);
 
@@ -385,6 +440,7 @@ public class ActivityLogin extends AppCompatActivity{
                 saveUserCredentials(mEmail, mPassword);
                 saveUserData();
                 Intent intent = new Intent(ActivityLogin.this, ActivityDashboard.class);
+                intent.putExtra("login", "Google");
                 startActivity(intent);
 
                 //finish activity to select
@@ -399,6 +455,7 @@ public class ActivityLogin extends AppCompatActivity{
 
         @Override
         protected void onCancelled() {
+            Log.i(TAG, "USER_LOGIN_TASK: onCancelled");
             mAuthTask = null;
             showProgress(false);
         }
@@ -440,6 +497,8 @@ public class ActivityLogin extends AppCompatActivity{
         @Override
         protected ArrayList<String> doInBackground(Void... params) {
 
+            Log.i(TAG, "CONTACTS_TASK: doInBackground");
+
             //ArrayList<String> names = new ArrayList<String>();
             ArrayList<String> emails = new ArrayList<String>();
             ContentResolver cr = getContentResolver();
@@ -475,6 +534,8 @@ public class ActivityLogin extends AppCompatActivity{
 
         @Override
         protected void onPostExecute(ArrayList<String> emails) {
+
+            Log.i(TAG, "CONTACTS_TASK: onPostExecute");
             mContactsTask = null;
 
             //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
@@ -487,6 +548,7 @@ public class ActivityLogin extends AppCompatActivity{
 
         @Override
         protected void onCancelled() {
+            Log.i(TAG, "CONTACTS_TASK: onCancelled");
             mContactsTask = null;
         }
     }
@@ -510,6 +572,7 @@ public class ActivityLogin extends AppCompatActivity{
         SharedPreferences.Editor editor= prefs_user.edit();
 
         //Pref to show all the markers in teh map <def value is true>
+        editor.putBoolean(Constants.KEY_PREF_GOOGLE, isGoogleAccount);
         editor.putBoolean(Constants.KEY_PREF_ALL_MARKERS, true);
         editor.putBoolean(Constants.KEY_PREF_BUSQUEDA_MARKERS, true);
         editor.putBoolean(Constants.KEY_PREF_NORMAL_POKESTOPS_MARKERS, true);

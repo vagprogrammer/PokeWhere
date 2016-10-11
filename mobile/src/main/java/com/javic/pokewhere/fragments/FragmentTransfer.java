@@ -1,6 +1,5 @@
 package com.javic.pokewhere.fragments;
 
-
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
@@ -10,6 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -26,16 +26,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.adapters.AdapterChildTransferablePokemon;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
 import com.javic.pokewhere.models.ChildTransferablePokemon;
 import com.javic.pokewhere.models.GroupTransferablePokemon;
+import com.javic.pokewhere.models.ProgressTransferPokemon;
 import com.javic.pokewhere.models.TransferablePokemon;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.pokemon.Pokemon;
+import com.pokegoapi.exceptions.LoginFailedException;
+import com.pokegoapi.exceptions.RemoteServerException;
 import com.thoughtbot.expandablecheckrecyclerview.listeners.OnCheckChildClickListener;
 import com.thoughtbot.expandablecheckrecyclerview.models.CheckedExpandableGroup;
 
@@ -46,7 +51,6 @@ import java.util.List;
 
 import POGOProtos.Enums.PokemonIdOuterClass;
 import POGOProtos.Networking.Responses.ReleasePokemonResponseOuterClass;
-
 
 public class FragmentTransfer extends Fragment implements OnCheckChildClickListener {
 
@@ -72,12 +76,12 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
     private Context mContext;
 
     //Variables
-    private Boolean isTransfering = true;
     public int pokemonStorage;
     public int totalPokemons;
+
     //Tasks
-    private FiltrosTask mFiltrosTask;
-    private TransferTask mTransferTask;
+    private GetPokemonsTask mGetPokemonsTask;
+    private TransferPokemonsTask mTransferPokemonsTask;
 
 
     //Adapters
@@ -106,7 +110,6 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
         //setHasOptionsMenu(true);
     }
 
-
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_transfer, menu);
@@ -117,13 +120,13 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
         switch (item.getItemId()) {
             case R.id.action_transferir:
 
-                if (mTransferTask == null) {
-                    mTransferTask = new TransferTask(true);
+                if (mTransferPokemonsTask == null) {
+                    mTransferPokemonsTask = new TransferPokemonsTask();
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                        mTransferTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                        mTransferPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                     } else {
-                        mTransferTask.execute();
+                        mTransferPokemonsTask.execute();
                     }
                 }
 
@@ -167,13 +170,13 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
 
             mListener.onFragmentCreatedViewStatus(Constants.FRAGMENT_TRANSFER);
 
-            if (mFiltrosTask==null){
-                mFiltrosTask = new FiltrosTask();
+            if (mGetPokemonsTask == null) {
+                mGetPokemonsTask = new GetPokemonsTask();
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                    mFiltrosTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    mGetPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 } else {
-                    mFiltrosTask.execute();
+                    mGetPokemonsTask.execute();
                 }
             }
         }
@@ -194,11 +197,19 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
     public void onPause() {
         super.onPause();
 
-        if (mTransferTask != null) {
-            mTransferTask.cancel(true);
-            mTransferTask = null;
+        if (mGetPokemonsTask != null) {
+            Log.i(TAG, "FILTROS_TASK: cancel:true");
+            mListener.showProgress(false);
+            mGetPokemonsTask.cancel(true);
+        }
+
+        if (mTransferPokemonsTask != null) {
+            Log.i(TAG, "TRANSFER_TASK: cancel:true");
+            mListener.showProgress(false);
+            mTransferPokemonsTask.cancel(true);
         }
     }
+
 
     @Override
     public void onAttach(Context context) {
@@ -240,12 +251,12 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
                     mTransferablePokemonList.set(mTransferablePokemonList.indexOf(getTransferablePokemon(childTransferablePokemon.getId())), transferablePokemon);
                     group.onChildClicked(childIndex, true);
                 }
-                if (Integer.parseInt(countTransferablePokemons())>0){
-                    setActionBarTitle(countTransferablePokemons() + " selected");
-                    showToast(countTransferablePokemons() + " pokemons to transfer", 700);
+                if (countTransferablePokemons() > 0) {
+                    setActionBarTitle(String.valueOf(countTransferablePokemons()) + " selected");
+                    showToast(String.valueOf(countTransferablePokemons()) + " pokemons to transfer", 700);
                     setHasOptionsMenu(true);
-                }else {
-                    setActionBarTitle(String.valueOf(totalPokemons) + "/"+ String.valueOf(pokemonStorage) + " pokemons");
+                } else {
+                    setActionBarTitle(String.valueOf(totalPokemons) + "/" + String.valueOf(pokemonStorage) + " pokemons");
                     setHasOptionsMenu(false);
                 }
 
@@ -260,10 +271,12 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
 
     }
 
-    public class FiltrosTask extends AsyncTask<Void, Void, Boolean> {
+    public class GetPokemonsTask extends AsyncTask<Void, Void, Boolean> {
 
         @Override
         protected void onPreExecute() {
+
+            Log.i(TAG, "GET_POKEMON_TASK: onPreExecute");
 
             //Show the progressBar
             mListener.showProgress(true);
@@ -280,77 +293,94 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
         @Override
         protected Boolean doInBackground(Void... params) {
 
+            Log.i(TAG, "GET_POKEMON_TASK: doInBackground: start");
+
             try {
-                mPokemonGo.getInventories().updateInventories(true);
-                mUserPokemonList = mPokemonGo.getInventories().getPokebank().getPokemons();
-                totalPokemons  = mUserPokemonList.size() + mPokemonGo.getInventories().getHatchery().getEggs().size();
-                pokemonStorage = mPokemonGo.getPlayerProfile().getPlayerData().getMaxPokemonStorage();
+                try {
+                    mPokemonGo.getInventories().updateInventories(true);
+                    mUserPokemonList = mPokemonGo.getInventories().getPokebank().getPokemons();
+                    totalPokemons = mUserPokemonList.size() + mPokemonGo.getInventories().getHatchery().getEggs().size();
+                    pokemonStorage = mPokemonGo.getPlayerProfile().getPlayerData().getMaxPokemonStorage();
 
-                for (Pokemon pokemon : mUserPokemonList) {
+                    for (Pokemon pokemon : mUserPokemonList) {
 
-                    if (!containsEncounteredId(pokemon.getPokemonId())) {
-                        //Obtenemos todos los pokemons para este id
-                        List<Pokemon> specificPokemons = mPokemonGo.getInventories().getPokebank().getPokemonByPokemonId(pokemon.getPokemonId());
-                        List<ChildTransferablePokemon> mChildTransferablePokemonList = new ArrayList<>();
+                        if (!isCancelled()) {
 
-                        for (Pokemon specificPokemon : specificPokemons) {
+                            if (!containsEncounteredId(pokemon.getPokemonId())) {
+                                //Obtenemos todos los pokemons para este id
+                                List<Pokemon> specificPokemons = mPokemonGo.getInventories().getPokebank().getPokemonByPokemonId(pokemon.getPokemonId());
+                                List<ChildTransferablePokemon> mChildTransferablePokemonList = new ArrayList<>();
 
-                            TransferablePokemon transferablePokemon = new TransferablePokemon();
-                            transferablePokemon.setPokemonId(specificPokemon.getPokemonId());
-                            transferablePokemon.setId(specificPokemon.getId());
-                            transferablePokemon.setCp(specificPokemon.getCp());
-                            transferablePokemon.setFavorite(specificPokemon.isFavorite());
-                            transferablePokemon.setDead(specificPokemon.isInjured());
-                            mTransferablePokemonList.add(transferablePokemon);
+                                for (Pokemon specificPokemon : specificPokemons) {
 
-                            String specificPokemonNick = specificPokemon.getNickname();
+                                    TransferablePokemon transferablePokemon = new TransferablePokemon();
+                                    transferablePokemon.setPokemonId(specificPokemon.getPokemonId());
+                                    transferablePokemon.setId(specificPokemon.getId());
+                                    transferablePokemon.setCp(specificPokemon.getCp());
+                                    transferablePokemon.setFavorite(specificPokemon.isFavorite());
+                                    transferablePokemon.setDead(specificPokemon.isInjured());
+                                    mTransferablePokemonList.add(transferablePokemon);
 
-                            if (specificPokemonNick.equals("")){
-                                specificPokemonNick = specificPokemon.getPokemonId().toString();
+                                    String specificPokemonNick = specificPokemon.getNickname();
+
+                                    if (specificPokemonNick.equals("")) {
+                                        specificPokemonNick = specificPokemon.getPokemonId().toString();
+                                    }
+
+                                    mChildTransferablePokemonList.add(new
+                                            ChildTransferablePokemon(specificPokemon.getId(),
+                                            transferablePokemon.getFavorite(),
+                                            transferablePokemon.getCp(),
+                                            ((int) (specificPokemon.getIvRatio() * 100)),
+                                            specificPokemonNick));
+
+                                }
+
+                                // Sorting
+                                Collections.sort(mChildTransferablePokemonList, new Comparator<ChildTransferablePokemon>() {
+
+                                    @Override
+                                    public int compare(ChildTransferablePokemon childTransferablePokemon1, ChildTransferablePokemon childTransferablePokemon2) {
+                                        return childTransferablePokemon1.getCp() - childTransferablePokemon2.getCp(); // Ascending
+                                    }
+                                });
+
+                                final String pokemonId = pokemon.getPokemonId().toString();
+                                final int pokemonIdNumber = pokemon.getPokemonId().getNumber();
+                                final int childCount = mChildTransferablePokemonList.size();
+
+                                mFiltrosPokemonList.add(new GroupTransferablePokemon(pokemonId, pokemonIdNumber, childCount, pokemon.getCandy(), pokemonId, mChildTransferablePokemonList));
+
+                                // Sorting
+                                Collections.sort(mFiltrosPokemonList, new Comparator<GroupTransferablePokemon>() {
+
+                                    @Override
+                                    public int compare(GroupTransferablePokemon filtro1, GroupTransferablePokemon filtro2) {
+
+                                        return filtro1.getPokemonId().compareTo(filtro2.getPokemonId());
+                                    }
+                                });
                             }
-
-                            mChildTransferablePokemonList.add(new
-                                    ChildTransferablePokemon(specificPokemon.getId(),
-                                    transferablePokemon.getFavorite(),
-                                    transferablePokemon.getCp(),
-                                    ((int) (specificPokemon.getIvRatio() * 100)),
-                                    specificPokemonNick));
-
+                        } else {
+                            Log.i(TAG, "GET_POKEMON_TASK: doInBackground: task is cancelled");
+                            return false;
                         }
-
-                        // Sorting
-                        Collections.sort(mChildTransferablePokemonList, new Comparator<ChildTransferablePokemon>() {
-
-                            @Override
-                            public int compare(ChildTransferablePokemon childTransferablePokemon1, ChildTransferablePokemon childTransferablePokemon2) {
-                                return childTransferablePokemon1.getCp() - childTransferablePokemon2.getCp(); // Ascending
-                            }
-                        });
-
-                        final String pokemonId = pokemon.getPokemonId().toString();
-                        final int pokemonIdNumber = pokemon.getPokemonId().getNumber();
-                        final int childCount = mChildTransferablePokemonList.size();
-
-                        mFiltrosPokemonList.add(new GroupTransferablePokemon(pokemonId, pokemonIdNumber, childCount, pokemon.getCandy(), pokemonId, mChildTransferablePokemonList));
-
-                        // Sorting
-                        Collections.sort(mFiltrosPokemonList, new Comparator<GroupTransferablePokemon>() {
-
-                            @Override
-                            public int compare(GroupTransferablePokemon filtro1, GroupTransferablePokemon filtro2) {
-
-                                return filtro1.getPokemonId().compareTo(filtro2.getPokemonId());
-                            }
-                        });
                     }
+
+                    Log.i(TAG, "GET_POKEMON_TASK: doInBackground: true");
+                    return true;
+
+                } catch (LoginFailedException | RemoteServerException e) {
+                    Log.i(TAG, "GET_POKEMON_TASK: doInBackground: login or remote_server exception");
+                    Log.i(TAG, e.toString());
+                    return false;
                 }
 
-                return true;
-
             } catch (Exception e) {
+                Log.i(TAG, "GET_POKEMON_TASK: doInBackground: general exception");
                 Log.i(TAG, e.toString());
-
                 return false;
+
             }
 
         }
@@ -358,8 +388,10 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
         @Override
         protected void onPostExecute(Boolean succes) {
 
-            mFiltrosTask = null;
-            setActionBarTitle(String.valueOf(totalPokemons) + "/"+ String.valueOf(pokemonStorage) + " pokemons");
+            Log.i(TAG, "GET_POKEMON_TASK: onPostExecute: " + succes.toString());
+
+            mGetPokemonsTask = null;
+            setActionBarTitle(String.valueOf(totalPokemons) + "/" + String.valueOf(pokemonStorage) + " pokemons");
 
             //Show the progressBar
             mListener.showProgress(false);
@@ -383,94 +415,146 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
 
         @Override
         protected void onCancelled() {
-            Log.i(TAG, "tarea cancelada");
-            mFiltrosTask = null;
+            Log.i(TAG, "GET_POKEMON_TASK: onCancelled");
+            mGetPokemonsTask = null;
         }
 
     }
 
-    public class TransferTask extends AsyncTask<Void, String, Boolean> {
+    public class TransferPokemonsTask extends AsyncTask<Void, ProgressTransferPokemon, Boolean> {
+
+        private Boolean showMinMax;
+        private MaterialDialog.Builder builder;
+        private MaterialDialog dialog;
+        private ProgressTransferPokemon progress;
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-        }
+            Log.i(TAG, "TRANSFER_POKEMON_TASK: onPreExecute");
 
-        TransferTask(Boolean isEnabled) {
-            isTransfering = isEnabled;
+            showMinMax = true;
+            progress = new ProgressTransferPokemon();
+            builder = new MaterialDialog.Builder(mContext)
+                    .title("Transfiriendo pokemons")
+                    .content("Por favor espera...")
+                    .cancelable(false)
+                    .negativeText(getString(R.string.location_alert_neg_btn))
+                    .progress(false, countTransferablePokemons(), showMinMax)
+                    .onNegative(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                            // TODO
+                            if (mTransferPokemonsTask!=null){
+                                mTransferPokemonsTask.cancel(true);
+                            }
+                        }
+                    });
+            dialog = builder.build();
+            dialog.show();
         }
 
         @Override
         protected Boolean doInBackground(Void... params) {
 
+            Log.i(TAG, "TRANSFER_POKEMON_TASK: doInBackground");
+
             try {
+                try {
 
-                for (TransferablePokemon transferablePokemon : mTransferablePokemonList) {
+                    for (TransferablePokemon transferablePokemon : mTransferablePokemonList) {
 
-                    if (isTransfering) {
-                        if (transferablePokemon.getTransfer()) {
-                            Pokemon pokemonToTransfer = getUserPokemon(transferablePokemon.getId());
+                        if (!isCancelled()) {
 
-                            if (pokemonToTransfer != null) {
-                                publishProgress(pokemonToTransfer.getPokemonId().toString());
-                                pokemonToTransfer.debug();
-                                ReleasePokemonResponseOuterClass.ReleasePokemonResponse.Result result = pokemonToTransfer.transferPokemon();
-                                publishProgress(result.toString());
+                            if (transferablePokemon.getTransfer()) {
+                                Pokemon pokemonToTransfer = getUserPokemon(transferablePokemon.getId());
 
-                                sleep(300);
-                                mPokemonGo.getInventories().updateInventories(true);
+                                if (pokemonToTransfer != null) {
+                                    progress.setProgressMessage(pokemonToTransfer.getPokemonId().toString());
+                                    progress.setUpdateProgress(false);
+                                    publishProgress(progress);
+                                    //pokemonToTransfer.debug();
+                                    ReleasePokemonResponseOuterClass.ReleasePokemonResponse.Result result = pokemonToTransfer.transferPokemon();
+                                    progress.setProgressMessage(result.toString());
+                                    progress.setUpdateProgress(true);
+                                    publishProgress(progress);
+                                    sleep(1000);
+                                    mPokemonGo.getInventories().updateInventories(true);
+                                }
                             }
+                        } else {
+                            Log.i(TAG, "TRANSFER_POKEMON_TASK: doInBackground: task is cancelled");
+                            return false;
                         }
-                    } else {
-                        mTransferTask.cancel(true);
+
                     }
+
+                    Log.i(TAG, "TRANSFER_POKEMON_TASK: doInBackground: true");
+                    return true;
+
+
+                } catch (LoginFailedException | RemoteServerException e) {
+                    e.printStackTrace();
+                    Log.i(TAG, "TRANSFER_POKEMON_TASK: doInBackground: exception");
+                    return false;
                 }
-                return true;
 
             } catch (Exception e) {
                 Log.e(TAG, e.toString());
-
+                Log.i(TAG, "TRANSFER_POKEMON_TASK: doInBackground: exception");
                 return false;
+
             }
 
 
         }
 
         @Override
-        protected void onProgressUpdate(String... data) {
+        protected void onProgressUpdate(ProgressTransferPokemon... data) {
 
             super.onProgressUpdate(data);
-            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(data[0]);
+            Log.i(TAG, "TRANSFER_POKEMON_TASK: onProgressUpdate: " + data[0]);
+
+            // Increment the dialog's progress by 1 after sleeping for 50ms
+            dialog.setContent(data[0].getProgressMessage());
+
+            if (data[0].getUpdateProgress()) {
+                dialog.incrementProgress(1);
+            }
+
 
         }
 
         @Override
         protected void onPostExecute(Boolean succes) {
 
-            mTransferTask = null;
-            isTransfering = false;
+            Log.i(TAG, "TRANSFER_POKEMON_TASK: onProgressUpdate: " + succes.toString());
+            mTransferPokemonsTask = null;
+
+            //Hiding the menu
+            setHasOptionsMenu(false);
+
+            //Dismissing the dialog
+            dialog.dismiss();
 
             if (succes) {
 
-                if (mFiltrosTask == null) {
-                    mFiltrosTask = new FiltrosTask();
+                if (mGetPokemonsTask == null) {
+                    mGetPokemonsTask = new GetPokemonsTask();
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                        mFiltrosTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                        mGetPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                     } else {
-                        mFiltrosTask.execute();
+                        mGetPokemonsTask.execute();
                     }
                 }
 
             } else {
 
                 if (isDeviceOnline()) {
-
                     setActionBarTitle(getString(R.string.snack_bar_error_with_pokemon));
                     showSnackBar(getString(R.string.snack_bar_error_with_pokemon), getString(R.string.snack_bar_error_with_pokemon_positive_btn), TASK_TRANSFER);
-
                 } else {
-
                     showSnackBar(getString(R.string.snack_bar_error_with_internet_acces), getString(R.string.snack_bar_error_with_internet_acces_positive_btn), TASK_TRANSFER);
                 }
 
@@ -479,9 +563,8 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
 
         @Override
         protected void onCancelled() {
-            Log.i(TAG, "tarea cancelada");
-            mTransferTask = null;
-            isTransfering = false;
+            Log.i(TAG, "TRANSFER_POKEMON_TASK: onCancelled");
+            mTransferPokemonsTask = null;
         }
 
     }
@@ -518,7 +601,7 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
         return null;
     }
 
-    public String countTransferablePokemons() {
+    public int countTransferablePokemons() {
         int size = 0;
 
         for (TransferablePokemon transferablePokemon : mTransferablePokemonList) {
@@ -527,7 +610,7 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
             }
         }
 
-        return String.valueOf(size);
+        return size;
     }
 
     public boolean isDeviceOnline() {
@@ -574,22 +657,22 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
                         if (buttonTitle.equalsIgnoreCase("Reintentar")) {
 
                             if (task == TASK_FILTROS) {
-                                mFiltrosTask = new FiltrosTask();
+                                mGetPokemonsTask = new GetPokemonsTask();
 
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                                    mFiltrosTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                    mGetPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                 } else {
-                                    mFiltrosTask.execute();
+                                    mGetPokemonsTask.execute();
                                 }
 
                             } else if (task == TASK_TRANSFER) {
 
-                                mTransferTask = new TransferTask(true);
+                                mTransferPokemonsTask = new TransferPokemonsTask();
 
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                                    mTransferTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                    mTransferPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                 } else {
-                                    mTransferTask.execute();
+                                    mTransferPokemonsTask.execute();
                                 }
                             }
 

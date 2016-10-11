@@ -43,10 +43,22 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:paddingTop="10dp"
-                android:text="Regístrate con:"
+                android:text="@string/title_select_account"
                 android:textSize="18sp"
                 android:textColor="@color/color_background_user_profile"
                 android:textStyle="bold"/>
+
+            <Button
+                android:id="@+id/google_sign_in_button_secure"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="22dp"
+                android:background="@color/color_title_login"
+                android:text="@string/google_account_secure"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textColor="@color/color_blanco"
+                android:textSize="18sp" />
 
             <Button
                 android:id="@+id/google_sign_in_button"
@@ -54,34 +66,36 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="22dp"
                 android:background="@color/color_title_login"
-                android:text="GOOGLE"
+                android:text="@string/google_account_credentials"
                 android:textAllCaps="false"
                 android:textStyle="bold"
                 android:textColor="@color/color_blanco"
                 android:textSize="18sp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:paddingTop="10dp"
-                android:text="Ó" />
-
             <Button
-                android:id="@+id/email_sign_in_button"
+                android:id="@+id/ptc_sign_in_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="22dp"
                 android:background="@color/color_title_login"
-                android:text="CLUB DE ENTRENADORES POKÉMON"
+                android:text="@string/ptc_account"
                 android:textAllCaps="false"
                 android:textStyle="bold"
                 android:textColor="@color/color_blanco"
-                android:textSize="13sp" />
+                android:textSize="18sp" />
         </LinearLayout>
 
-
     </RelativeLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:gravity="center"
+        android:text="@string/terms"
+        android:textSize="9sp"
+        android:textColor="@color/color_background_user_profile"
+        android:textStyle="bold"/>
 
 </FrameLayout>
 

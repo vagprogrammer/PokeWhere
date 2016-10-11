@@ -32,7 +32,7 @@
         android:layout_gravity="center">
 
         <TextView
-            android:id="@+id/login_title"
+            android:id="@+id/tv_login_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
@@ -40,7 +40,7 @@
             android:paddingRight="10dp"
             android:paddingLeft="10dp"
             android:gravity="center_horizontal"
-            android:text="CLUB DE ENTRENADORES POKÉMON"
+            android:text="@string/action_sign_in"
             android:textColor="#d67601"
             android:textSize="25sp"
             android:textStyle="bold" />
@@ -48,7 +48,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/login_title"
+            android:layout_below="@+id/tv_login_title"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
             android:layout_marginTop="70dp"
@@ -71,13 +71,12 @@
                         android:id="@+id/email"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Nombre de usuario"
                         android:drawablePadding="5dp"
                         android:drawableLeft="@drawable/ic_profle_circled"
+                        android:drawableStart="@drawable/ic_profle_circled"
                         android:imeOptions="actionNext"
                         android:inputType="textEmailAddress"
-                        android:maxLines="1"
-                        android:singleLine="true" />
+                        android:maxLines="1" />
                 </android.support.design.widget.TextInputLayout>
 
                 <!--android:drawableLeft="@drawable/ic_profle_circled"-->
@@ -91,27 +90,25 @@
                         android:id="@+id/password"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Contraseña"
+                        android:hint="@string/prompt_password"
                         android:drawablePadding="5dp"
                         android:drawableLeft="@drawable/ic_locked_circled"
+                        android:drawableStart="@drawable/ic_locked_circled"
                         android:layout_marginTop="18dp"
-                        android:imeActionLabel="@string/action_sign_in_short"
+                        android:imeActionLabel="@string/prompt_password"
                         android:imeOptions="actionDone"
                         android:inputType="textPassword"
                         android:maxLines="1"
-                        android:singleLine="true"
                         android:enabled="false" />
                 </android.support.design.widget.TextInputLayout>
 
-                <!--android:drawableLeft="@drawable/ic_locked_circled"-->
-                <!--android:drawableTint="#FF4081"-->
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="right"
+                    android:layout_gravity="end"
                     android:paddingTop="10dp"
-                    android:text="¿Has olvidado tu contraseña?" />
+                    android:text="@string/action_cant_login" />
 
 
                 <Button
@@ -120,7 +117,7 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="22dp"
                     android:background="#d67601"
-                    android:text="Iniciar sesión"
+                    android:text="@string/action_sign_in"
                     android:textAllCaps="false"
                     android:textStyle="bold"
                     android:textColor="#fff"
@@ -134,7 +131,7 @@
             android:id="@+id/user_profile_photo"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:layout_below="@+id/login_title"
+            android:layout_below="@+id/tv_login_title"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="16dp"
             android:background="@drawable/user_profile_image_background"

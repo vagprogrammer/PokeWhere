@@ -3,6 +3,7 @@ package com.javic.pokewhere.util;
 /**
  * Created by franciscojimenezjimenez on 28/07/16.
  */
+
 public class Constants {
 
     public final static Boolean DEBUG_MODE = true;
@@ -41,6 +42,7 @@ public class Constants {
     public static final  String KEY_PREF_REFRESH_TOKEN= "pref_refresh_token";
     public static final  String KEY_PREF_USER_EMAIL= "pref_user_email";
     public static final  String KEY_PREF_USER_PASS= "pref_user_pass";
+    public static final  String KEY_PREF_GOOGLE= "pref_google";
 
 
     //FILTROS
