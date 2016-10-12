@@ -12,6 +12,12 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
+
+    <!-- Images descriptions -->
+    <string name="description_img_back">Back arrow</string>
+    <string name="description_img_profile">Profile</string>
+
+
     <!-- Menu actions -->
     <string name="action_settings">Settings</string>
     <string name="action_start_service">Ver en segundo plano</string>
@@ -72,8 +78,9 @@
     <string name="google_account_secure">CUENTA DE GOOGLE (recomendado)</string>
     <string name="google_account_credentials">CUENTA DE GOOGLE \n(correo y contraseña)</string>
     <string name="ptc_account">PTC \n(entrenadores pokémon) </string>
+    <string name="prompt_token">Token (Ej. 4/18dn21...)</string>
     <string name="prompt_email">Correo</string>
-    <string name="prompt_nickname">Nickname</string>
+    <string name="prompt_nickname">Nickname PTC</string>
     <string name="prompt_password">Contraseña</string>
     <string name="action_sign_in">Iniciar sesión</string>
     <string name="action_forget_account">¿Has olvidado tu contraseña?</string>
@@ -88,7 +95,7 @@
     \nEl desarrollador no será responsable si algo le sucede a su cuenta.
     \nNo hay garantía de que esto esté permitido por los términos de servicio de Niantic.</string>
     <string name="dont_have_token">Si no tienes un "TOKEN"</string>
-    <string name="btn_request_token">OBTENER un TOKEN</string>
+    <string name="btn_request_token">Obtener un TOKEN</string>
     <string name="have_token">De lo contrario, peguelo y presione el botón de enviar</string>
     <string name="tv_note">Nota: Si el TOKEN es invalido, la aplicación podría fallar, por favor obtenga un nuevo TOKEN desde la consola de Google e intentelo nuevamente.</string>
     <string name="btn_send_token">ENVIAR</string>

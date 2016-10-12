@@ -93,7 +93,7 @@ public class ActivitySplashScreen extends AppCompatActivity {
 
         String mUserEmail = prefsPokeWhere.getString(Constants.KEY_PREF_USER_EMAIL, "");
 
-        String mUserRefreshToken = prefsPokeWhere.getString(Constants.KEY_PREF_USER_EMAIL, "");
+        String mUserRefreshToken = prefsPokeWhere.getString(Constants.KEY_PREF_REFRESH_TOKEN, "");
 
 
         if (mUserEmail!="" || mUserRefreshToken!=""){

@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -37,6 +38,7 @@ import android.widget.Toast;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.auth.GoogleAutoCredentialProvider;
+import com.pokegoapi.auth.GoogleUserCredentialProvider;
 import com.pokegoapi.auth.PtcCredentialProvider;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
@@ -49,10 +51,11 @@ import static android.Manifest.permission.READ_CONTACTS;
 
 //https://security.google.com/settings/security/apppasswords
 //Keep in mind, it requires 2 step verification to be enabled
+
 /**
  * A login screen that offers login via email/password.
  */
-public class ActivityLogin extends AppCompatActivity{
+public class ActivityLogin extends AppCompatActivity {
 
     private static final String TAG = ActivityLogin.class.getSimpleName();
 
@@ -64,7 +67,7 @@ public class ActivityLogin extends AppCompatActivity{
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-    private UserLoginTask mAuthTask= null;
+    private UserLoginTask mAuthTask = null;
 
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
@@ -76,12 +79,17 @@ public class ActivityLogin extends AppCompatActivity{
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    private View mContentView;
     private TextView mTVTitle;
 
     //Variables
     private OkHttpClient httpClient = new OkHttpClient();
     private PokemonGo mGO;
     private Boolean isGoogleAccount;
+    private Boolean isLoginWithCredentials;
+    private Button mEmailSignInButton;
+    private Button mGetTokenButton;
+    private ImageButton mBackButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,89 +98,12 @@ public class ActivityLogin extends AppCompatActivity{
 
         Bundle extras = getIntent().getExtras();
 
-        if (extras!= null){
-            isGoogleAccount =  (extras.getString("login").equalsIgnoreCase("Google")) ? true : false;
+        if (extras != null) {
+            isGoogleAccount = (extras.getString("login").equalsIgnoreCase("Google")) ? true : false;
+            isLoginWithCredentials = (extras.getString("with").equalsIgnoreCase("Credentials")) ? true : false;
         }
 
-        // Set up the login form.
-        mLoginFormView = findViewById(R.id.login_form);
-        mProgressView = findViewById(R.id.login_progress);
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
-        mPasswordView = (EditText) findViewById(R.id.password);
-        mTVTitle = (TextView) findViewById(R.id.tv_login_title);
-
-        final Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-
-        final ImageButton mBackButton = (ImageButton) findViewById(R.id.back_button);
-
-        mEmailView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id ==  EditorInfo.IME_ACTION_NEXT) {
-                    if (!TextUtils.isEmpty(textView.getText().toString()))
-                    {mPasswordView.requestFocus();}
-                    return true;
-                }
-                return false;
-            }
-        });
-
-        mEmailView.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-
-            @Override
-            public void afterTextChanged(Editable editable) {}
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if(charSequence.length() != 0){
-                    mPasswordView.setEnabled(true);
-                    mEmailSignInButton.setEnabled(true);
-
-                }else {
-                    mPasswordView.setEnabled(false);
-                    mEmailSignInButton.setEnabled(false);
-
-                }
-
-            }
-        });
-
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id ==  EditorInfo.IME_ACTION_DONE) {
-
-                    attemptLogin();
-                    return true;
-                }
-                return false;
-            }
-        });
-
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                attemptLogin();
-            }
-        });
-
-        mBackButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onBackPressed();
-            }
-        });
-
-        if (isGoogleAccount){
-            mTVTitle.setText(getString(R.string.google_account_credentials));
-            mEmailView.setHint(getString(R.string.prompt_email));
-        }
-        else {
-            mTVTitle.setText(getString(R.string.ptc_account));
-            mEmailView.setHint(getString(R.string.prompt_nickname));
-        }
+        setUpView();
     }
 
     @Override
@@ -188,12 +119,12 @@ public class ActivityLogin extends AppCompatActivity{
     protected void onPause() {
         super.onPause();
 
-        if(mAuthTask!=null){
+        if (mAuthTask != null) {
             Log.i(TAG, "USER_LOGIN_TASK: cancel:true");
             mAuthTask.cancel(true);
         }
 
-        if(mContactsTask!=null){
+        if (mContactsTask != null) {
             Log.i(TAG, "CONTACTS_TASK: cancel:true");
             mContactsTask.cancel(true);
         }
@@ -253,12 +184,13 @@ public class ActivityLogin extends AppCompatActivity{
      * errors are presented and no actual login attempt is made.
      */
     private void attemptLogin() {
+
         if (mAuthTask != null) {
             return;
         }
 
         //HIde the Keyboard
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
                 InputMethodManager.RESULT_UNCHANGED_SHOWN);
         // Reset errors.
@@ -272,19 +204,22 @@ public class ActivityLogin extends AppCompatActivity{
         boolean cancel = false;
         View focusView = null;
 
-        // Check if the user entered a password.
-        if (TextUtils.isEmpty(password)) {
-            mPasswordView.setError(getString(R.string.error_field_required));
-            focusView = mPasswordView;
-            cancel = true;
-        }else if(isGoogleAccount){
-            // Check for a valid password.
-            if (!isPasswordValid(password)){
-                mPasswordView.setError(getString(R.string.error_invalid_password));
+        if (isLoginWithCredentials) {
+            // Check if the user entered a password.
+            if (TextUtils.isEmpty(password)) {
+                mPasswordView.setError(getString(R.string.error_field_required));
                 focusView = mPasswordView;
                 cancel = true;
+            } else if (isGoogleAccount) {
+                // Check for a valid password.
+                if (!isPasswordValid(password)) {
+                    mPasswordView.setError(getString(R.string.error_invalid_password));
+                    focusView = mPasswordView;
+                    cancel = true;
+                }
             }
         }
+
 
         // Check for a empty textView.
         if (TextUtils.isEmpty(email)) {
@@ -292,11 +227,14 @@ public class ActivityLogin extends AppCompatActivity{
             focusView = mEmailView;
             cancel = true;
         } else if (isGoogleAccount) {
-            // Check for a valid email address.
-            if (!isEmailValid(email)) {
-                mEmailView.setError(getString(R.string.error_invalid_email));
-                focusView = mEmailView;
-                cancel = true;
+
+            if (isLoginWithCredentials) {
+                // Check for a valid email address.
+                if (!isEmailValid(email)) {
+                    mEmailView.setError(getString(R.string.error_invalid_email));
+                    focusView = mEmailView;
+                    cancel = true;
+                }
             }
         }
 
@@ -308,12 +246,18 @@ public class ActivityLogin extends AppCompatActivity{
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
 
-            if (isDeviceOnline()){
+            if (isDeviceOnline()) {
                 showProgress(true);
-                mAuthTask = new UserLoginTask(email, password);
-                mAuthTask.execute((Void) null);
-            }
-            else {
+
+                if (isLoginWithCredentials){
+                    mAuthTask = new UserLoginTask(email, password);
+                }
+                else{
+                    mAuthTask = new UserLoginTask(email);
+                }
+
+                mAuthTask.execute();
+            } else {
                 Toast.makeText(this, R.string.snack_bar_error_with_internet_acces, Toast.LENGTH_LONG).show();
             }
 
@@ -322,10 +266,9 @@ public class ActivityLogin extends AppCompatActivity{
 
     private boolean isEmailValid(String email) {
 
-        if (isGoogleAccount){
+        if (isGoogleAccount) {
             return email.contains("@");
-        }
-        else{
+        } else {
             return !email.isEmpty();
         }
     }
@@ -376,16 +319,24 @@ public class ActivityLogin extends AppCompatActivity{
      */
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
 
-        private final String mEmail;
-        private final String mPassword;
+        private String mEmail;
+        private String mPassword;
+        private String mToken;
+        private String mRefresToken;
 
-        UserLoginTask(String email, String password) {
+        UserLoginTask(String mEmail, String mPassword) {
 
             Log.i(TAG, "USER_LOGIN_TASK: constructor");
-
-            mEmail = email;
-            mPassword = password;
+            this.mEmail = mEmail;
+            this.mPassword = mPassword;
         }
+
+
+        UserLoginTask(String mToken) {
+            Log.i(TAG, "USER_LOGIN_TASK: constructor");
+            this.mToken = mToken;
+        }
+
 
         @Override
         protected Boolean doInBackground(Void... params) {
@@ -395,7 +346,7 @@ public class ActivityLogin extends AppCompatActivity{
             try {
                 try {
 
-                    while (!isCancelled()){
+                    while (!isCancelled()) {
                         mGO = new PokemonGo(httpClient);
 
                         try {
@@ -404,14 +355,25 @@ public class ActivityLogin extends AppCompatActivity{
                             e.printStackTrace();
                         }
 
-                        if (isGoogleAccount){
-                            mGO.login(new GoogleAutoCredentialProvider(httpClient, mEmail, mPassword));
-                        }else{
-                            mGO.login(new PtcCredentialProvider(httpClient, mEmail, mPassword));
-                        }
+                        if (isLoginWithCredentials) {
 
-                        Log.i(TAG, "USER_LOGIN_TASK: doInBackground:true");
-                        return true;
+                            if (isGoogleAccount) {
+                                mGO.login(new GoogleAutoCredentialProvider(httpClient, mEmail, mPassword));
+                            } else {
+                                mGO.login(new PtcCredentialProvider(httpClient, mEmail, mPassword));
+                            }
+
+                            Log.i(TAG, "USER_LOGIN_TASK: doInBackground:true");
+                            return true;
+                        } else {
+                                final GoogleUserCredentialProvider provider = new GoogleUserCredentialProvider(httpClient);
+
+                                provider.login(mToken);
+                                mRefresToken = provider.getRefreshToken();
+
+                                mGO.login(provider);
+                            return true;
+                        }
                     }
 
                 } catch (LoginFailedException | RemoteServerException e) {
@@ -437,10 +399,15 @@ public class ActivityLogin extends AppCompatActivity{
             showProgress(false);
 
             if (success) {
-                saveUserCredentials(mEmail, mPassword);
+                if (isLoginWithCredentials){
+                    saveUserCredentials(mEmail, mPassword);
+                }
+                else{
+                    saveRefreshToken(mRefresToken);
+                }
+
                 saveUserData();
                 Intent intent = new Intent(ActivityLogin.this, ActivityDashboard.class);
-                intent.putExtra("login", "Google");
                 startActivity(intent);
 
                 //finish activity to select
@@ -448,8 +415,10 @@ public class ActivityLogin extends AppCompatActivity{
 
                 finish();
             } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
+                //mPasswordView.setError(getString(R.string.error_incorrect_password));
+                //mPasswordView.requestFocus();
+
+                Toast.makeText(ActivityLogin.this, getString(R.string.snack_bar_error_with_pokemon), Toast.LENGTH_SHORT).show();
             }
         }
 
@@ -460,7 +429,6 @@ public class ActivityLogin extends AppCompatActivity{
             showProgress(false);
         }
     }
-
 
 
     public boolean isDeviceOnline() {
@@ -502,7 +470,7 @@ public class ActivityLogin extends AppCompatActivity{
             //ArrayList<String> names = new ArrayList<String>();
             ArrayList<String> emails = new ArrayList<String>();
             ContentResolver cr = getContentResolver();
-            Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,null, null, null, null);
+            Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
 
             if (cur.getCount() > 0) {
                 while (cur.moveToNext()) {
@@ -520,7 +488,7 @@ public class ActivityLogin extends AppCompatActivity{
                         //to get the contact emails
                         String email = cur1.getString(cur1.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
                         //Log.i(TAG, "Email: "+email);
-                        if(email!=null){
+                        if (email != null) {
                             emails.add(email);
                         }
                     }
@@ -539,8 +507,8 @@ public class ActivityLogin extends AppCompatActivity{
             mContactsTask = null;
 
             //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
-            ArrayAdapter<String> adapter= new ArrayAdapter<>(ActivityLogin.this,
-                                android.R.layout.simple_dropdown_item_1line, emails);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(ActivityLogin.this,
+                    android.R.layout.simple_dropdown_item_1line, emails);
 
 
             mEmailView.setAdapter(adapter);
@@ -553,11 +521,131 @@ public class ActivityLogin extends AppCompatActivity{
         }
     }
 
+    public void setUpView() {
 
-    public void saveUserCredentials(String userEmail, String userPass){
+        // Set up the login form.
+        mLoginFormView = findViewById(R.id.login_form);
+        mProgressView = findViewById(R.id.login_progress);
+        mTVTitle = (TextView) findViewById(R.id.tv_login_title);
+
+        if (isLoginWithCredentials) {
+            mContentView = findViewById(R.id.content_login_form_with_credentials);
+            mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
+            mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
+        } else {
+            mContentView = findViewById(R.id.content_login_form_with_token);
+            mEmailView = (AutoCompleteTextView) findViewById(R.id.token);
+            mEmailSignInButton = (Button) findViewById(R.id.btn_SendToken);
+        }
+
+        mContentView.setVisibility(View.VISIBLE);
+
+        mPasswordView = (EditText) findViewById(R.id.password);
+        mGetTokenButton = (Button) findViewById(R.id.btn_getToken);
+        mBackButton = (ImageButton) findViewById(R.id.back_button);
+
+        if (isGoogleAccount) {
+            if (isLoginWithCredentials) {
+                mTVTitle.setText(getString(R.string.google_account_credentials));
+                mEmailView.setHint(getString(R.string.prompt_email));
+            } else {
+                mTVTitle.setText(getString(R.string.google_account_secure));
+                mEmailView.setHint(getString(R.string.prompt_token));
+            }
+
+        } else {
+            mTVTitle.setText(getString(R.string.ptc_account));
+            mEmailView.setHint(getString(R.string.prompt_nickname));
+        }
+
+        mEmailView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
+                if (id == EditorInfo.IME_ACTION_NEXT) {
+                    if (!TextUtils.isEmpty(textView.getText().toString())) {
+                        mPasswordView.requestFocus();
+                    }
+                    return true;
+                }
+                if (id == EditorInfo.IME_ACTION_SEND) {
+                    attemptLogin();
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        mEmailView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (charSequence.length() != 0) {
+                    if (isLoginWithCredentials) {
+                        mPasswordView.setEnabled(true);
+                    }
+
+                    mEmailSignInButton.setEnabled(true);
+
+                } else {
+                    if (isLoginWithCredentials) {
+                        mPasswordView.setEnabled(false);
+                    }
+                    mEmailSignInButton.setEnabled(false);
+
+                }
+
+            }
+        });
+
+        if (isLoginWithCredentials) {
+            mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                @Override
+                public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
+                    if (id == EditorInfo.IME_ACTION_DONE) {
+
+                        attemptLogin();
+                        return true;
+                    }
+                    return false;
+                }
+            });
+        } else{
+            mGetTokenButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(GoogleUserCredentialProvider.LOGIN_URL));
+                    startActivity(browserIntent);
+                }
+            });
+        }
+
+        mEmailSignInButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                attemptLogin();
+            }
+        });
+
+        mBackButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed();
+            }
+        });
+    }
+
+
+    public void saveUserCredentials(String userEmail, String userPass) {
 
         SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
-        SharedPreferences.Editor editor= prefs_user.edit();
+        SharedPreferences.Editor editor = prefs_user.edit();
 
         editor.putString(Constants.KEY_PREF_USER_EMAIL, userEmail);
         editor.putString(Constants.KEY_PREF_USER_PASS, userPass);
@@ -566,10 +654,21 @@ public class ActivityLogin extends AppCompatActivity{
 
     }
 
-    public void saveUserData(){
+    public void saveRefreshToken(String refreshToken){
 
         SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
         SharedPreferences.Editor editor= prefs_user.edit();
+
+        editor.putString(Constants.KEY_PREF_REFRESH_TOKEN, refreshToken);
+
+        editor.commit();
+
+    }
+
+    public void saveUserData() {
+
+        SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs_user.edit();
 
         //Pref to show all the markers in teh map <def value is true>
         editor.putBoolean(Constants.KEY_PREF_GOOGLE, isGoogleAccount);
@@ -585,8 +684,6 @@ public class ActivityLogin extends AppCompatActivity{
         editor.commit();
 
     }
-
-
 
 
 }

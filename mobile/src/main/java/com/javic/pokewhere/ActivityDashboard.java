@@ -87,6 +87,7 @@ public class ActivityDashboard extends AppCompatActivity
 
     //Variables
     private Boolean isGoogleAccount;
+    private Boolean isLoginWithCredentials;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -492,10 +493,10 @@ public class ActivityDashboard extends AppCompatActivity
         SharedPreferences.Editor editor = prefs_user.edit();
 
         editor.putBoolean(Constants.KEY_PREF_GOOGLE, false);
+        editor.putString(Constants.KEY_PREF_REFRESH_TOKEN, "");
 
         editor.putString(Constants.KEY_PREF_USER_EMAIL, "");
         editor.putString(Constants.KEY_PREF_USER_PASS, "");
-        editor.putString(Constants.KEY_PREF_REFRESH_TOKEN, "");
 
         editor.commit();
     }

@@ -475,6 +475,7 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
             case R.id.ptc_sign_in_button:
                 Intent ptcIntent = new Intent(this, ActivityLogin.class);
                 ptcIntent.putExtra("login","PTC");
+                ptcIntent.putExtra("with","Credentials");
                 startActivity(ptcIntent);
                 break;
 
@@ -482,10 +483,17 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
                 //getUsername();
                 Intent googleIntent = new Intent(this, ActivityLogin.class);
                 googleIntent.putExtra("login","Google");
+                googleIntent.putExtra("with","Credentials");
                 startActivity(googleIntent);
                 break;
             case google_sign_in_button_secure:
-                showD();
+
+                Intent googleIntentWithToken = new Intent(this, ActivityLogin.class);
+                googleIntentWithToken.putExtra("login","Google");
+                googleIntentWithToken.putExtra("with","Token");
+                startActivity(googleIntentWithToken);
+
+                //showD();
                 break;
         }
 
