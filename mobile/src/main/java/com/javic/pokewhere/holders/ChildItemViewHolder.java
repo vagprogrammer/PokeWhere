@@ -46,7 +46,7 @@ public class ChildItemViewHolder extends ChildViewHolder {
         tv_child_item.setText(childItem.getTitle() + ":" + String.valueOf(childItem.getItemCount()));
         img_child_item.setImageResource(childItem.getImage());
 
-        if (mChildItem.getTitle().contains("INCUBATOR")){
+        if (mChildItem.getTitle().contains("INCUBATOR") || mChildItem.getItemCount()==0){
             imgb_child_actionTrash.setVisibility(View.INVISIBLE);
         }else{
             imgb_child_actionTrash.setVisibility(View.VISIBLE);

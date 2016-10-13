@@ -115,6 +115,10 @@
     <string name="op_yellow_gym">Instincts Gyms</string>
     <string name="op_white_gym">Without equipment Gyms</string>
 
+    <!-- Strings related to Transfer Fragment -->
+    <string name="dialog_title_transfer_pokemons">Transfiriendo pokemons</string>
+    <string name="dialog_content_please_wait">Por favor espera...</string>
+
     <!-- Strings related to Bag Fragment -->
     <string name="group_pokeballs">POKE BALLS</string>
     <string name="group_incenses">INCENSES</string>
@@ -124,5 +128,10 @@
     <string name="group_revives">REVIVES</string>
     <string name="group_berries">BERRIES</string>
     <string name="group_incubators">INCUBATORS</string>
+    <string name="dialog_title_delete_items">Borrando Items</string>
+    <string name="dialog_title_select_items_pre">¿Cuántos</string>
+    <string name="dialog_title_select_items_post">quieres tirar?</string>
+    <string name="dialog_positive_btn_items">Tirar</string>
+
 
 </resources>

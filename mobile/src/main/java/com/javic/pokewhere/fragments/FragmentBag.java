@@ -10,6 +10,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -27,6 +28,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.adapters.AdapterChildItem;
@@ -660,10 +663,32 @@ public class FragmentBag extends Fragment {
         private ItemIdOuterClass.ItemId itemId;
         private int itemsToDelete;
 
+        private MaterialDialog.Builder builder;
+        private MaterialDialog dialog;
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
             Log.i(TAG, "DELETE_ITEMS_TASK: onPreExecute");
+
+            builder = new MaterialDialog.Builder(mContext)
+                    .title(getString(R.string.dialog_title_delete_items))
+                    .content(getString(R.string.dialog_content_please_wait))
+                    .cancelable(false)
+                    .negativeText(getString(R.string.location_alert_neg_btn))
+                    .progress(true, 0)
+                    .progressIndeterminateStyle(true)
+                    .onNegative(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                            // TODO
+                            if (mDeleteItemsTask != null) {
+                                mDeleteItemsTask.cancel(true);
+                            }
+                        }
+                    });
+            dialog = builder.build();
+            dialog.show();
         }
 
         public DeleteItemsTask(ItemIdOuterClass.ItemId itemId, int itemsToDelete) {
@@ -680,7 +705,7 @@ public class FragmentBag extends Fragment {
             try {
                 try {
                     if (!isCancelled()) {
-                        publishProgress("Borrando Items...");
+                        //publishProgress("Borrando Items...");
                         mPokemonGo.getInventories().getItemBag().removeItem(itemId, itemsToDelete);
                         Log.i(TAG, "DELETE_ITEMS_TASK: doInBackground: true");
                         return true;
@@ -703,10 +728,9 @@ public class FragmentBag extends Fragment {
 
             }
 
-
         }
 
-        @Override
+        /*@Override
         protected void onProgressUpdate(String... data) {
 
             super.onProgressUpdate(data);
@@ -715,14 +739,13 @@ public class FragmentBag extends Fragment {
 
             ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(data[0]);
 
-        }
+        }*/
 
         @Override
         protected void onPostExecute(Boolean succes) {
-
             Log.i(TAG, "DELETE_ITEMS_TASK: onPostExecute");
-
             mDeleteItemsTask = null;
+            dialog.dismiss();
 
             if (succes) {
 
@@ -737,13 +760,14 @@ public class FragmentBag extends Fragment {
                 }
 
             } else {
-                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Ocurrio un error");
+                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(getString(R.string.snack_bar_error_with_pokemon));
             }
         }
 
         @Override
         protected void onCancelled() {
             Log.i(TAG, "DELETE_ITEMS_TASK: onCancelled");
+            dialog.dismiss();
             mDeleteItemsTask = null;
         }
 
@@ -847,49 +871,39 @@ public class FragmentBag extends Fragment {
     public void startAction(Object childItem) {
 
         final ChildItem mChildItem = (ChildItem) childItem;
-        if (mChildItem.getItemCount() > 0) {
-            final MaterialNumberPicker numberPicker = new MaterialNumberPicker.Builder(mContext)
-                    .minValue(1)
-                    .maxValue(mChildItem.getItemCount())
-                    .defaultValue(1)
-                    .backgroundColor(Color.WHITE)
-                    .separatorColor(Color.TRANSPARENT)
-                    .textColor(Color.BLACK)
-                    .textSize(20)
-                    .enableFocusability(false)
-                    .wrapSelectorWheel(true)
-                    .build();
+
+        final MaterialNumberPicker numberPicker = new MaterialNumberPicker.Builder(mContext)
+                .minValue(1)
+                .maxValue(mChildItem.getItemCount())
+                .defaultValue(1)
+                .backgroundColor(Color.WHITE)
+                .separatorColor(Color.TRANSPARENT)
+                .textColor(Color.BLACK)
+                .textSize(20)
+                .enableFocusability(false)
+                .wrapSelectorWheel(true)
+                .build();
 
 
-            new AlertDialog.Builder(mContext)
-                    .setTitle("Cuántos " + mChildItem.getTitle() + " quieres tirar")
-                    .setView(numberPicker)
-                    .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            //Toast.makeText(mContext, "You picked : " + String.valueOf(numberPicker.getValue()), Toast.LENGTH_SHORT).show();
-                            if (mDeleteItemsTask == null) {
-                                mDeleteItemsTask = new DeleteItemsTask(getItemId(mChildItem), numberPicker.getValue());
+        new MaterialDialog.Builder(mContext)
+                .title(getString(R.string.dialog_title_select_items_pre) + " " + mChildItem.getTitle() + " " + getString(R.string.dialog_title_select_items_post))
+                .customView(numberPicker, false)
+                .positiveText(getString(R.string.dialog_positive_btn_items))
+                .negativeText(getString(R.string.location_alert_neg_btn))
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        if (mDeleteItemsTask == null) {
+                            mDeleteItemsTask = new DeleteItemsTask(getItemId(mChildItem), numberPicker.getValue());
 
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                                    mDeleteItemsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                                } else {
-                                    mDeleteItemsTask.execute();
-                                }
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                                mDeleteItemsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                            } else {
+                                mDeleteItemsTask.execute();
                             }
                         }
-                    })
-
-                    .setNegativeButton(getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    })
-                    .show();
-        } else {
-            Toast.makeText(mContext, "No tienes " + mChildItem.getTitle(), Toast.LENGTH_SHORT).show();
-        }
-
+                    }
+                }).show();
     }
 
     public ItemIdOuterClass.ItemId getItemId(ChildItem mChildItem) {

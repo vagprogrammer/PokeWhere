@@ -426,6 +426,8 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
         private Boolean showMinMax;
         private MaterialDialog.Builder builder;
         private MaterialDialog dialog;
+
+        //Object sended to onProgressUpdate method
         private ProgressTransferPokemon progress;
 
         @Override
@@ -436,8 +438,8 @@ public class FragmentTransfer extends Fragment implements OnCheckChildClickListe
             showMinMax = true;
             progress = new ProgressTransferPokemon();
             builder = new MaterialDialog.Builder(mContext)
-                    .title("Transfiriendo pokemons")
-                    .content("Por favor espera...")
+                    .title(getString(R.string.dialog_title_transfer_pokemons))
+                    .content(getString(R.string.dialog_content_please_wait))
                     .cancelable(false)
                     .negativeText(getString(R.string.location_alert_neg_btn))
                     .progress(false, countTransferablePokemons(), showMinMax)

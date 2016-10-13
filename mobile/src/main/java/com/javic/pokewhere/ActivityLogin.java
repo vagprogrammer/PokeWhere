@@ -110,8 +110,11 @@ public class ActivityLogin extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
+
         if (isGoogleAccount) {
-            populateAutoComplete();
+            if (isLoginWithCredentials) {
+                populateAutoComplete();
+            }
         }
     }
 
@@ -249,10 +252,9 @@ public class ActivityLogin extends AppCompatActivity {
             if (isDeviceOnline()) {
                 showProgress(true);
 
-                if (isLoginWithCredentials){
+                if (isLoginWithCredentials) {
                     mAuthTask = new UserLoginTask(email, password);
-                }
-                else{
+                } else {
                     mAuthTask = new UserLoginTask(email);
                 }
 
@@ -366,12 +368,12 @@ public class ActivityLogin extends AppCompatActivity {
                             Log.i(TAG, "USER_LOGIN_TASK: doInBackground:true");
                             return true;
                         } else {
-                                final GoogleUserCredentialProvider provider = new GoogleUserCredentialProvider(httpClient);
+                            final GoogleUserCredentialProvider provider = new GoogleUserCredentialProvider(httpClient);
 
-                                provider.login(mToken);
-                                mRefresToken = provider.getRefreshToken();
+                            provider.login(mToken);
+                            mRefresToken = provider.getRefreshToken();
 
-                                mGO.login(provider);
+                            mGO.login(provider);
                             return true;
                         }
                     }
@@ -399,10 +401,9 @@ public class ActivityLogin extends AppCompatActivity {
             showProgress(false);
 
             if (success) {
-                if (isLoginWithCredentials){
+                if (isLoginWithCredentials) {
                     saveUserCredentials(mEmail, mPassword);
-                }
-                else{
+                } else {
                     saveRefreshToken(mRefresToken);
                 }
 
@@ -616,7 +617,7 @@ public class ActivityLogin extends AppCompatActivity {
                     return false;
                 }
             });
-        } else{
+        } else {
             mGetTokenButton.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -654,10 +655,10 @@ public class ActivityLogin extends AppCompatActivity {
 
     }
 
-    public void saveRefreshToken(String refreshToken){
+    public void saveRefreshToken(String refreshToken) {
 
         SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
-        SharedPreferences.Editor editor= prefs_user.edit();
+        SharedPreferences.Editor editor = prefs_user.edit();
 
         editor.putString(Constants.KEY_PREF_REFRESH_TOKEN, refreshToken);
 
