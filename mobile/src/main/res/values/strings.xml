@@ -5,8 +5,27 @@
     <string name="title_activity_activity_splash_screen">Splash Screen</string>
     <string name="title_fragment_bag">Bag</string>
 
-    <!-- Activirty Select Account -->
+    <!-- Activity Dashboard -->
+
+    <!-- Strings related to the NavigationDrawer -->
+    <string name="nav_header_user_level">Nivel</string>
+
+    <string name="nav_header_user_stardust">Polvo estelar</string>
+
+    <string name="nav_fragment_transfer">Pokédex</string>
+    <string name="nav_fragment_bag">Objetos</string>
+    <string name="nav_fragment_map">Localizador de pokémons</string>
+    <string name="nav_sing_out">Cerrar sesión</string>
+    <string name="section_contact">Contacto</string>
+    <string name="nav_contact">Dime que opinas</string>
+
+
+
+
+    <!-- Activity Select Account -->
     <string name="title_select_account">Inicia sesión con:</string>
+
+
 
     <!-- Navigation Drawer -->
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -131,6 +150,7 @@
     <string name="dialog_title_delete_items">Borrando Items</string>
     <string name="dialog_title_select_items_pre">¿Cuántos</string>
     <string name="dialog_title_select_items_post">quieres tirar?</string>
+    <string name="dialog_title_select_items_total">Total:</string>
     <string name="dialog_positive_btn_items">Tirar</string>
 
 

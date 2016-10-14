@@ -3,29 +3,37 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_camera"
-            android:icon="@drawable/ic_location_2"
-            android:title="Localizador de pokemons"/>
-        <item
-            android:id="@+id/nav_gallery"
-            android:icon="@drawable/ic_bag"
-            android:title="Mi Bolsa" />
-        <item
-            android:id="@+id/nav_slideshow"
+            android:id="@+id/nav_fragment_transfer"
             android:icon="@drawable/ic_transfer"
-            android:title="Transferir pokemons" />
+            android:title="@string/nav_fragment_transfer" />
+
         <item
+            android:id="@+id/nav_fragment_bag"
+            android:icon="@drawable/ic_bag"
+            android:title="@string/nav_fragment_bag" />
+
+        <item
+            android:id="@+id/nav_fragment_map"
+            android:icon="@drawable/ic_location_2"
+            android:title="@string/nav_fragment_map"/>
+
+        <item
+            android:id="@+id/nav_sing_out"
+            android:icon="@android:drawable/ic_delete"
+            android:title="@string/nav_sing_out" />
+
+        <!--<item
             android:id="@+id/nav_manage"
             android:icon="@drawable/ic_settings"
-            android:title="Tools" />
+            android:title="Tools" />-->
     </group>
 
-    <item android:title="Communicate">
+    <item android:title="@string/section_contact">
         <menu>
             <item
-                android:id="@+id/nav_share"
-                android:icon="@android:drawable/ic_delete"
-                android:title="Cerrar sesión" />
+                android:id="@+id/nav_contact"
+                android:icon="@android:drawable/ic_dialog_email"
+                android:title="@string/nav_contact" />
         </menu>
     </item>
 

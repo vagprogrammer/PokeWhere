@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,6 +37,7 @@ import com.javic.pokewhere.services.ServiceFloatingMap;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.Stats;
+import com.pokegoapi.api.player.PlayerProfile;
 import com.pokegoapi.auth.GoogleAutoCredentialProvider;
 import com.pokegoapi.auth.GoogleUserCredentialProvider;
 import com.pokegoapi.auth.PtcCredentialProvider;
@@ -72,13 +74,18 @@ public class ActivityDashboard extends AppCompatActivity
     private int mUserTeam = 0;
     private int mUserLevel = 0;
     private long mUserExperience = 0;
-    private int visibleFragment = Constants.FRAGMENT_MAPA;
+    private long mUserNextLevelXP = 0;
+    private long mUserPrevLevelXP = 0;
+    private long mUserStardust = 0;
+
+    private int visibleFragment = Constants.FRAGMENT_TRANSFER;
 
     // Activity UI
     private View mView;
     private View mProgressView;
     private View mContainerFormView;
-    private TextView mNavHeaderTitle, mNavHeaderSubtitle;
+    private TextView mNavHeaderUserName, mNavHeaderUserLevel, mNavHeaderUserXP, mNavHeaderUserStardust;
+    private SeekBar mNavHeaderXpBar;
     private ImageView mNavHeaderImage;
     private Snackbar mSnackBar;
 
@@ -108,9 +115,12 @@ public class ActivityDashboard extends AppCompatActivity
         //HeaderView of Navigation View
         mHeaderView = mNavigationView.getHeaderView(0);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mNavHeaderTitle = (TextView) mHeaderView.findViewById(R.id.nav_header_title);
-        mNavHeaderSubtitle = (TextView) mHeaderView.findViewById(R.id.nav_header_subtitle);
         mNavHeaderImage = (ImageView) mHeaderView.findViewById(R.id.nav_header_image);
+        mNavHeaderUserName = (TextView) mHeaderView.findViewById(R.id.nav_header_user_name);
+        mNavHeaderUserLevel = (TextView) mHeaderView.findViewById(R.id.nav_header_user_level);
+        mNavHeaderUserXP= (TextView) mHeaderView.findViewById(R.id.nav_header_user_xp);
+        mNavHeaderUserStardust = (TextView) mHeaderView.findViewById(R.id.nav_header_user_stardust);
+        mNavHeaderXpBar = (SeekBar) mHeaderView.findViewById(R.id.bar_xp);
 
         mNavigationView.setNavigationItemSelectedListener(this);
     }
@@ -154,20 +164,21 @@ public class ActivityDashboard extends AppCompatActivity
         //Showing the progress
         showProgress(true);
 
-        if (id == R.id.nav_camera) {
+        if (id == R.id.nav_fragment_map) {
             // Handle the camera action
             setFragment(Constants.FRAGMENT_MAPA);
-        } else if (id == R.id.nav_gallery) {
+        } else if (id == R.id.nav_fragment_bag) {
             setFragment(Constants.FRAGMENT_BAG);
-        } else if (id == R.id.nav_slideshow) {
+        } else if (id == R.id.nav_fragment_transfer) {
             // Handle the camera action
             setFragment(Constants.FRAGMENT_TRANSFER);
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
+        }  else if (id == R.id.nav_sing_out) {
             deleteCredentials();
             startActivity(new Intent(ActivityDashboard.this, ActivitySelectAccount.class));
             finish();
+        }
+        else if (id== R.id.nav_contact){
+            goToAppDetail();
         }
 
         mDrawerLayout.closeDrawer(GravityCompat.START);
@@ -304,10 +315,16 @@ public class ActivityDashboard extends AppCompatActivity
                         sleep(1000);
                         final Stats stats = mGO.getPlayerProfile().getStats();
 
+
                         mUserName = playerData.getUsername();
                         mUserTeam = playerData.getTeamValue();
                         mUserLevel = stats.getLevel();
                         mUserExperience = stats.getExperience();
+                        mUserPrevLevelXP = stats.getPrevLevelXp();
+                        mUserNextLevelXP = stats.getNextLevelXp();
+
+                        mUserStardust = mGO.getPlayerProfile().getCurrency(PlayerProfile.Currency.STARDUST);
+
 
                         return true;
                     }
@@ -343,10 +360,10 @@ public class ActivityDashboard extends AppCompatActivity
 
             if (succes) {
 
-                mNavHeaderTitle.setText(mUserName);
-
-                mNavHeaderSubtitle.setText("Nivel: " + String.valueOf(mUserLevel) + " Experience: " + mUserExperience);
-
+                mNavHeaderUserName.setText(mUserName);
+                mNavHeaderUserLevel.setText(getString(R.string.nav_header_user_level) +" " + String.valueOf(mUserLevel));
+                mNavHeaderUserXP.setText(String.valueOf(mUserPrevLevelXP) + " / "+ String.valueOf(mUserNextLevelXP));
+                mNavHeaderUserStardust.setText(String.valueOf(mUserStardust) + " " + getString(R.string.nav_header_user_stardust));
                 switch (mUserTeam) {
                     case 1:
                         mNavHeaderImage.setImageResource(R.drawable.ic_team_blue);
@@ -549,6 +566,25 @@ public class ActivityDashboard extends AppCompatActivity
         showProgressView(show);
     }
 
+    public void goToAppDetail(){
+        final String packageName = Constants.PACKAGE_NAME;
+        String url = "";
+
+        try {
+            //Check whether Google Play store is installed or not:
+            this.getPackageManager().getPackageInfo("com.android.vending", 0);
+
+            url = "market://details?id=" + packageName;
+        } catch ( final Exception e ) {
+            url = "https://play.google.com/store/apps/details?id=" + packageName;
+        }
+
+
+        //Open the app page in Google Play store:
+        final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        startActivity(intent);
+    }
 
 }
 

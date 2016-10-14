@@ -33,9 +33,9 @@ public class Constants {
 
     //Fragments
     public static final int FRAGMENT_BLANK = -1;
-    public static final int FRAGMENT_MAPA = 0;
+    public static final int FRAGMENT_MAPA = 2;
     public static final int FRAGMENT_BAG = 1;
-    public static final int FRAGMENT_TRANSFER = 2;
+    public static final int FRAGMENT_TRANSFER = 0;
 
     // Preferencias
     public static final String PREFS_POKEWHERE="prefs_pokewhere";
