@@ -325,6 +325,7 @@ public class ActivityLogin extends AppCompatActivity {
         private String mPassword;
         private String mToken;
         private String mRefresToken;
+        private boolean result;
 
         UserLoginTask(String mEmail, String mPassword) {
 
@@ -347,15 +348,7 @@ public class ActivityLogin extends AppCompatActivity {
 
             try {
                 try {
-
-                    while (!isCancelled()) {
                         mGO = new PokemonGo(httpClient);
-
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
 
                         if (isLoginWithCredentials) {
 
@@ -366,7 +359,7 @@ public class ActivityLogin extends AppCompatActivity {
                             }
 
                             Log.i(TAG, "USER_LOGIN_TASK: doInBackground:true");
-                            return true;
+                            result =  true;
                         } else {
                             final GoogleUserCredentialProvider provider = new GoogleUserCredentialProvider(httpClient);
 
@@ -374,24 +367,23 @@ public class ActivityLogin extends AppCompatActivity {
                             mRefresToken = provider.getRefreshToken();
 
                             mGO.login(provider);
-                            return true;
+                            result =  true;
                         }
-                    }
 
                 } catch (LoginFailedException | RemoteServerException e) {
                     Log.i(TAG, "USER_LOGIN_TASK: doInBackground: login or remote_server exception");
                     Log.i(TAG, e.toString());
-                    return false;
+                    result =  false;
                 }
 
             } catch (Exception e) {
                 Log.i(TAG, "USER_LOGIN_TASK: doInBackground: general exception");
                 Log.i(TAG, e.toString());
-                return false;
+                result =  false;
 
             }
 
-            return false;
+            return result;
         }
 
         @Override

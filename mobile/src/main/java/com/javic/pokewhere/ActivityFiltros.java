@@ -12,8 +12,8 @@ import android.view.View;
 import android.widget.CheckedTextView;
 
 import com.javic.pokewhere.adapters.AdapterChildFiltro;
-import com.javic.pokewhere.models.GroupFiltro;
 import com.javic.pokewhere.models.ChildFiltro;
+import com.javic.pokewhere.models.GroupFiltro;
 import com.javic.pokewhere.util.Constants;
 import com.thoughtbot.expandablecheckrecyclerview.listeners.OnCheckChildClickListener;
 import com.thoughtbot.expandablecheckrecyclerview.models.CheckedExpandableGroup;

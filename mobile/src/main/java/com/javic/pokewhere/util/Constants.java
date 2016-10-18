@@ -33,9 +33,11 @@ public class Constants {
 
     //Fragments
     public static final int FRAGMENT_BLANK = -1;
-    public static final int FRAGMENT_MAPA = 2;
+    public static final int FRAGMENT_POKEBANK = 0;
     public static final int FRAGMENT_BAG = 1;
-    public static final int FRAGMENT_TRANSFER = 0;
+    public static final int FRAGMENT_MAPA = 2;
+
+
 
     // Preferencias
     public static final String PREFS_POKEWHERE="prefs_pokewhere";
@@ -43,6 +45,7 @@ public class Constants {
     public static final  String KEY_PREF_USER_EMAIL= "pref_user_email";
     public static final  String KEY_PREF_USER_PASS= "pref_user_pass";
     public static final  String KEY_PREF_GOOGLE= "pref_google";
+    public static final String KEY_PREF_IS_FIRST_TIME_LAUNCH = "pref_isfirsttimelaunch";
 
 
     //FILTROS

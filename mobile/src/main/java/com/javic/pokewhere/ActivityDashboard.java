@@ -19,8 +19,10 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -30,11 +32,12 @@ import android.widget.Toast;
 import com.javic.pokewhere.fragments.FragmentBag;
 import com.javic.pokewhere.fragments.FragmentBlank;
 import com.javic.pokewhere.fragments.FragmentMapa;
-import com.javic.pokewhere.fragments.FragmentTransfer;
+import com.javic.pokewhere.fragments.FragmentPokeBank;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
 import com.javic.pokewhere.interfaces.OnRecyclerViewItemClickListenner;
 import com.javic.pokewhere.services.ServiceFloatingMap;
 import com.javic.pokewhere.util.Constants;
+import com.javic.pokewhere.util.PrefManager;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.Stats;
 import com.pokegoapi.api.player.PlayerProfile;
@@ -43,6 +46,11 @@ import com.pokegoapi.auth.GoogleUserCredentialProvider;
 import com.pokegoapi.auth.PtcCredentialProvider;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
+
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 import POGOProtos.Data.PlayerDataOuterClass;
 import okhttp3.OkHttpClient;
@@ -53,17 +61,13 @@ public class ActivityDashboard extends AppCompatActivity
     private static final String TAG = ActivityDashboard.class.getSimpleName();
 
     private static final int MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE = 100;
-    private FragmentBlank mFragmentBlank;
+
+
+    //Instance fragment's
     private FragmentMapa mFragmentMapa;
     private FragmentBag mFragmentBag;
-    private FragmentTransfer mFragmentTransfer;
-
-
-    private Bundle mExtras;
-
-    public static NavigationView mNavigationView;
-    public static DrawerLayout mDrawerLayout;
-    private View mHeaderView;
+    private FragmentPokeBank mFragmentPokeBank;
+    private int visibleFragment = Constants.FRAGMENT_POKEBANK;
 
     // API PokemonGO
     private OkHttpClient httpClient = new OkHttpClient();
@@ -77,14 +81,21 @@ public class ActivityDashboard extends AppCompatActivity
     private long mUserNextLevelXP = 0;
     private long mUserPrevLevelXP = 0;
     private long mUserStardust = 0;
+    private int mUserBagSpace = 0;
+    private int mUserPokeBankSpace = 0;
+    private long mCreationTime =0;
 
-    private int visibleFragment = Constants.FRAGMENT_TRANSFER;
+    private Boolean isGoogleAccount;
+    private Map<String, String> mRewardsMap= new HashMap<String, String>();
+    private PrefManager prefmanager;
 
     // Activity UI
     private View mView;
+    public  static NavigationView mNavigationView;
+    public  static DrawerLayout mDrawerLayout;
     private View mProgressView;
     private View mContainerFormView;
-    private TextView mNavHeaderUserName, mNavHeaderUserLevel, mNavHeaderUserXP, mNavHeaderUserStardust;
+    private TextView mNavHeaderUserName, mNavHeaderUserLevel, mNavHeaderUserXP, mNavHeaderUserStardust, mNavHeaderUserAntiquity, mNavHeaderUserBagSpace, mNavHeaderUserPokeBankSpace;
     private SeekBar mNavHeaderXpBar;
     private ImageView mNavHeaderImage;
     private Snackbar mSnackBar;
@@ -92,17 +103,13 @@ public class ActivityDashboard extends AppCompatActivity
     //Task
     ConnectWithPokemonGoTask mConnectTask;
 
-    //Variables
-    private Boolean isGoogleAccount;
-    private Boolean isLoginWithCredentials;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         isGoogleAccount = getGooglePref(Constants.KEY_PREF_GOOGLE);
+        prefmanager = new PrefManager(this);
 
         //Get elemtns of UI
         mView = findViewById(R.id.layout_main_content);
@@ -113,16 +120,54 @@ public class ActivityDashboard extends AppCompatActivity
         mNavigationView = (NavigationView) findViewById(R.id.nav_view);
 
         //HeaderView of Navigation View
-        mHeaderView = mNavigationView.getHeaderView(0);
+        View mHeaderView = mNavigationView.getHeaderView(0);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mNavHeaderImage = (ImageView) mHeaderView.findViewById(R.id.nav_header_image);
         mNavHeaderUserName = (TextView) mHeaderView.findViewById(R.id.nav_header_user_name);
         mNavHeaderUserLevel = (TextView) mHeaderView.findViewById(R.id.nav_header_user_level);
         mNavHeaderUserXP= (TextView) mHeaderView.findViewById(R.id.nav_header_user_xp);
         mNavHeaderUserStardust = (TextView) mHeaderView.findViewById(R.id.nav_header_user_stardust);
+        mNavHeaderUserAntiquity = (TextView) mHeaderView.findViewById(R.id.nav_header_user_antiquity);
+        mNavHeaderUserBagSpace = (TextView) mHeaderView.findViewById(R.id.nav_header_user_bag_space);
+        mNavHeaderUserPokeBankSpace= (TextView) mHeaderView.findViewById(R.id.nav_header_user_pokebank_space);
+
         mNavHeaderXpBar = (SeekBar) mHeaderView.findViewById(R.id.bar_xp);
 
+        //Disabel the drag
+        mNavHeaderXpBar.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                return true;
+            }
+        });
         mNavigationView.setNavigationItemSelectedListener(this);
+
+
+        mDrawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                if (visibleFragment==Constants.FRAGMENT_MAPA){
+                    mFragmentMapa.showCustomDialog();
+                }
+            }
+
+            @Override
+            public void onDrawerStateChanged(int newState) {
+
+            }
+        });
+
+        setUpData();
     }
 
     @Override
@@ -166,12 +211,15 @@ public class ActivityDashboard extends AppCompatActivity
 
         if (id == R.id.nav_fragment_map) {
             // Handle the camera action
+            visibleFragment = Constants.FRAGMENT_MAPA;
             setFragment(Constants.FRAGMENT_MAPA);
         } else if (id == R.id.nav_fragment_bag) {
+            visibleFragment = Constants.FRAGMENT_BAG;
             setFragment(Constants.FRAGMENT_BAG);
         } else if (id == R.id.nav_fragment_transfer) {
             // Handle the camera action
-            setFragment(Constants.FRAGMENT_TRANSFER);
+            visibleFragment = Constants.FRAGMENT_POKEBANK;
+            setFragment(Constants.FRAGMENT_POKEBANK);
         }  else if (id == R.id.nav_sing_out) {
             deleteCredentials();
             startActivity(new Intent(ActivityDashboard.this, ActivitySelectAccount.class));
@@ -192,7 +240,7 @@ public class ActivityDashboard extends AppCompatActivity
 
         switch (position) {
             case Constants.FRAGMENT_BLANK:
-                mFragmentBlank = FragmentBlank.newInstance();
+                FragmentBlank mFragmentBlank  = FragmentBlank.newInstance();
                 fragmentTransaction.replace(R.id.content_fragment, mFragmentBlank);
                 fragmentTransaction.commit();
 
@@ -215,10 +263,10 @@ public class ActivityDashboard extends AppCompatActivity
 
                 break;
 
-            case Constants.FRAGMENT_TRANSFER:
+            case Constants.FRAGMENT_POKEBANK:
                 if (mGO != null) {
-                    mFragmentTransfer = mFragmentTransfer.newInstance(mGO);
-                    fragmentTransaction.replace(R.id.content_fragment, mFragmentTransfer);
+                    mFragmentPokeBank = mFragmentPokeBank.newInstance(mGO);
+                    fragmentTransaction.replace(R.id.content_fragment, mFragmentPokeBank);
                     fragmentTransaction.commit();
                 }
                 break;
@@ -315,15 +363,20 @@ public class ActivityDashboard extends AppCompatActivity
                         sleep(1000);
                         final Stats stats = mGO.getPlayerProfile().getStats();
 
+                        sleep(1000);
+                        mUserStardust = mGO.getPlayerProfile().getCurrency(PlayerProfile.Currency.STARDUST);
 
                         mUserName = playerData.getUsername();
                         mUserTeam = playerData.getTeamValue();
+                        mUserBagSpace = playerData.getMaxItemStorage();
+                        mUserPokeBankSpace = playerData.getMaxPokemonStorage();
+                        mCreationTime = playerData.getCreationTimestampMs();
                         mUserLevel = stats.getLevel();
                         mUserExperience = stats.getExperience();
                         mUserPrevLevelXP = stats.getPrevLevelXp();
                         mUserNextLevelXP = stats.getNextLevelXp();
 
-                        mUserStardust = mGO.getPlayerProfile().getCurrency(PlayerProfile.Currency.STARDUST);
+
 
 
                         return true;
@@ -361,9 +414,18 @@ public class ActivityDashboard extends AppCompatActivity
             if (succes) {
 
                 mNavHeaderUserName.setText(mUserName);
+                mNavHeaderUserAntiquity.setText(getDate(mCreationTime));
                 mNavHeaderUserLevel.setText(getString(R.string.nav_header_user_level) +" " + String.valueOf(mUserLevel));
-                mNavHeaderUserXP.setText(String.valueOf(mUserPrevLevelXP) + " / "+ String.valueOf(mUserNextLevelXP));
-                mNavHeaderUserStardust.setText(String.valueOf(mUserStardust) + " " + getString(R.string.nav_header_user_stardust));
+                mNavHeaderUserXP.setText(String.valueOf(Long.valueOf(mRewardsMap.get(String.valueOf(mUserLevel))) - (mUserNextLevelXP-mUserExperience)) + " / "+ mRewardsMap.get(String.valueOf(mUserLevel)));
+
+                mNavHeaderXpBar.setMax(Integer.parseInt(mRewardsMap.get(String.valueOf(mUserLevel))));
+                mNavHeaderXpBar.setProgress(Integer.parseInt(mRewardsMap.get(String.valueOf(mUserLevel))) - Long.valueOf(mUserNextLevelXP-mUserExperience).intValue());
+
+                mNavHeaderUserStardust.setText(getString(R.string.nav_header_user_stardust)  + " " + String.valueOf(mUserStardust));
+
+                mNavHeaderUserBagSpace.setText(getString(R.string.nav_header_user_bag_space)  + " " + String.valueOf(mUserBagSpace));
+                mNavHeaderUserPokeBankSpace.setText(getString(R.string.nav_header_user_pokebank_space)  + " " + String.valueOf(mUserPokeBankSpace));
+
                 switch (mUserTeam) {
                     case 1:
                         mNavHeaderImage.setImageResource(R.drawable.ic_team_blue);
@@ -378,9 +440,13 @@ public class ActivityDashboard extends AppCompatActivity
                         mNavHeaderImage.setImageResource(R.drawable.ic_gym_team_white);
                         break;
                 }
-
                 setFragment(visibleFragment);
                 mNavigationView.getMenu().getItem(visibleFragment).setChecked(true);
+
+                if (prefmanager.isFirstTimeLaunch()){
+                    mDrawerLayout.openDrawer(mNavigationView);
+                    prefmanager.setFirstTimeLaunch(false);
+                }
             } else {
 
                 setFragment(Constants.FRAGMENT_BLANK);
@@ -511,6 +577,7 @@ public class ActivityDashboard extends AppCompatActivity
 
         editor.putBoolean(Constants.KEY_PREF_GOOGLE, false);
         editor.putString(Constants.KEY_PREF_REFRESH_TOKEN, "");
+        editor.putBoolean(Constants.KEY_PREF_IS_FIRST_TIME_LAUNCH, true);
 
         editor.putString(Constants.KEY_PREF_USER_EMAIL, "");
         editor.putString(Constants.KEY_PREF_USER_PASS, "");
@@ -527,11 +594,11 @@ public class ActivityDashboard extends AppCompatActivity
     }
 
     @Override
-    public void onFragmentCreatedViewStatus(int visibleFragment) {
+    public void onFragmentCreatedViewStatus(Boolean status) {
 
-        if (visibleFragment != Constants.FRAGMENT_BLANK) {
+        //if (visibleFragment != Constants.FRAGMENT_BLANK) {
             this.visibleFragment = visibleFragment;
-        }
+        //}
     }
 
     @Override
@@ -584,6 +651,68 @@ public class ActivityDashboard extends AppCompatActivity
         final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
         startActivity(intent);
+    }
+
+
+    public void setUpData() {
+
+        mRewardsMap.put("1", "1000");
+        mRewardsMap.put("2", "2000");
+        mRewardsMap.put("3", "3000");
+        mRewardsMap.put("4", "4000");
+        mRewardsMap.put("5", "5000");
+        mRewardsMap.put("6", "6000");
+        mRewardsMap.put("7", "7000");
+        mRewardsMap.put("8", "8000");
+        mRewardsMap.put("9", "9000");
+        mRewardsMap.put("10", "10000");
+        mRewardsMap.put("11", "10000");
+        mRewardsMap.put("12", "10000");
+        mRewardsMap.put("13", "10000");
+        mRewardsMap.put("14", "15000");
+        mRewardsMap.put("15", "20000");
+        mRewardsMap.put("16", "20000");
+        mRewardsMap.put("17", "20000");
+        mRewardsMap.put("18", "25000");
+        mRewardsMap.put("19", "25000");
+        mRewardsMap.put("20", "50000");
+        mRewardsMap.put("21", "75000");
+        mRewardsMap.put("22", "100000");
+        mRewardsMap.put("23", "125000");
+        mRewardsMap.put("24", "150000");
+        mRewardsMap.put("25", "190000");
+        mRewardsMap.put("26", "200000");
+        mRewardsMap.put("27", "250000");
+        mRewardsMap.put("28", "300000");
+        mRewardsMap.put("29", "350000");
+        mRewardsMap.put("30", "500000");
+        mRewardsMap.put("31", "500000");
+        mRewardsMap.put("32", "750000");
+        mRewardsMap.put("33", "1000000");
+        mRewardsMap.put("34", "1250000");
+        mRewardsMap.put("35", "1500000");
+        mRewardsMap.put("36", "2000000");
+        mRewardsMap.put("37", "2500000");
+        mRewardsMap.put("38", "3000000");
+        mRewardsMap.put("39", "5000000");
+        mRewardsMap.put("40", "5000000");
+        mRewardsMap.put("41", "5000000");
+        mRewardsMap.put("42", "5000000");
+        mRewardsMap.put("43", "5000000");
+        mRewardsMap.put("44", "5000000");
+        mRewardsMap.put("45", "5000000");
+        mRewardsMap.put("46", "5000000");
+        mRewardsMap.put("47", "5000000");
+        mRewardsMap.put("48", "5000000");
+        mRewardsMap.put("49", "5000000");
+        mRewardsMap.put("50", "5000000");
+
+    }
+
+    private String getDate(long time) {
+        Calendar cal = Calendar.getInstance(Locale.ENGLISH);
+        cal.setTimeInMillis(time);
+        return DateFormat.format("dd-MM-yyyy", cal).toString();
     }
 
 }

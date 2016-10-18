@@ -6,68 +6,39 @@
     <string name="title_fragment_bag">Bag</string>
 
     <!-- Activity Dashboard -->
-
     <!-- Strings related to the NavigationDrawer -->
     <string name="nav_header_user_level">Nivel</string>
-
-    <string name="nav_header_user_stardust">Polvo estelar</string>
-
-    <string name="nav_fragment_transfer">Pokédex</string>
+    <string name="nav_header_user_stardust">Polvo estelar:</string>
+    <string name="nav_header_user_pokebank_space">Espacio pokemones:</string>
+    <string name="nav_header_user_bag_space">Espacio objetos:</string>
+    <string name="nav_fragment_transfer">Pokebank</string>
     <string name="nav_fragment_bag">Objetos</string>
-    <string name="nav_fragment_map">Localizador de pokémons</string>
+    <string name="nav_fragment_map">Localizador de pokemones</string>
     <string name="nav_sing_out">Cerrar sesión</string>
     <string name="section_contact">Contacto</string>
     <string name="nav_contact">Dime que opinas</string>
 
-
-
-
     <!-- Activity Select Account -->
     <string name="title_select_account">Inicia sesión con:</string>
-
-
 
     <!-- Navigation Drawer -->
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
-
     <!-- Images descriptions -->
     <string name="description_img_back">Back arrow</string>
     <string name="description_img_profile">Profile</string>
+    <string name="description_img_icon">Icono</string>
 
 
     <!-- Menu actions -->
     <string name="action_settings">Settings</string>
     <string name="action_start_service">Ver en segundo plano</string>
-    <string name="action_test_user">Test User</string>
     <string name="action_voice_rec">action voice rec</string>
     <string name="action_location">Ir a mi ubicación</string>
     <string name="action_filter">Filtrar </string>
     <string name="action_aplicar_filtros">APLICAR</string>
     <string name="action_transferir">TRANSFERIR</string>
-
-    <!-- User Location -->
-    <string name="service_not_available">El Servicio no está disponible</string>
-    <string name="invalid_lat_long_used">Latitud y Longitud invalida</string>
-    <string name="no_address_found">No econtramos la dirección</string>
-    <string name="address_found">Address founded</string>
-    <string name="no_geocoder_available">Geocoder is not aviable</string>
-
-    <!-- Fragment Map -->
-    <string name="location_alert_title">Error al obtener ubicación</string>
-    <string name="location_alert_message">PokeWhere no pudo obtener tu ubicación, intentalo nuevamente o muevete por el mapa</string>
-    <string name="location_alert_pos_btn">Inténtalo de nuevo</string>
-    <string name="location_alert_neg_btn">Cancelar</string>
-    <string name="location_alert_error">Ah currido un error, por favor intentalo más tarde!</string>
-
-
-    <!-- Strings related to Dialogs -->
-    <string name="resume_alert_title">¿Empezar una nueva búsqueda?</string>
-    <string name="resume_alert_message">Los citerios de búsqueda han cambiado, quieres continuar con tú búsqueda actual o iniciar una nueva? Si inicias una nueva búsqueda todos los marcadores del mapa serán eliminados incluyendo (Pokeparadas, gimnasisos, lugares de búsqueda, pokémones)</string>
-    <string name="resume_alert_pos_btn">Continuar búsqueda</string>
-    <string name="resume_alert_neg_btn">Nueva búsqueda</string>
-
 
     <!-- Snack Bar -->
     <string name="snack_bar_error_with_pokemon">Ocurrio un error</string>
@@ -82,16 +53,6 @@
     <string name="permission_rationale">Contacts permissions are needed for providing email suggestions.</string>
     <string name="action_snack_intentarlo_ahora">Inténtarlo ahora</string>
 
-    <!-- permissions -->
-    <string name="permission_alert_title">Servicios de ubicación desactivados</string>
-    <string name="permission_alert_message">Para el correcto funcionamiento de la aplicación, es necesario que los servicios de ubicación esten activados, puedes activarlos desde los Settings de la aplicación</string>
-    <string name="open_location_settings">Activar Servicios de Ubicación</string>
-    <string name="message_json_request_succes_1">¡Hemos encontrado</string>
-    <string name="message_json_request_succes_2">pokemons a tu alrededor, atrápalos a todos!</string>
-    <string name="message_json_request_empty">Por ahora no hay ningún pokémon cerca, vuelve a intentarlo más tarde!</string>
-    <string name="message_json_request_error">Ha ocurrido un error, vuelve a intentarlo más tarde!</string>
-
-    <string name="text_hint_searchbar">Indicar ubicación, ej. Santa Monica Pier,CA...</string>
 
     <!-- Strings related to login -->
     <string name="google_account_secure">CUENTA DE GOOGLE (recomendado)</string>
@@ -120,8 +81,6 @@
     <string name="btn_send_token">ENVIAR</string>
 
 
-
-
     <!-- Strings related to Activity Filter -->
     <string name="filtro_all_markers">MOSTRAR TODO</string>
     <string name="filtro_busqueda_markers">Puntos de búsqueda</string>
@@ -134,7 +93,35 @@
     <string name="op_yellow_gym">Instincts Gyms</string>
     <string name="op_white_gym">Without equipment Gyms</string>
 
-    <!-- Strings related to Transfer Fragment -->
+
+    <!-- Strings related to Map Fragment -->
+    <string name="location_alert_title">Error al obtener ubicación</string>
+    <string name="location_alert_message">PokeWhere no pudo obtener tu ubicación, intentalo nuevamente o muevete por el mapa</string>
+    <string name="location_alert_pos_btn">Inténtalo de nuevo</string>
+    <string name="location_alert_neg_btn">Cancelar</string>
+    <string name="location_alert_error">Ah currido un error, por favor intentalo más tarde!</string>
+    <string name="service_not_available">El Servicio no está disponible</string>
+    <string name="invalid_lat_long_used">Latitud y Longitud invalida</string>
+    <string name="no_address_found">No econtramos la dirección</string>
+    <string name="address_found">Address founded</string>
+    <string name="no_geocoder_available">Geocoder is not aviable</string>
+    <string name="resume_alert_title">¿Empezar una nueva búsqueda?</string>
+    <string name="resume_alert_message">Los citerios de búsqueda han cambiado, quieres continuar con tú búsqueda actual o iniciar una nueva? Si inicias una nueva búsqueda todos los marcadores del mapa serán eliminados incluyendo (Pokeparadas, gimnasisos, lugares de búsqueda, pokémones)</string>
+    <string name="resume_alert_pos_btn">Continuar búsqueda</string>
+    <string name="resume_alert_neg_btn">Nueva búsqueda</string>
+    <string name="permission_alert_title">Servicios de ubicación desactivados</string>
+    <string name="permission_alert_message">Para el correcto funcionamiento de la aplicación, es necesario que los servicios de ubicación esten activados, puedes activarlos desde los Settings de la aplicación</string>
+    <string name="open_location_settings">Activar Servicios de Ubicación</string>
+    <string name="message_json_request_succes_1">¡Hemos encontrado</string>
+    <string name="message_json_request_succes_2">pokemons a tu alrededor, atrápalos a todos!</string>
+    <string name="message_json_request_empty">Por ahora no hay ningún pokémon cerca, vuelve a intentarlo más tarde!</string>
+    <string name="message_json_request_error">Ha ocurrido un error, vuelve a intentarlo más tarde!</string>
+    <string name="text_hint_searchbar">Indicar ubicación, ej. Santa Monica Pier,CA...</string>
+    <string name="dialog_title_unaviable_service">¡Servicio NO disponible!</string>
+    <string name="dialog_content_unaviable_service">Por ahora, todas las herramientas de terceros, incluyendo los boots y mapas de localización NO están funcionando. Estamos trabjando para que todo regrese a la normalidad muy pronto. \nSaludos!</string>
+    <string name="dialog_positive_unaviable_service">Entendido</string>
+
+    <!-- Strings related to Pokebank Fragment -->
     <string name="dialog_title_transfer_pokemons">Transfiriendo pokemons</string>
     <string name="dialog_content_please_wait">Por favor espera...</string>
 
@@ -152,6 +139,7 @@
     <string name="dialog_title_select_items_post">quieres tirar?</string>
     <string name="dialog_title_select_items_total">Total:</string>
     <string name="dialog_positive_btn_items">Tirar</string>
+
 
 
 </resources>

@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
-import com.javic.pokewhere.util.Constants;
 
 
 public class FragmentBlank extends Fragment {
@@ -50,7 +49,7 @@ public class FragmentBlank extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mListener.onFragmentCreatedViewStatus(Constants.FRAGMENT_BLANK);
+        mListener.onFragmentCreatedViewStatus(false);
         mListener.showProgress(false);
     }
 

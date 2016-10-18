@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="@dimen/nav_header_height"
-    android:background="@drawable/side_nav_bar"
+    android:background="@color/color_background_op1"
     android:gravity="bottom"
     android:orientation="vertical"
     android:paddingBottom="@dimen/activity_vertical_margin"
@@ -12,22 +12,55 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
-    <ImageView
-        android:id="@+id/nav_header_image"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="left"
-        android:src="@drawable/ic_gym_team_white" />
+    <!--android:background="@drawable/side_nav_bar"-->
 
-    <TextView
-        android:id="@+id/nav_header_user_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="left"
-        android:text="Android Studio"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:fontFamily="sans-serif"
-        android:textStyle="normal|bold" />
+
+   <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="horizontal">
+
+       <ImageView
+           android:id="@+id/nav_header_image"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:padding="10dp"
+           android:background="@drawable/user_profile_image_background"
+           android:src="@drawable/ic_gym_team_white"
+           android:contentDescription="@string/description_img_profile"/>
+
+       <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"
+           android:orientation="vertical"
+           android:gravity="center_vertical"
+           android:paddingLeft="@dimen/padding_5"
+           android:paddingStart="@dimen/padding_5"
+           android:paddingRight="@dimen/padding_5"
+           android:paddingEnd="@dimen/padding_5">
+
+           <TextView
+               android:id="@+id/nav_header_user_name"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:text="@string/app_name"
+               android:textAppearance="@style/TextAppearance.AppCompat.Title"
+               android:textColor="@color/color_textPrimary"/>
+
+           <TextView
+               android:id="@+id/nav_header_user_antiquity"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:text="@string/app_name"
+               android:fontFamily="sans-serif"
+               android:textStyle="normal|bold"
+               android:textColor="@color/color_textPrimary"/>
+
+       </LinearLayout>
+
+
+   </LinearLayout>
+
 
     <TextView
         android:id="@+id/nav_header_user_level"
@@ -35,8 +68,9 @@
         android:layout_height="wrap_content"
         android:paddingTop="10dp"
         android:gravity="center"
-        android:text="Nivel 24"
-        android:textAppearance="@style/TextAppearance.AppCompat.Title" />
+        android:text="@string/app_name"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+        android:textColor="@color/color_textPrimary"/>
 
     <SeekBar
         android:id="@+id/bar_xp"
@@ -44,41 +78,105 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:max="2500"
-        android:progress="1500"
-         />
+        android:progress="1500"/>
 
     <TextView
         android:id="@+id/nav_header_user_xp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="24155 / 150000 PX"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:text="@string/app_name"
         android:fontFamily="sans-serif"
-        android:textStyle="normal|bold" />
-
+        android:textStyle="normal|bold"
+        android:textColor="@color/color_textPrimary"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginTop="5dp">
 
         <ImageView
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            app:srcCompat="@drawable/ic_pokemon"
+            android:id="@+id/imagePokebank"
+            android:contentDescription="@string/description_img_icon"/>
+
+        <TextView
+            android:id="@+id/nav_header_user_pokebank_space"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingLeft="@dimen/padding_5"
+            android:paddingStart="@dimen/padding_5"
+            android:paddingRight="@dimen/padding_5"
+            android:paddingEnd="@dimen/padding_5"
+            android:text="@string/nav_header_user_pokebank_space"
+            android:gravity="center_vertical"
+            android:fontFamily="sans-serif"
+            android:textStyle="normal|bold"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            android:textColor="@color/color_textPrimary"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="5dp">
+
+        <ImageView
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            app:srcCompat="@drawable/ic_bag"
+            android:id="@+id/imageBag"
+            android:contentDescription="@string/description_img_icon"/>
+
+        <TextView
+            android:id="@+id/nav_header_user_bag_space"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingLeft="@dimen/padding_5"
+            android:paddingStart="@dimen/padding_5"
+            android:paddingRight="@dimen/padding_5"
+            android:paddingEnd="@dimen/padding_5"
+            android:text="@string/nav_header_user_bag_space"
+            android:gravity="center_vertical"
+            android:fontFamily="sans-serif"
+            android:textStyle="normal|bold"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            android:textColor="@color/color_textPrimary"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="5dp">
+
+        <ImageView
+            android:layout_width="25dp"
+            android:layout_height="25dp"
             app:srcCompat="@drawable/ic_stardust"
-            android:id="@+id/imageView2"
-            android:gravity="left"/>
+            android:id="@+id/imageStardust"
+            android:contentDescription="@string/description_img_icon"/>
 
         <TextView
             android:id="@+id/nav_header_user_stardust"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="1500000 Polvo estelar"
+            android:paddingLeft="@dimen/padding_5"
+            android:paddingStart="@dimen/padding_5"
+            android:paddingRight="@dimen/padding_5"
+            android:paddingEnd="@dimen/padding_5"
+            android:text="@string/nav_header_user_stardust"
             android:gravity="center_vertical"
             android:fontFamily="sans-serif"
             android:textStyle="normal|bold"
-            android:textAllCaps="false" />
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            android:textColor="@color/color_textPrimary"/>
 
     </LinearLayout>
 

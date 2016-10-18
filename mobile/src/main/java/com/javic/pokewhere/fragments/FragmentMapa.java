@@ -41,6 +41,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
@@ -240,7 +242,7 @@ public class FragmentMapa extends Fragment implements
 
         if (mPokemonGo!=null){
 
-            mListener.onFragmentCreatedViewStatus(Constants.FRAGMENT_MAPA);
+            mListener.onFragmentCreatedViewStatus(true);
 
             mapView = (MapView) mView.findViewById(R.id.map);
             mSearchView = (FloatingSearchView) mView.findViewById(R.id.floating_search_view);
@@ -323,9 +325,10 @@ public class FragmentMapa extends Fragment implements
 
         //GoogleMap exist
         else {
+            /*
             if (!mayRequestLocation()) {
                 return;
-            }
+            }*/
         }
 
 
@@ -493,7 +496,7 @@ public class FragmentMapa extends Fragment implements
         if (requestCode == Constants.REQUEST_PERMISSION_ACCESS_COARSE_LOCATION) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 mSnackBarPermisions = null;
-                getUserLocation();
+                //getUserLocation();
             }
         } else {
             if (mSnackBarPermisions == null) {
@@ -693,7 +696,8 @@ public class FragmentMapa extends Fragment implements
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         // Once connected with google api, get the location
-        getUserLocation();
+        //getUserLocation();
+        //showCustomDialog();
     }
 
     @Override
@@ -1353,7 +1357,7 @@ public class FragmentMapa extends Fragment implements
         });
 
         //use this listener to listen to menu clicks when app:floatingSearch_leftAction="showHamburger"
-        mSearchView.setOnLeftMenuClickListener(new FloatingSearchView.OnLeftMenuClickListener() {
+       /* mSearchView.setOnLeftMenuClickListener(new FloatingSearchView.OnLeftMenuClickListener() {
             @Override
             public void onMenuOpened() {
 
@@ -1362,10 +1366,10 @@ public class FragmentMapa extends Fragment implements
 
             @Override
             public void onMenuClosed() {
+
                 Log.i(TAG, "onMenuClosed()");
             }
-        });
-
+        });*/
 
         mSearchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
             @Override
@@ -1478,7 +1482,7 @@ public class FragmentMapa extends Fragment implements
                 // TODO Auto-generated method stub
 
                 if (action == Constants.ALERT_ADDRESS_RESULT_RECIVER) {
-                    getUserLocation();
+                    //getUserLocation();
                 }
                 if (action == Constants.ALERT_RESUME_TASK) {
                     attemptSearch();
@@ -1954,5 +1958,25 @@ public class FragmentMapa extends Fragment implements
                 Toast.makeText(mContext,message, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    public void showCustomDialog(){
+
+        MaterialDialog.Builder builder = new MaterialDialog.Builder(mContext)
+                .title(getString(R.string.dialog_title_unaviable_service))
+                .content(getString(R.string.dialog_content_unaviable_service))
+                .autoDismiss(false)
+                .cancelable(false)
+                .positiveText(getString(R.string.dialog_positive_unaviable_service))
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        dialog.dismiss();
+                        ActivityDashboard.mDrawerLayout.openDrawer(ActivityDashboard.mNavigationView);
+                    }
+                });
+
+        MaterialDialog dialog = builder.build();
+        dialog.show();
     }
 }
