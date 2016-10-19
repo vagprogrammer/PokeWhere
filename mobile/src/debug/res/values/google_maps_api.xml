@@ -24,4 +24,8 @@
     <!--DF:96:1B:2D:02:4E:D8:1B:3C:93:8F:69:2E:BC:96:F4:5B:AD:A6:18-->
     <string name="google_maps_key_secretaria_imac" templateMergeStrategy="preserve" translatable="false">AIzaSyBRPfjSLh5sfRidGd1I6iyTjV-u5xsNa7I</string>
 
+    <!--Release-->
+    <!--E5:93:09:0D:CF:3B:E1:96:4A:72:1B:57:2D:C2:EC:CA:27:DE:B9:12-->
+    <string name="google_maps_key_release_secretaria_imac" templateMergeStrategy="preserve" translatable="false">AIzaSyA20GI3FVdnH-07q558Ri_-nQRElOpIm6w</string>
+
 </resources>

@@ -40,7 +40,7 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    wearApp project(':wear')
+    //wearApp project(':wear')
 
     compile 'com.pokegoapi:PokeGOAPI-library:0.4.1'
     compile 'com.android.support:appcompat-v7:24.2.1'

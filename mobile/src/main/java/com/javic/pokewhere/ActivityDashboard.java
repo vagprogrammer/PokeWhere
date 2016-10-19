@@ -336,7 +336,7 @@ public class ActivityDashboard extends AppCompatActivity
             Log.i(TAG, "CONNECT_WITH_POKEMON_TASK: doInBackground: start");
             try {
                 try {
-                    publishProgress("Conectando con los servidores de Pkemon GO...");
+                    publishProgress(getString(R.string.message_connecting_with_pokemon_go));
 
                     mGO = new PokemonGo(httpClient);
 
@@ -355,11 +355,11 @@ public class ActivityDashboard extends AppCompatActivity
 
                     if (mGO != null) {
 
-                        publishProgress("Obteniendo información del usuario...");
+                        publishProgress(getString(R.string.message_get_user_information));
                         sleep(1000);
                         final PlayerDataOuterClass.PlayerData playerData = mGO.getPlayerProfile().getPlayerData();
 
-                        publishProgress("Obteniendo información de la cuenta...");
+                        publishProgress(getString(R.string.message_get_account_information));
                         sleep(1000);
                         final Stats stats = mGO.getPlayerProfile().getStats();
 

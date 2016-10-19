@@ -251,8 +251,8 @@ public class FragmentPokeBank extends Fragment implements OnCheckChildClickListe
                     group.onChildClicked(childIndex, true);
                 }
                 if (countTransferablePokemons() > 0) {
-                    setActionBarTitle(String.valueOf(countTransferablePokemons()) + " selected");
-                    showToast(String.valueOf(countTransferablePokemons()) + " pokemons to transfer", 700);
+                    setActionBarTitle(String.valueOf(countTransferablePokemons()) + " " + getString(R.string.title_selected));
+                    showToast(String.valueOf(countTransferablePokemons()) + " " + getString(R.string.message_count_selected), 700);
                     setHasOptionsMenu(true);
                 } else {
                     setActionBarTitle(String.valueOf(totalPokemons) + "/" + String.valueOf(pokemonStorage) + " pokemons");
@@ -260,11 +260,11 @@ public class FragmentPokeBank extends Fragment implements OnCheckChildClickListe
                 }
 
             } else {
-                showToast("No puedes transferir un pokémon favorito", 8500);
+                showToast(getString(R.string.message_untrasferable_favorite), 8500);
                 group.onChildClicked(childIndex, false);
             }
         } else {
-            showToast("Ahora no puedes transferir este pokémon, intentalo más tarde", Toast.LENGTH_SHORT);
+            showToast(getString(R.string.message_untrasferable), Toast.LENGTH_SHORT);
             group.onChildClicked(childIndex, false);
         }
 
@@ -475,11 +475,11 @@ public class FragmentPokeBank extends Fragment implements OnCheckChildClickListe
                                     progress.setUpdateProgress(false);
                                     publishProgress(progress);
                                     //pokemonToTransfer.debug();
-                                    ReleasePokemonResponseOuterClass.ReleasePokemonResponse.Result result = pokemonToTransfer.transferPokemon();
-                                    progress.setProgressMessage(result.toString());
+                                    //ReleasePokemonResponseOuterClass.ReleasePokemonResponse.Result result = pokemonToTransfer.transferPokemon();
+                                    //progress.setProgressMessage(result.toString());
                                     progress.setUpdateProgress(true);
                                     publishProgress(progress);
-                                    sleep(1000);
+                                    sleep(10000);
                                     mPokemonGo.getInventories().updateInventories(true);
                                 }
                             }

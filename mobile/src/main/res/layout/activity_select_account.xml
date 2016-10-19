@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/gradient_drawable"
+    android:background="@drawable/background_login"
     android:fitsSystemWindows="true"
     tools:context="com.javic.pokewhere.ActivitySelectAccount">
 
@@ -95,7 +95,8 @@
         android:text="@string/terms"
         android:textSize="@dimen/size_tv_terms"
         android:textColor="@color/color_background_user_profile"
-        android:textStyle="bold"/>
+        android:textStyle="bold"
+        android:visibility="gone"/>
 
 </FrameLayout>
 

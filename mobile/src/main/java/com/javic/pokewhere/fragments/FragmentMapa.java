@@ -468,7 +468,7 @@ public class FragmentMapa extends Fragment implements
         if (shouldShowRequestPermissionRationale(ACCESS_COARSE_LOCATION)) {
 
             if (mSnackBarPermisions == null) {
-                mSnackBarPermisions = Snackbar.make(mView, R.string.permission_access_coarse_location, Snackbar.LENGTH_INDEFINITE)
+                mSnackBarPermisions = Snackbar.make(mView, R.string.permission_access_coarse_location, Snackbar.LENGTH_LONG)
                         .setAction(R.string.action_snack_permission_access_coarse_location, new View.OnClickListener() {
                             @Override
                             @TargetApi(Build.VERSION_CODES.M)
@@ -500,7 +500,7 @@ public class FragmentMapa extends Fragment implements
             }
         } else {
             if (mSnackBarPermisions == null) {
-                mSnackBarPermisions = Snackbar.make(mView, R.string.permission_access_coarse_location, Snackbar.LENGTH_INDEFINITE)
+                mSnackBarPermisions = Snackbar.make(mView, R.string.permission_access_coarse_location, Snackbar.LENGTH_LONG)
                         .setAction(R.string.action_snack_permission_access_coarse_location, new View.OnClickListener() {
                             @Override
                             @TargetApi(Build.VERSION_CODES.M)

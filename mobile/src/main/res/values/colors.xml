@@ -3,16 +3,40 @@
 
     <!-- Colors related with the app -->
 
-    <!-- Opción: 1 -->
+    <!-- Opción: Indigo-->
+    <!--<color name="colorPrimaryDark">#303F9F</color>
     <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#303F9F</color>
+    <color name="color_textPrimary">#000000</color>
+    <color name="color_background_login_start_color">#FFFFFF</color>
+    <color name="color_background_login_end_color">#E3F6CE</color>
+    <color name="color_background_nav_header_start_color">#81C784</color>
+    <color name="color_background_nav_header_center_color">#2E7D32</color>
+    <color name="color_background_nav_header_end_color">#4CAF50</color>-->
 
 
-    <!-- Opción: 2 -->
-<!--    <color name="colorPrimary">#FFA726</color>
-    <color name="colorPrimaryDark">#FF9800</color>
-    <color name="colorAccent">#FF9800</color>-->
+    <!-- Opción: Orange -->
+<!--<color name="colorPrimaryDark">#EF6C00</color>
+    <color name="colorPrimary">#F57C00</color>
+    <color name="colorAccent">#FB8C00</color>
+    <color name="color_textPrimary">#FFFFFF</color>
+    <color name="color_background_login_start_color">#FFFFFF</color>
+    <color name="color_background_login_end_color">#E3F6CE</color>
+    <color name="color_background_nav_header_start_color">#43A047</color>
+    <color name="color_background_nav_header_center_color">#388E3C</color>
+    <color name="color_background_nav_header_end_color">#2E7D32</color>-->
+
+    <!-- Opción: Red -->
+    <color name="colorPrimaryDark">#C62828</color>
+    <color name="colorPrimary">#E53935</color>
+    <color name="colorAccent">#0D47A1</color>
+    <color name="color_textPrimary">#FFFFFF</color>
+    <color name="color_background_login_start_color">#FFFFFF</color>
+    <color name="color_background_login_end_color">#FFCDD2</color>
+    <color name="color_background_nav_header_start_color">#1976D2</color>
+    <color name="color_background_nav_header_center_color">#1565C0</color>
+    <color name="color_background_nav_header_end_color">#0D47A1</color>
+
 
     <!-- General Colors  -->
     <color name="color_background_recycler">#FAFAFA</color>
@@ -20,16 +44,7 @@
     <color name="color_blanco">#FFFFFF</color>
 
     <!-- Colors related with Login -->
-    <color name="color_degradado_end_color">#E3F6CE</color>
     <color name="color_background_stroke_user_profile">#585858</color>
     <color name="color_background_user_profile">#0B3861</color>
-    <color name="color_title_login">#d67601</color>
-    <color name="color_background_login">#5fb0c9</color>
-
-    <color name="color_background_op1">#C5CAE9</color>
-    <color name="color_background_op2">#E8EAF6</color>
-
-
-    <color name="color_textPrimary">#000000</color>
 
 </resources>

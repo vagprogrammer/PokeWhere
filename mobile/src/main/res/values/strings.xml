@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PokeWhere</string>
+    <string name="app_name">PokeEASY</string>
     <string name="title_activity_login">Sign in</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_activity_splash_screen">Splash Screen</string>
@@ -11,12 +11,15 @@
     <string name="nav_header_user_stardust">Polvo estelar:</string>
     <string name="nav_header_user_pokebank_space">Espacio pokemones:</string>
     <string name="nav_header_user_bag_space">Espacio objetos:</string>
-    <string name="nav_fragment_transfer">Pokebank</string>
+    <string name="nav_fragment_transfer">Banco de pokemones</string>
     <string name="nav_fragment_bag">Objetos</string>
     <string name="nav_fragment_map">Localizador de pokemones</string>
     <string name="nav_sing_out">Cerrar sesión</string>
     <string name="section_contact">Contacto</string>
     <string name="nav_contact">Dime que opinas</string>
+    <string name="message_connecting_with_pokemon_go">Conectando con los servidores de Pokémon GO...</string>
+    <string name="message_get_user_information">Obteniendo información del usuario...</string>
+    <string name="message_get_account_information">Obteniendo información de la cuenta...</string>
 
     <!-- Activity Select Account -->
     <string name="title_select_account">Inicia sesión con:</string>
@@ -48,9 +51,9 @@
     <string name="snack_bar_error_with_internet_acces">Por favor verifica tu conexión a internet</string>
     <string name="snack_bar_error_with_internet_acces_positive_btn">Ir a Configuraciones</string>
     <string name="message_snackbar_searching_text">Buscando pokémons...</string>
-    <string name="permission_access_coarse_location">Access location permission is needed for providing get pokemons.</string>
+    <string name="permission_access_coarse_location">El acceso a tú ubicación es necesario para poder localizarte en el mapa y así poder encontrar pokemones a tu alrededor.</string>
     <string name="action_snack_permission_access_coarse_location">Aceptar permiso</string>
-    <string name="permission_rationale">Contacts permissions are needed for providing email suggestions.</string>
+    <string name="permission_rationale">El acceso a los contactos es múy útil, si lo aceptas, podremos brindarte sugerencias de tus corres y así no tendrás que escribirlos por completo.</string>
     <string name="action_snack_intentarlo_ahora">Inténtarlo ahora</string>
 
 
@@ -96,7 +99,7 @@
 
     <!-- Strings related to Map Fragment -->
     <string name="location_alert_title">Error al obtener ubicación</string>
-    <string name="location_alert_message">PokeWhere no pudo obtener tu ubicación, intentalo nuevamente o muevete por el mapa</string>
+    <string name="location_alert_message">PokeEasy no pudo obtener tu ubicación, intentalo nuevamente o muevete por el mapa</string>
     <string name="location_alert_pos_btn">Inténtalo de nuevo</string>
     <string name="location_alert_neg_btn">Cancelar</string>
     <string name="location_alert_error">Ah currido un error, por favor intentalo más tarde!</string>
@@ -113,7 +116,7 @@
     <string name="permission_alert_message">Para el correcto funcionamiento de la aplicación, es necesario que los servicios de ubicación esten activados, puedes activarlos desde los Settings de la aplicación</string>
     <string name="open_location_settings">Activar Servicios de Ubicación</string>
     <string name="message_json_request_succes_1">¡Hemos encontrado</string>
-    <string name="message_json_request_succes_2">pokemons a tu alrededor, atrápalos a todos!</string>
+    <string name="message_json_request_succes_2">pokemones a tu alrededor, atrápalos a todos!</string>
     <string name="message_json_request_empty">Por ahora no hay ningún pokémon cerca, vuelve a intentarlo más tarde!</string>
     <string name="message_json_request_error">Ha ocurrido un error, vuelve a intentarlo más tarde!</string>
     <string name="text_hint_searchbar">Indicar ubicación, ej. Santa Monica Pier,CA...</string>
@@ -122,8 +125,12 @@
     <string name="dialog_positive_unaviable_service">Entendido</string>
 
     <!-- Strings related to Pokebank Fragment -->
-    <string name="dialog_title_transfer_pokemons">Transfiriendo pokemons</string>
+    <string name="dialog_title_transfer_pokemons">Transfiriendo pokemones</string>
     <string name="dialog_content_please_wait">Por favor espera...</string>
+    <string name="title_selected">Seleccionados</string>
+    <string name="message_count_selected">Pokémon para transferir</string>
+    <string name="message_untrasferable_favorite">No puedes transferir un pokémon favorito</string>
+    <string name="message_untrasferable">Ahora no puedes transferir este pokémon, intentalo más tarde</string>
 
     <!-- Strings related to Bag Fragment -->
     <string name="group_pokeballs">POKE BALLS</string>

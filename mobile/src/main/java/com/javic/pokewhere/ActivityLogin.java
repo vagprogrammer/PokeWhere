@@ -153,7 +153,7 @@ public class ActivityLogin extends AppCompatActivity {
         }
 
         if (shouldShowRequestPermissionRationale(READ_CONTACTS)) {
-            Snackbar.make(mLoginFormView, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
+            Snackbar.make(mLoginFormView, R.string.permission_rationale, Snackbar.LENGTH_LONG)
                     .setAction(android.R.string.ok, new View.OnClickListener() {
                         @Override
                         @TargetApi(Build.VERSION_CODES.M)
