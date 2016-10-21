@@ -28,4 +28,10 @@
     <!--E5:93:09:0D:CF:3B:E1:96:4A:72:1B:57:2D:C2:EC:CA:27:DE:B9:12-->
     <string name="google_maps_key_release_secretaria_imac" templateMergeStrategy="preserve" translatable="false">AIzaSyA20GI3FVdnH-07q558Ri_-nQRElOpIm6w</string>
 
+
+    <!--Release-->
+    <!--9F:21:21:9F:A5:A6:74:F0:46:FF:A7:60:EA:15:6D:27:BA:31:E3:76-->
+    <string name="google_maps_key_release_home_imac" templateMergeStrategy="preserve" translatable="false">AIzaSyD8rq4TzobMXXgo2uHXRTHdtKYgoPymj8g</string>
+
+
 </resources>

@@ -6,6 +6,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
+import com.daimajia.androidanimations.library.Techniques;
+import com.daimajia.androidanimations.library.YoYo;
 import com.javic.pokewhere.util.Constants;
 
 public class ActivitySplashScreen extends AppCompatActivity {
@@ -19,6 +21,10 @@ public class ActivitySplashScreen extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
+
+        YoYo.with(Techniques.RotateIn)
+                .duration(1500)
+                .playOn(findViewById(R.id.image_login));
 
         mSplashTask = new SplashTask();
         mSplashTask.execute();
