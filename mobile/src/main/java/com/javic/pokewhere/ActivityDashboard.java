@@ -6,6 +6,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -713,6 +714,15 @@ public class ActivityDashboard extends AppCompatActivity
         Calendar cal = Calendar.getInstance(Locale.ENGLISH);
         cal.setTimeInMillis(time);
         return DateFormat.format("dd-MM-yyyy", cal).toString();
+    }
+
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        // ignore orientation change
+        if (newConfig.orientation != Configuration.ORIENTATION_LANDSCAPE) {
+            super.onConfigurationChanged(newConfig);
+        }
     }
 
 }
