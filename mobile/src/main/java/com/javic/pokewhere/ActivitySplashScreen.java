@@ -22,8 +22,8 @@ public class ActivitySplashScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
 
-        YoYo.with(Techniques.RotateIn)
-                .duration(1500)
+        YoYo.with(Techniques.FadeInDown)
+                .duration(1300)
                 .playOn(findViewById(R.id.image_login));
 
         mSplashTask = new SplashTask();

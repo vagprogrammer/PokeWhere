@@ -33,7 +33,8 @@ import android.widget.Toast;
 import com.javic.pokewhere.fragments.FragmentBag;
 import com.javic.pokewhere.fragments.FragmentBlank;
 import com.javic.pokewhere.fragments.FragmentMapa;
-import com.javic.pokewhere.fragments.FragmentPokeBank;
+import com.javic.pokewhere.fragments.FragmentPokemon;
+import com.javic.pokewhere.fragments.FragmentPokemonBank;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
 import com.javic.pokewhere.interfaces.OnRecyclerViewItemClickListenner;
 import com.javic.pokewhere.services.ServiceFloatingMap;
@@ -67,7 +68,8 @@ public class ActivityDashboard extends AppCompatActivity
     //Instance fragment's
     private FragmentMapa mFragmentMapa;
     private FragmentBag mFragmentBag;
-    private FragmentPokeBank mFragmentPokeBank;
+    private FragmentPokemon mFragmentPokemonn;
+    private FragmentPokemonBank mFragmentPokemonBank;
     private int visibleFragment = Constants.FRAGMENT_POKEBANK;
 
     // API PokemonGO
@@ -266,8 +268,12 @@ public class ActivityDashboard extends AppCompatActivity
 
             case Constants.FRAGMENT_POKEBANK:
                 if (mGO != null) {
-                    mFragmentPokeBank = mFragmentPokeBank.newInstance(mGO);
-                    fragmentTransaction.replace(R.id.content_fragment, mFragmentPokeBank);
+                    //mFragmentPokemon = mFragmentPokemon.newInstance(mGO);
+                    //fragmentTransaction.replace(R.id.content_fragment, mFragmentPokemon);
+
+                    mFragmentPokemonBank =  mFragmentPokemonBank.newInstance(mGO);
+                    fragmentTransaction.replace(R.id.content_fragment, mFragmentPokemonBank);
+
                     fragmentTransaction.commit();
                 }
                 break;

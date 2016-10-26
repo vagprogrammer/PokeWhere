@@ -51,9 +51,9 @@ import java.util.List;
 import POGOProtos.Enums.PokemonIdOuterClass;
 import POGOProtos.Networking.Responses.ReleasePokemonResponseOuterClass;
 
-public class FragmentPokeBank extends Fragment implements OnCheckChildClickListener {
+public class FragmentPokemon extends Fragment implements OnCheckChildClickListener {
 
-    private static final String TAG = FragmentPokeBank.class.getSimpleName();
+    private static final String TAG = FragmentPokemon.class.getSimpleName();
 
     private static final int TASK_FILTROS = 0;
     private static final int TASK_TRANSFER = 1;
@@ -91,12 +91,12 @@ public class FragmentPokeBank extends Fragment implements OnCheckChildClickListe
     private List<TransferablePokemon> mTransferablePokemonList = new ArrayList<>();
     private List<GroupTransferablePokemon> mFiltrosPokemonList = new ArrayList<>();
 
-    public FragmentPokeBank() {
+    public FragmentPokemon() {
         // Required empty public constructor
     }
 
-    public static FragmentPokeBank newInstance(PokemonGo pokemonGo) {
-        FragmentPokeBank fragment = new FragmentPokeBank();
+    public static FragmentPokemon newInstance(PokemonGo pokemonGo) {
+        FragmentPokemon fragment = new FragmentPokemon();
 
         mPokemonGo = pokemonGo;
 
@@ -398,7 +398,7 @@ public class FragmentPokeBank extends Fragment implements OnCheckChildClickListe
             if (succes) {
                 //instantiate your adapter with the list of bands
                 mAdpaterChildTransferablePokemon = new AdapterChildTransferablePokemon(mFiltrosPokemonList, mContext);
-                mAdpaterChildTransferablePokemon.setChildClickListener(FragmentPokeBank.this);
+                mAdpaterChildTransferablePokemon.setChildClickListener(FragmentPokemon.this);
                 mRecyclerView.setLayoutManager(mLayoutManager);
                 mRecyclerView.setAdapter(mAdpaterChildTransferablePokemon);
 
@@ -475,11 +475,11 @@ public class FragmentPokeBank extends Fragment implements OnCheckChildClickListe
                                     progress.setUpdateProgress(false);
                                     publishProgress(progress);
                                     //pokemonToTransfer.debug();
-                                    //ReleasePokemonResponseOuterClass.ReleasePokemonResponse.Result result = pokemonToTransfer.transferPokemon();
-                                    //progress.setProgressMessage(result.toString());
+                                    ReleasePokemonResponseOuterClass.ReleasePokemonResponse.Result result = pokemonToTransfer.transferPokemon();
+                                    progress.setProgressMessage(result.toString());
                                     progress.setUpdateProgress(true);
                                     publishProgress(progress);
-                                    sleep(10000);
+                                    sleep(900);
                                     mPokemonGo.getInventories().updateInventories(true);
                                 }
                             }
