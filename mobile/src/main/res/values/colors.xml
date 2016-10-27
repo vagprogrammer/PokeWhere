@@ -55,6 +55,7 @@
     <color name="color_background_recycler">#FAFAFA</color>
     <color name="color_background_item">#EEEEEE</color>
     <color name="color_blanco">#FFFFFF</color>
+    <color name="color_negro">#000000</color>
 
     <!-- Colors related with Login -->
     <color name="color_background_stroke_user_profile">#585858</color>

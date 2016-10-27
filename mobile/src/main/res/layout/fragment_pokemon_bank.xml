@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.FragmentPokemon">
+    tools:context=".fragments.FragmentPokemonBank">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -18,24 +18,22 @@
             android:id="@+id/myScrollingContent"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_below="@+id/appbarLayout"
             android:layout_above="@+id/bottomBar">
 
             <!-- Your loooooong scrolling content here. -->
 
-        <FrameLayout
-            android:id="@+id/contentContainer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_above="@+id/bottomBar">
-
-            <android.support.v7.widget.RecyclerView
+            <com.afollestad.dragselectrecyclerview.DragSelectRecyclerView
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-        </FrameLayout>
+                android:scrollbars="vertical"
+                app:dsrv_autoScrollEnabled="true"
+                app:dsrv_autoScrollHotspotHeight="56dp"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
         </android.support.v4.widget.NestedScrollView>
+
         <com.roughike.bottombar.BottomBar
             android:id="@+id/bottomBar"
             android:layout_width="match_parent"

@@ -80,7 +80,6 @@ public class ActivityLogin extends AppCompatActivity {
     private View mProgressView;
     private View mLoginFormView;
     private View mContentView;
-    private TextView mTVTitle;
 
     //Variables
     private OkHttpClient httpClient = new OkHttpClient();
@@ -88,8 +87,6 @@ public class ActivityLogin extends AppCompatActivity {
     private Boolean isGoogleAccount;
     private Boolean isLoginWithCredentials;
     private Button mEmailSignInButton;
-    private Button mGetTokenButton;
-    private ImageButton mBackButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -519,7 +516,7 @@ public class ActivityLogin extends AppCompatActivity {
         // Set up the login form.
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
-        mTVTitle = (TextView) findViewById(R.id.tv_login_title);
+        final TextView mTVTitle = (TextView) findViewById(R.id.tv_login_title);
 
         if (isLoginWithCredentials) {
             mContentView = findViewById(R.id.content_login_form_with_credentials);
@@ -534,8 +531,8 @@ public class ActivityLogin extends AppCompatActivity {
         mContentView.setVisibility(View.VISIBLE);
 
         mPasswordView = (EditText) findViewById(R.id.password);
-        mGetTokenButton = (Button) findViewById(R.id.btn_getToken);
-        mBackButton = (ImageButton) findViewById(R.id.back_button);
+        final Button mGetTokenButton = (Button) findViewById(R.id.btn_getToken);
+        final ImageButton mBackButton = (ImageButton) findViewById(R.id.back_button);
 
         if (isGoogleAccount) {
             if (isLoginWithCredentials) {
@@ -613,6 +610,7 @@ public class ActivityLogin extends AppCompatActivity {
             mGetTokenButton.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    mEmailView.setText("");
                     Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(GoogleUserCredentialProvider.LOGIN_URL));
                     startActivity(browserIntent);
                 }
