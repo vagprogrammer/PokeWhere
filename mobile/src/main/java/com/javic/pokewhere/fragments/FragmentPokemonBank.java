@@ -3,12 +3,13 @@ package com.javic.pokewhere.fragments;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.provider.Settings;
 import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
@@ -17,8 +18,6 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,15 +30,13 @@ import android.widget.Toast;
 
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerView;
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerViewAdapter;
+import com.afollestad.materialcab.MaterialCab;
 import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.R;
-import com.javic.pokewhere.adapters.AdapterChildTransferablePokemon;
 import com.javic.pokewhere.adapters.AdapterPokemonBank;
 import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
-import com.javic.pokewhere.models.ChildTransferablePokemon;
-import com.javic.pokewhere.models.GroupTransferablePokemon;
 import com.javic.pokewhere.models.LocalUserPokemon;
-import com.javic.pokewhere.models.TransferablePokemon;
+import com.javic.pokewhere.util.PokemonCreationTimeComparator;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.pokemon.Pokemon;
 import com.pokegoapi.exceptions.LoginFailedException;
@@ -47,6 +44,8 @@ import com.pokegoapi.exceptions.RemoteServerException;
 import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnTabSelectListener;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -56,8 +55,7 @@ import java.util.List;
 
 import POGOProtos.Enums.PokemonIdOuterClass;
 
-public class FragmentPokemonBank extends Fragment implements
-        AdapterPokemonBank.ClickListener, DragSelectRecyclerViewAdapter.SelectionListener{
+public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.ClickListener, DragSelectRecyclerViewAdapter.SelectionListener, MaterialCab.Callback{
 
     private static final String TAG = FragmentPokemonBank.class.getSimpleName();
 
@@ -76,6 +74,7 @@ public class FragmentPokemonBank extends Fragment implements
     private Toolbar mToolbar;
     private ActionBarDrawerToggle mDrawerToggle;
     private Snackbar mSnackBar;
+    private MaterialCab mCab;
 
     // API PokemonGO
     private static PokemonGo mPokemonGo;
@@ -135,7 +134,9 @@ public class FragmentPokemonBank extends Fragment implements
         // Inflate the layout for this fragment
         mView = inflater.inflate(R.layout.fragment_pokemon_bank, container, false);
 
+
         mToolbar = (Toolbar) mView.findViewById(R.id.appbar);
+        mCab = MaterialCab.restoreState(savedInstanceState, (AppCompatActivity) mContext, this);
 
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
         ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -151,7 +152,7 @@ public class FragmentPokemonBank extends Fragment implements
         mGridLayoutManager = new GridLayoutManager(mContext, 3);
         // Setup adapter and callbacks
         mLocalUserPokemonList = new ArrayList<>();
-        mAdapter = new AdapterPokemonBank(this, mLocalUserPokemonList);
+        mAdapter = new AdapterPokemonBank(mContext,this, mLocalUserPokemonList);
         // Receives selection updates, recommended to set before restoreInstanceState() so initial reselection is received
         mAdapter.setSelectionListener(this);
 
@@ -184,6 +185,7 @@ public class FragmentPokemonBank extends Fragment implements
                         });
                         break;
                     case R.id.tab_recents:
+                        Collections.sort(mLocalUserPokemonList, new PokemonCreationTimeComparator());
                         break;
                     case R.id.tab_name:
                         // Sorting
@@ -192,7 +194,7 @@ public class FragmentPokemonBank extends Fragment implements
                             @Override
                             public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
 
-                                return pokemon1.getPokemonId().compareTo(pokemon1.getPokemonId());
+                                return pokemon1.getName().compareTo(pokemon2.getName());
                             }
                         });
                         break;
@@ -239,7 +241,15 @@ public class FragmentPokemonBank extends Fragment implements
     @Override
     public void onClick(int index) {
         // Single click will select or deselect an item
-        mAdapter.toggleSelected(index);
+
+        final int selectedCount = mAdapter.getSelectedCount();
+
+        if (selectedCount>0){
+            mAdapter.toggleSelected(index);
+        }
+        else{
+            Toast.makeText(mContext, "Ver detalle", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -250,7 +260,54 @@ public class FragmentPokemonBank extends Fragment implements
 
     @Override
     public void onDragSelectionChanged(int count) {
-        // TODO Selection was changed, updating an indicator, e.g. a Toolbar or contextual action bar
+
+        if (count > 0) {
+            if (mCab == null) {
+                mCab = new MaterialCab((AppCompatActivity) mContext, R.id.cab_stub)
+                        .setMenu(R.menu.cab)
+                        .setCloseDrawableRes(android.R.drawable.ic_menu_close_clear_cancel)
+                        .start(this);
+            }
+            mCab.setTitleRes(R.string.title_fragment_bag, count);
+            mAdapter.changeSelectingState(true);
+            mBottomBar.setEnabled(false);
+        } else if (mCab != null && mCab.isActive()) {
+            mCab.reset().finish();
+            mCab = null;
+            mAdapter.changeSelectingState(false);
+            mBottomBar.setEnabled(true);
+        }
+    }
+
+    // Material CAB Callbacks
+
+    @Override
+    public boolean onCabCreated(MaterialCab cab, Menu menu) {
+        return true;
+    }
+
+    @Override
+    public boolean onCabItemClicked(MenuItem item) {
+        if (item.getItemId() == R.id.done) {
+            StringBuilder sb = new StringBuilder();
+            int traverse = 0;
+            for (Integer index : mAdapter.getSelectedIndices()) {
+                if (traverse > 0) sb.append(", ");
+                sb.append(mAdapter.getItemId(index));
+                traverse++;
+            }
+            Toast.makeText(mContext,
+                    String.format("Selected letters (%d): %s", mAdapter.getSelectedCount(), sb.toString()),
+                    Toast.LENGTH_LONG).show();
+            mAdapter.clearSelected();
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onCabFinished(MaterialCab cab) {
+        mAdapter.clearSelected();
+        return true;
     }
 
     @Override
@@ -281,6 +338,7 @@ public class FragmentPokemonBank extends Fragment implements
         super.onDetach();
         mListener = null;
     }
+
 
     public class GetPokemonsTask extends AsyncTask<Void, Void, Boolean> {
 
@@ -317,12 +375,12 @@ public class FragmentPokemonBank extends Fragment implements
 
                         if (!isCancelled()) {
 
-                            Log.i(TAG, "Creation time: "+ String.valueOf(pokemon.getCreationTimeMs()));
-
                             LocalUserPokemon localUserPokemon = new LocalUserPokemon();
                             localUserPokemon.setId(pokemon.getId());
                             localUserPokemon.setPokemonId(pokemon.getPokemonId().toString());
                             localUserPokemon.setName(pokemon.getPokemonId().toString());
+                            localUserPokemon.setNickname(pokemon.getNickname());
+                            localUserPokemon.setBitmap(getBitmapFromAssets(pokemon.getPokemonId().getNumber()));
                             localUserPokemon.setNumber(pokemon.getPokemonId().getNumber());
                             localUserPokemon.setFavorite(pokemon.isFavorite());
                             localUserPokemon.setDead(pokemon.isInjured());
@@ -338,6 +396,7 @@ public class FragmentPokemonBank extends Fragment implements
                             localUserPokemon.setPowerUpStardust(pokemon.getStardustCostsForPowerup());
                             localUserPokemon.setPoweUpCandies(pokemon.getCandyCostsForPowerup());
                             localUserPokemon.setEvolveCandies(pokemon.getCandiesToEvolve());
+                            localUserPokemon.setCreationTime(createDate(pokemon.getCreationTimeMs()));
 
                             if (!containsEncounteredId(pokemon.getPokemonId())) {
                                 specificPokemonCount = mPokemonGo.getInventories().getPokebank().getPokemonByPokemonId(pokemon.getPokemonId()).size();
@@ -352,10 +411,9 @@ public class FragmentPokemonBank extends Fragment implements
 
                     // Sorting
                     Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-
                         @Override
-                        public int compare(LocalUserPokemon childTransferablePokemon1, LocalUserPokemon childTransferablePokemon2) {
-                            return childTransferablePokemon1.getCp() - childTransferablePokemon2.getCp(); // Ascending
+                        public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
+                            return pokemon2.getIv() - pokemon1.getIv(); // Ascending
                         }
                     });
 
@@ -488,7 +546,7 @@ public class FragmentPokemonBank extends Fragment implements
         mSnackBar.show();
     }
 
-    public static String createDate(long timestamp) {
+    public Calendar createDate(long timestamp) {
 
         //Fri Aug 26 19:54:06 CDT 2016
         Date date = new Date(timestamp);
@@ -496,12 +554,32 @@ public class FragmentPokemonBank extends Fragment implements
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
 
-        int hours = calendar.get(Calendar.HOUR_OF_DAY);
-        int minutes = calendar.get(Calendar.MINUTE);
-        int seconds = calendar.get(Calendar.SECOND);
+        Log.i(TAG, date.toString());
+        return calendar;
 
-        String time = "Desaparecerá a las: " + String.valueOf(hours) + ":" + String.valueOf(minutes) + ":" + String.valueOf(seconds);
-        return time;
+    }
 
+    public Bitmap getBitmapFromAssets(int pokemonIdNumber){
+        AssetManager assetManager = mContext.getAssets();
+
+        Bitmap bitmap = null;
+
+        try {
+            InputStream is = null;
+
+            if (pokemonIdNumber < 10) {
+                is = assetManager.open(String.valueOf("00" +pokemonIdNumber) + ".png");
+            } else if (pokemonIdNumber < 100) {
+                is = assetManager.open(String.valueOf("0" + pokemonIdNumber) + ".png");
+            } else {
+                is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
+            }
+
+            bitmap = BitmapFactory.decodeStream(is);
+        } catch (IOException e) {
+            Log.e("ERROR", e.getMessage());
+        }
+
+        return bitmap;
     }
 }

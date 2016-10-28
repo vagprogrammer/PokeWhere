@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.javic.pokewhere"
-    android:installLocation="auto">
+    android:installLocation="auto"
+    android:allowBackup="false">
 
     <uses-feature
         android:name="android.hardware.telephony"
@@ -24,7 +25,7 @@
 
     <application
         android:name=".app.AppController"
-        android:allowBackup="false"
+
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -40,7 +41,7 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="@string/google_maps_key_secretaria_macbookpro" />
+            android:value="@string/google_maps_key_secretaria_imac" />
 
         <activity
             android:name=".ActivitySplashScreen"

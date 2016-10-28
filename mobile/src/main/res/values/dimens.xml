@@ -17,4 +17,22 @@
     <dimen name="padding_image_profile">10dp</dimen>
     <dimen name="margin_top">50dp</dimen>
 
+
+
+
+    <dimen name="item_touch_helper_max_drag_scroll_per_frame">20.0dip</dimen>
+    <dimen name="item_touch_helper_swipe_escape_max_velocity">800.0dip</dimen>
+    <dimen name="item_touch_helper_swipe_escape_velocity">120.0dip</dimen>
+    <dimen name="mat_dim_large">12.0dip</dimen>
+    <dimen name="mat_dim_normal">8.0dip</dimen>
+    <dimen name="mat_dim_short">4.0dip</dimen>
+    <dimen name="notification_large_icon_height">64.0dip</dimen>
+    <dimen name="notification_large_icon_width">64.0dip</dimen>
+    <dimen name="notification_subtext_size">12.0dip</dimen>
+    <dimen name="text_size_large">18.0sp</dimen>
+    <dimen name="text_size_normal">14.0sp</dimen>
+    <dimen name="text_size_small">10.0sp</dimen>
+    <dimen name="text_size_very_large">22.0sp</dimen>
+
+
 </resources>

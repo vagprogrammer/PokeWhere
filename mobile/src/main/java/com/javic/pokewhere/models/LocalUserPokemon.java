@@ -1,5 +1,7 @@
 package com.javic.pokewhere.models;
 
+import android.graphics.Bitmap;
+import java.util.Calendar;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -27,15 +29,18 @@ public class LocalUserPokemon implements Parcelable{
     private int powerUpStardust;
     private int poweUpCandies;
     private int evolveCandies;
+    private Bitmap bitmap;
+    private Calendar creationTime;
 
     public LocalUserPokemon(){
         //Empty constructor is needed
     }
 
-    public LocalUserPokemon(Long id,String pokemonId, String name, int number, String nickname, Boolean isFavorite, Boolean isDead,int cp, int iv, int attack, int defense, int stamina, int maxCp, int evolveCP, float level, int candies, int powerUpStardust, int poweUpCandies, int evolveCandies) {
+    public LocalUserPokemon(Long id,String pokemonId, String name, Bitmap bitmap, int number, String nickname, Boolean isFavorite, Boolean isDead,int cp, int iv, int attack, int defense, int stamina, int maxCp, int evolveCP, float level, int candies, int powerUpStardust, int poweUpCandies, int evolveCandies, Calendar creationTime) {
         this.id = id;
         this.pokemonId = pokemonId;
         this.name = name;
+        this.bitmap = bitmap;
         this.number = number;
         this.nickname = nickname;
         this.isFavorite = isFavorite;
@@ -52,6 +57,7 @@ public class LocalUserPokemon implements Parcelable{
         this.powerUpStardust = powerUpStardust;
         this.poweUpCandies = poweUpCandies;
         this.evolveCandies = evolveCandies;
+        this.creationTime = creationTime;
     }
 
     protected LocalUserPokemon(Parcel in){
@@ -114,6 +120,14 @@ public class LocalUserPokemon implements Parcelable{
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Bitmap getBitmap() {
+        return bitmap;
+    }
+
+    public void setBitmap(Bitmap bitmap) {
+        this.bitmap = bitmap;
     }
 
     public int getNumber() {
@@ -243,4 +257,15 @@ public class LocalUserPokemon implements Parcelable{
     public void setEvolveCandies(int evolveCandies) {
         this.evolveCandies = evolveCandies;
     }
+
+
+    public Calendar getCreationTime() {
+        return creationTime;
+    }
+
+    public void setCreationTime(Calendar creationTime) {
+        this.creationTime = creationTime;
+    }
+
+
 }

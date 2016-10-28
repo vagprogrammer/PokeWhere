@@ -14,25 +14,21 @@
         <include layout="@layout/layout_toolbar" />
         <!-- This could be your fragment container, or something -->
 
-        <android.support.v4.widget.NestedScrollView
-            android:id="@+id/myScrollingContent"
+        <ViewStub
+            android:id="@+id/cab_stub"
+            android:layout_width="match_parent"
+            android:layout_height="?actionBarSize" />
+
+        <com.afollestad.dragselectrecyclerview.DragSelectRecyclerView
+            android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_above="@+id/bottomBar"
             android:layout_below="@+id/appbarLayout"
-            android:layout_above="@+id/bottomBar">
-
-            <!-- Your loooooong scrolling content here. -->
-
-            <com.afollestad.dragselectrecyclerview.DragSelectRecyclerView
-                android:id="@+id/recyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scrollbars="vertical"
-                app:dsrv_autoScrollEnabled="true"
-                app:dsrv_autoScrollHotspotHeight="56dp"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
-
-        </android.support.v4.widget.NestedScrollView>
+            android:scrollbars="vertical"
+            app:dsrv_autoScrollEnabled="true"
+            app:dsrv_autoScrollHotspotHeight="56dp"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
         <com.roughike.bottombar.BottomBar
             android:id="@+id/bottomBar"
