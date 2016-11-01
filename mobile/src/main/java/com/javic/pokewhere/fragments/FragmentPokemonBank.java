@@ -75,19 +75,20 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     //Fragment UI
     private View mView;
     private BottomBar mBottomBar;
+    private Toolbar mToolbar;
+    private MaterialCab mCab;
     private DragSelectRecyclerView mRecyclerView;
     private GridLayoutManager mGridLayoutManager;
-    private Toolbar mToolbar;
-    private ActionBarDrawerToggle mDrawerToggle;
     private Snackbar mSnackBar;
-    private MaterialCab mCab;
+    private ActionBarDrawerToggle mDrawerToggle;
+
 
     // API PokemonGO
     private static PokemonGo mPokemonGo;
 
     //Listas
     static public List<Pokemon> mUserPokemonList;
-    static public List<LocalUserPokemon> mLocalUserPokemonList;
+    static public List<LocalUserPokemon> mLocalUserPokemonList = new ArrayList<>();
     private List<LocalUserPokemon> specificPokemonList;
 
     //Variables
@@ -121,20 +122,17 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         super.onCreate(savedInstanceState);
     }
 
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.fragment_transfer, menu);
-    }
-
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_transferir:
-                break;
-            default:
-                break;
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mContext = context;
+
+        if (context instanceof OnFragmentListener) {
+            mListener = (OnFragmentListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentInteractionListener");
         }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -159,11 +157,9 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         ActivityDashboard.mDrawerLayout.addDrawerListener(mDrawerToggle);
 
         mGridLayoutManager = new GridLayoutManager(mContext, 3);
-        // Setup adapter and callbacks
-        mLocalUserPokemonList = new ArrayList<>();
 
+        // Setup adapter and callbacks
         mAdapter = new AdapterPokemonBank(mContext, this, this, mLocalUserPokemonList);
-        // Receives selection updates, recommended to set before restoreInstanceState() so initial reselection is received
         mAdapter.setSelectionListener(this);
 
         mRecyclerView = (DragSelectRecyclerView) mView.findViewById(R.id.recyclerView);
@@ -250,6 +246,54 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        if (mDrawerToggle != null) {
+            ActivityDashboard.mDrawerLayout.removeDrawerListener(mDrawerToggle);
+        }
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        //mAdapter.setSelectionListener(this);
+
+        if (favoriteTaskWasCanceled) {
+            favoriteTaskWasCanceled = false;
+
+            if (mGetPokemonsTask == null) {
+                mGetPokemonsTask = new GetPokemonsTask();
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                    mGetPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                } else {
+                    mGetPokemonsTask.execute();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if (mSetFavoriteTask != null) {
+            mSetFavoriteTask.cancel(true);
+        }
+
+        //mAdapter.setSelectionListener(null);
+    }
+
+    @Override
     public void onClick(int index) {
         // Single click will select or deselect an item
 
@@ -298,37 +342,6 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         return true;
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        mAdapter.setSelectionListener(this);
-
-        if (favoriteTaskWasCanceled) {
-            favoriteTaskWasCanceled = false;
-
-            if (mGetPokemonsTask == null) {
-                mGetPokemonsTask = new GetPokemonsTask();
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                    mGetPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                } else {
-                    mGetPokemonsTask.execute();
-                }
-            }
-        }
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        if (mSetFavoriteTask != null) {
-            mSetFavoriteTask.cancel(true);
-        }
-
-        mAdapter.setSelectionListener(null);
-    }
 
     @Override
     public boolean onCabItemClicked(MenuItem item) {
@@ -352,35 +365,6 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     public boolean onCabFinished(MaterialCab cab) {
         mAdapter.clearSelected();
         return true;
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-
-        if (mDrawerToggle != null) {
-            ActivityDashboard.mDrawerLayout.removeDrawerListener(mDrawerToggle);
-        }
-
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        mContext = context;
-
-        if (context instanceof OnFragmentListener) {
-            mListener = (OnFragmentListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
     }
 
     @Override

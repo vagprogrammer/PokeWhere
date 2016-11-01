@@ -133,7 +133,12 @@
     <string name="message_untrasferable_favorite">No puedes transferir un pokémon favorito</string>
     <string name="message_untrasferable">Ahora no puedes transferir este pokémon, intentalo más tarde</string>
     <string name="text_pokemones">Pokemones</string>
-
+    <string name="text_bar_recents">Recientes</string>
+    <string name="text_bar_name">Name</string>
+    <string name="text_bar_number">Número</string>
+    <string name="text_bar_attack">Ataque</string>
+    <string name="text_bar_defense">Defensa</string>
+    <string name="text_bar_stamina">Salud</string>
 
     <!-- Strings related to Bag Fragment -->
     <string name="group_pokeballs">POKE BALLS</string>

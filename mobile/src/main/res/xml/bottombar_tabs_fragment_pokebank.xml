@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tabs>
+    <tab
+        id="@+id/tab_iv"
+        icon="@drawable/ic_thumbs_up_down_black_24dp"
+        title="IV"
+        barColorWhenSelected="@color/colorPrimary"
+        inActiveColor="@color/color_blanco"
+        activeColor="@color/color_negro"/>
+    <tab
+        id="@+id/tab_cp"
+        icon="@drawable/ic_fitness_center_black_24dp"
+        title="CP"
+        barColorWhenSelected="@color/colorPrimary"
+        inActiveColor="@color/color_blanco"
+        activeColor="@color/color_negro"/>
+    <tab
+        id="@+id/tab_recents"
+        icon="@drawable/ic_date_range_black_24dp"
+        title="@string/text_bar_recents"
+        barColorWhenSelected="@color/colorPrimary"
+        inActiveColor="@color/color_blanco"
+        activeColor="@color/color_negro"/>
+    <tab
+        id="@+id/tab_name"
+        icon="@drawable/ic_sort_by_alpha_black_24dp"
+        title="@string/text_bar_name"
+        barColorWhenSelected="@color/colorPrimary"
+        inActiveColor="@color/color_blanco"
+        activeColor="@color/color_negro"/>
+    <tab
+        id="@+id/tab_number"
+        icon="@drawable/ic_filter_1_black_24dp"
+        title="@string/text_bar_number"
+        barColorWhenSelected="@color/colorPrimary"
+        inActiveColor="@color/color_blanco"
+        activeColor="@color/color_negro"/>
+</tabs>

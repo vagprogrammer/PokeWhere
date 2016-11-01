@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerViewAdapter;
 import com.javic.pokewhere.R;
+import com.javic.pokewhere.fragments.FragmentCompare;
 import com.javic.pokewhere.interfaces.OnViewItemClickListenner;
 import com.javic.pokewhere.models.LocalUserPokemon;
 
@@ -51,7 +52,6 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
     @Override
     public void onBindViewHolder(PokemonBankViewHolder holder, int position) {
         super.onBindViewHolder(holder, position); // this line is important!
-
         final LocalUserPokemon pokemon = mLocalUserPokemonList.get(position);
         holder.cp.setText(String.valueOf(pokemon.getCp()));
         holder.iv.setText(String.valueOf(pokemon.getIv())+ "%");
@@ -86,14 +86,20 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
             }
         });
 
-        holder.btnCompare.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mListener!=null){
-                    mListener.OnViewItemClick(pokemon, view);
+        if (mCallback instanceof FragmentCompare){
+
+            holder.btnCompare.setVisibility(View.GONE);
+
+        }else{
+            holder.btnCompare.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (mListener!=null){
+                        mListener.OnViewItemClick(pokemon, view);
+                    }
                 }
-            }
-        });
+            });
+        }
 
         if (isSelecting){
             holder.mCheckBox.setVisibility(View.VISIBLE);

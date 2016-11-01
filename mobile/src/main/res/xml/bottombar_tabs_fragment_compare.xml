@@ -15,23 +15,23 @@
         inActiveColor="@color/color_blanco"
         activeColor="@color/color_negro"/>
     <tab
-        id="@+id/tab_recents"
-        icon="@drawable/ic_date_range_black_24dp"
-        title="Recientes"
+        id="@+id/tab_attack"
+        icon="@drawable/ic_whatshot_black_24dp"
+        title="@string/text_bar_attack"
         barColorWhenSelected="@color/colorPrimary"
         inActiveColor="@color/color_blanco"
         activeColor="@color/color_negro"/>
     <tab
-        id="@+id/tab_name"
-        icon="@drawable/ic_sort_by_alpha_black_24dp"
-        title="Nombre"
+        id="@+id/tab_defense"
+        icon="@drawable/ic_security_black_24dp"
+        title="@string/text_bar_defense"
         barColorWhenSelected="@color/colorPrimary"
         inActiveColor="@color/color_blanco"
         activeColor="@color/color_negro"/>
     <tab
-        id="@+id/tab_number"
-        icon="@drawable/ic_filter_1_black_24dp"
-        title="Número"
+        id="@+id/tab_stamina"
+        icon="@drawable/ic_local_hospital_black_24dp"
+        title="@string/text_bar_stamina"
         barColorWhenSelected="@color/colorPrimary"
         inActiveColor="@color/color_blanco"
         activeColor="@color/color_negro"/>
