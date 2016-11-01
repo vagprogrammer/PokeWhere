@@ -11,9 +11,9 @@ package com.javic.pokewhere.interfaces;
  * activity.
  */
 
-public interface OnFragmentCreatedViewListener {
+public interface OnFragmentListener {
 
-    void onFragmentCreatedViewStatus(Boolean status);
-    void onFragmentActionPerform(int action);
+    void onFragmentCreatedViewStatus(boolean status);
     void showProgress(Boolean show);
+    void onFragmentActionPerform(int action, Object object);
 }

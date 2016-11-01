@@ -6,6 +6,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerViewAdapter;
 import com.javic.pokewhere.R;
+import com.javic.pokewhere.interfaces.OnViewItemClickListenner;
 import com.javic.pokewhere.models.LocalUserPokemon;
 
 import java.util.List;
@@ -21,7 +23,9 @@ import java.util.List;
  * Created by franciscojimenezjimenez on 26/10/16.
  */
 
-public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPokemonBank.PokemonBankViewHolder> {
+public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPokemonBank.PokemonBankViewHolder>{
+
+    private OnViewItemClickListenner mListener;
 
     private final Context mContext;
     private final ClickListener mCallback;
@@ -30,11 +34,12 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
     public boolean isSelecting = false;
 
     // Constructor takes click listener callback
-    public AdapterPokemonBank(Context mContext, ClickListener mCallback, List<LocalUserPokemon> mLocalUserPokemonList) {
+    public AdapterPokemonBank(Context mContext, ClickListener mCallback, OnViewItemClickListenner mListener, List<LocalUserPokemon> mLocalUserPokemonList) {
         super();
         this.mContext = mContext;
         this.mCallback = mCallback;
         this.mLocalUserPokemonList= mLocalUserPokemonList;
+        this.mListener = mListener;
     }
 
     @Override
@@ -47,9 +52,9 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
     public void onBindViewHolder(PokemonBankViewHolder holder, int position) {
         super.onBindViewHolder(holder, position); // this line is important!
 
-        LocalUserPokemon pokemon = mLocalUserPokemonList.get(position);
+        final LocalUserPokemon pokemon = mLocalUserPokemonList.get(position);
         holder.cp.setText(String.valueOf(pokemon.getCp()));
-        holder.iv.setText(String.valueOf(pokemon.getIv()));
+        holder.iv.setText(String.valueOf(pokemon.getIv())+ "%");
         holder.attack.setText(String.valueOf(pokemon.getAttack()));
         holder.defense.setText(String.valueOf(pokemon.getDefense()));
         holder.stamina.setText(String.valueOf(pokemon.getStamina()));
@@ -64,19 +69,31 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
             holder.imgPokemon.setImageBitmap(pokemon.getBitmap());
         }
 
-        holder.imgFavorite.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-            }
-        });
-
         if (pokemon.getFavorite()){
             holder.imgFavorite.setImageResource(R.drawable.ic_bookmarked);
         }
         else{
             holder.imgFavorite.setImageResource(R.drawable.ic_bookmark);
         }
+
+        holder.imgFavorite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mListener!=null){
+                    mListener.OnViewItemClick(pokemon, view);
+                }
+
+            }
+        });
+
+        holder.btnCompare.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mListener!=null){
+                    mListener.OnViewItemClick(pokemon, view);
+                }
+            }
+        });
 
         if (isSelecting){
             holder.mCheckBox.setVisibility(View.VISIBLE);
@@ -100,17 +117,21 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
         // This method is OPTIONAL, returning false will prevent the item at the specified index from being selected.
         // Both initial selection, and drag selection.
 
-        LocalUserPokemon pokemon = mLocalUserPokemonList.get(index);
+        if (index>-1){
+            LocalUserPokemon pokemon = mLocalUserPokemonList.get(index);
 
-        if (pokemon.getFavorite()){
+            if (pokemon.getFavorite()){
 
-            showToast(mContext.getString(R.string.message_untrasferable_favorite), 500);
+                showToast(mContext.getString(R.string.message_untrasferable_favorite), 500);
 
-            return false;
+                return false;
+            }
+            else{
+                return true;
+            }
         }
-        else{
-            return true;
-        }
+
+       return true;
 
     }
 
@@ -121,10 +142,12 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
 
     public class PokemonBankViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener{
 
-        private final View mContainer;
+        public final View mContainer;
         private final CheckBox mCheckBox;
         private final TextView name, cp,iv,attack,defense,stamina;
-        private final ImageView imgPokemon, imgFavorite;
+        private final ImageView imgPokemon;
+        public final ImageView imgFavorite;
+        public final Button btnCompare;
 
 
         private PokemonBankViewHolder(View itemView) {
@@ -141,6 +164,7 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
             this.itemView.setOnLongClickListener(this);
             this.imgPokemon = (ImageView) itemView.findViewById(R.id.imgPokemon);
             this.imgFavorite = (ImageView) itemView.findViewById(R.id.imgFavorite);
+            this.btnCompare = (Button) itemView.findViewById(R.id.btnCompare);
         }
 
         @Override
@@ -192,6 +216,6 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
                 toast.cancel();
             }
         }, millisecons);
-    }
 
+    }
 }

@@ -1,9 +1,10 @@
 package com.javic.pokewhere.models;
 
 import android.graphics.Bitmap;
-import java.util.Calendar;
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import java.util.Calendar;
 
 /**
  * Created by franciscojimenezjimenez on 12/09/16.
@@ -11,12 +12,12 @@ import android.os.Parcelable;
 public class LocalUserPokemon implements Parcelable{
 
     private Long id;
-    private String pokemonId;
     private String name;
+    private Bitmap bitmap;
     private int number;
     private String nickname;
     private Boolean isFavorite;
-    private Boolean isDead;
+    private Boolean isDead = false;
     private int cp;
     private int iv;
     private int attack;
@@ -29,16 +30,14 @@ public class LocalUserPokemon implements Parcelable{
     private int powerUpStardust;
     private int poweUpCandies;
     private int evolveCandies;
-    private Bitmap bitmap;
-    private Calendar creationTime;
+    private Long creationTimeMillis;
 
     public LocalUserPokemon(){
         //Empty constructor is needed
     }
 
-    public LocalUserPokemon(Long id,String pokemonId, String name, Bitmap bitmap, int number, String nickname, Boolean isFavorite, Boolean isDead,int cp, int iv, int attack, int defense, int stamina, int maxCp, int evolveCP, float level, int candies, int powerUpStardust, int poweUpCandies, int evolveCandies, Calendar creationTime) {
+    public LocalUserPokemon(Long id, String name, Bitmap bitmap, int number, String nickname, Boolean isFavorite, Boolean isDead,int cp, int iv, int attack, int defense, int stamina, int maxCp, int evolveCP, float level, int candies, int powerUpStardust, int poweUpCandies, int evolveCandies, Calendar creationTime, Long creationTimeMillis) {
         this.id = id;
-        this.pokemonId = pokemonId;
         this.name = name;
         this.bitmap = bitmap;
         this.number = number;
@@ -57,27 +56,56 @@ public class LocalUserPokemon implements Parcelable{
         this.powerUpStardust = powerUpStardust;
         this.poweUpCandies = poweUpCandies;
         this.evolveCandies = evolveCandies;
-        this.creationTime = creationTime;
+        this.creationTimeMillis = creationTimeMillis;
     }
 
     protected LocalUserPokemon(Parcel in){
         id = in.readLong();
         name = in.readString();
+        bitmap = (Bitmap) in.readValue(Bitmap.class.getClassLoader());
         number = in.readInt();
         nickname = in.readString();
         isFavorite = in.readByte() != 0;
+        isDead = in.readByte() != 0;
         cp = in.readInt();
         iv = in.readInt();
         attack = in.readInt();
+        defense = in.readInt();
+        stamina = in.readInt();
+        maxCp = in.readInt();
+        evolveCP = in.readInt();
+        level = in.readFloat();
+        candies = in.readInt();
+        powerUpStardust = in.readInt();
+        poweUpCandies = in.readInt();
+        evolveCandies = in.readInt();
+        creationTimeMillis = in.readLong();
     }
 
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeLong(id);
+        parcel.writeString(name);
+        parcel.writeValue(bitmap);
+        parcel.writeInt(number);
+        parcel.writeString(nickname);
         parcel.writeByte((byte) (isFavorite ? 1 : 0));
+        parcel.writeByte((byte) (isDead ? 1 : 0));
         parcel.writeInt(cp);
         parcel.writeInt(iv);
+        parcel.writeInt(attack);
+        parcel.writeInt(defense);
+        parcel.writeInt(stamina);
+        parcel.writeInt(maxCp);
+        parcel.writeInt(evolveCP);
+        parcel.writeFloat(level);
+        parcel.writeInt(candies);
+        parcel.writeInt(powerUpStardust);
+        parcel.writeInt(poweUpCandies);
+        parcel.writeInt(evolveCandies);
+        parcel.writeLong(creationTimeMillis);
+
     }
 
     @Override
@@ -104,14 +132,6 @@ public class LocalUserPokemon implements Parcelable{
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getPokemonId() {
-        return pokemonId;
-    }
-
-    public void setPokemonId(String pokemonId) {
-        this.pokemonId = pokemonId;
     }
 
     public String getName() {
@@ -258,13 +278,12 @@ public class LocalUserPokemon implements Parcelable{
         this.evolveCandies = evolveCandies;
     }
 
-
-    public Calendar getCreationTime() {
-        return creationTime;
+    public Long getCreationTimeMillis() {
+        return creationTimeMillis;
     }
 
-    public void setCreationTime(Calendar creationTime) {
-        this.creationTime = creationTime;
+    public void setCreationTimeMillis(Long creationTimeMillis) {
+        this.creationTimeMillis = creationTimeMillis;
     }
 
 

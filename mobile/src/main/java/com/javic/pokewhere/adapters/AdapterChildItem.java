@@ -8,8 +8,7 @@ import android.view.ViewGroup;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.holders.ChildItemViewHolder;
 import com.javic.pokewhere.holders.GroupItemViewHolder;
-import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
-import com.javic.pokewhere.interfaces.OnRecyclerViewItemClickListenner;
+import com.javic.pokewhere.interfaces.OnViewItemClickListenner;
 import com.javic.pokewhere.models.ChildItem;
 import com.javic.pokewhere.models.GroupItem;
 import com.thoughtbot.expandablerecyclerview.ExpandableRecyclerViewAdapter;
@@ -23,19 +22,12 @@ import java.util.List;
 
 public class AdapterChildItem extends ExpandableRecyclerViewAdapter<GroupItemViewHolder, ChildItemViewHolder> {
     private Context mContext;
-    private OnRecyclerViewItemClickListenner mListener;
+    private OnViewItemClickListenner mListener;
 
-    public AdapterChildItem(List<? extends ExpandableGroup> groups, Context mContext) {
+    public AdapterChildItem(List<? extends ExpandableGroup> groups, Context mContext, OnViewItemClickListenner mListener) {
         super(groups);
         this.mContext = mContext;
-
-        if (this.mContext instanceof OnFragmentCreatedViewListener) {
-            mListener = (OnRecyclerViewItemClickListenner) this.mContext;
-        } else {
-            throw new RuntimeException(this.mContext.toString()
-                    + " must implement OnFragmentCreatedViewListener");
-        }
-
+        this.mListener = mListener;
     }
 
     @Override

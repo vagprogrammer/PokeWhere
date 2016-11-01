@@ -3,6 +3,7 @@
     <string name="title_activity_login">Sign in</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_activity_splash_screen">Splash Screen</string>
+    <string name="title_activity_pokemon_detail">Detalle</string>
     <string name="title_fragment_bag">Bag</string>
 
     <!-- Activity Dashboard -->
@@ -131,6 +132,8 @@
     <string name="message_count_selected">Pokémon para transferir</string>
     <string name="message_untrasferable_favorite">No puedes transferir un pokémon favorito</string>
     <string name="message_untrasferable">Ahora no puedes transferir este pokémon, intentalo más tarde</string>
+    <string name="text_pokemones">Pokemones</string>
+
 
     <!-- Strings related to Bag Fragment -->
     <string name="group_pokeballs">POKE BALLS</string>
@@ -146,6 +149,20 @@
     <string name="dialog_title_select_items_post">quieres tirar?</string>
     <string name="dialog_title_select_items_total">Total:</string>
     <string name="dialog_positive_btn_items">Tirar</string>
+
+    <!-- Strings related to Pokemon Detail Activity -->
+    <string name="text_attack">Ataque:</string>
+    <string name="text_defense">Defensa:</string>
+    <string name="text_stamina">Salud:</string>
+    <string name="text_cp_max">CP Máx:</string>
+    <string name="text_cp_mult">CP Evol:</string>
+    <string name="text_level">Nivel:</string>
+    <string name="text_candies">Caramelos:</string>
+    <string name="text_powerup">Más poder:</string>
+    <string name="text_evolve">Evolucionar:</string>
+    <string name="text_damage">Daño:</string>
+    <string name="text_dps">Daño/seg:</string>
+    <string name="text_stardust">Polvo Estelar:</string>
 
 
 </resources>

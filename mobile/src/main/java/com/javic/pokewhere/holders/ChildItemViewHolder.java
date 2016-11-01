@@ -1,14 +1,12 @@
 package com.javic.pokewhere.holders;
 
-import android.content.Context;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.javic.pokewhere.R;
-import com.javic.pokewhere.interfaces.OnRecyclerViewItemClickListenner;
+import com.javic.pokewhere.interfaces.OnViewItemClickListenner;
 import com.javic.pokewhere.models.ChildItem;
 import com.thoughtbot.expandablerecyclerview.viewholders.ChildViewHolder;
 
@@ -18,14 +16,14 @@ import com.thoughtbot.expandablerecyclerview.viewholders.ChildViewHolder;
 
 public class ChildItemViewHolder extends ChildViewHolder {
 
-    public static OnRecyclerViewItemClickListenner mListener;
+    public static OnViewItemClickListenner mListener;
 
     private TextView tv_child_item;
     private ImageView img_child_item;
     private ImageButton imgb_child_actionTrash;
     private ChildItem mChildItem;
 
-    public ChildItemViewHolder(final OnRecyclerViewItemClickListenner mListener, View itemView) {
+    public ChildItemViewHolder(final OnViewItemClickListenner mListener, View itemView) {
         super(itemView);
         this.mListener = mListener;
         tv_child_item = (TextView) itemView.findViewById(R.id.tv_child_item);
@@ -36,7 +34,7 @@ public class ChildItemViewHolder extends ChildViewHolder {
             @Override
             public void onClick(View view) {
 
-                ChildItemViewHolder.mListener.OnViewItemClick(mChildItem);
+                ChildItemViewHolder.mListener.OnViewItemClick(mChildItem, view);
             }
         });
     }

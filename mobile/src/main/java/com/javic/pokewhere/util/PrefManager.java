@@ -33,4 +33,21 @@ public class PrefManager {
         return pref.getBoolean(Constants.KEY_PREF_IS_FIRST_TIME_LAUNCH, true);
     }
 
+    public boolean getGooglePref() {
+        return pref.getBoolean(Constants.KEY_PREF_GOOGLE, false);
+    }
+
+
+    public boolean isUserLogedIn() {
+
+        String mUserEmail = pref.getString(Constants.KEY_PREF_USER_EMAIL, "");
+        String mUserRefreshToken = pref.getString(Constants.KEY_PREF_REFRESH_TOKEN, "");
+
+        if (mUserEmail != "" || mUserRefreshToken != "") {
+            return true;
+        }
+
+        return false;
+    }
+
 }

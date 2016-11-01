@@ -4,10 +4,12 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -15,6 +17,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
@@ -32,11 +35,11 @@ import android.widget.Toast;
 
 import com.javic.pokewhere.fragments.FragmentBag;
 import com.javic.pokewhere.fragments.FragmentBlank;
+import com.javic.pokewhere.fragments.FragmentCompare;
 import com.javic.pokewhere.fragments.FragmentMapa;
-import com.javic.pokewhere.fragments.FragmentPokemon;
 import com.javic.pokewhere.fragments.FragmentPokemonBank;
-import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
-import com.javic.pokewhere.interfaces.OnRecyclerViewItemClickListenner;
+import com.javic.pokewhere.interfaces.OnFragmentListener;
+import com.javic.pokewhere.models.LocalUserPokemon;
 import com.javic.pokewhere.services.ServiceFloatingMap;
 import com.javic.pokewhere.util.Constants;
 import com.javic.pokewhere.util.PrefManager;
@@ -51,6 +54,7 @@ import com.pokegoapi.exceptions.RemoteServerException;
 
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -58,18 +62,18 @@ import POGOProtos.Data.PlayerDataOuterClass;
 import okhttp3.OkHttpClient;
 
 public class ActivityDashboard extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentCreatedViewListener, OnRecyclerViewItemClickListenner {
+        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentListener {
 
     private static final String TAG = ActivityDashboard.class.getSimpleName();
 
     private static final int MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE = 100;
 
-
     //Instance fragment's
     private FragmentMapa mFragmentMapa;
     private FragmentBag mFragmentBag;
-    private FragmentPokemon mFragmentPokemonn;
     private FragmentPokemonBank mFragmentPokemonBank;
+    private FragmentCompare mFragmentCompare;
+
     private int visibleFragment = Constants.FRAGMENT_POKEBANK;
 
     // API PokemonGO
@@ -82,20 +86,19 @@ public class ActivityDashboard extends AppCompatActivity
     private int mUserLevel = 0;
     private long mUserExperience = 0;
     private long mUserNextLevelXP = 0;
-    private long mUserPrevLevelXP = 0;
-    private long mUserStardust = 0;
+    public static long mUserStardust = 0;
     private int mUserBagSpace = 0;
     private int mUserPokeBankSpace = 0;
-    private long mCreationTime =0;
+    private long mCreationTime = 0;
 
     private Boolean isGoogleAccount;
-    private Map<String, String> mRewardsMap= new HashMap<String, String>();
+    private Map<String, String> mRewardsMap = new HashMap<String, String>();
     private PrefManager prefmanager;
 
     // Activity UI
     private View mView;
-    public  static NavigationView mNavigationView;
-    public  static DrawerLayout mDrawerLayout;
+    public static NavigationView mNavigationView;
+    public static DrawerLayout mDrawerLayout;
     private View mProgressView;
     private View mContainerFormView;
     private TextView mNavHeaderUserName, mNavHeaderUserLevel, mNavHeaderUserXP, mNavHeaderUserStardust, mNavHeaderUserAntiquity, mNavHeaderUserBagSpace, mNavHeaderUserPokeBankSpace;
@@ -111,8 +114,9 @@ public class ActivityDashboard extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        isGoogleAccount = getGooglePref(Constants.KEY_PREF_GOOGLE);
         prefmanager = new PrefManager(this);
+
+        isGoogleAccount = prefmanager.getGooglePref();
 
         //Get elemtns of UI
         mView = findViewById(R.id.layout_main_content);
@@ -128,11 +132,11 @@ public class ActivityDashboard extends AppCompatActivity
         mNavHeaderImage = (ImageView) mHeaderView.findViewById(R.id.nav_header_image);
         mNavHeaderUserName = (TextView) mHeaderView.findViewById(R.id.nav_header_user_name);
         mNavHeaderUserLevel = (TextView) mHeaderView.findViewById(R.id.nav_header_user_level);
-        mNavHeaderUserXP= (TextView) mHeaderView.findViewById(R.id.nav_header_user_xp);
+        mNavHeaderUserXP = (TextView) mHeaderView.findViewById(R.id.nav_header_user_xp);
         mNavHeaderUserStardust = (TextView) mHeaderView.findViewById(R.id.nav_header_user_stardust);
         mNavHeaderUserAntiquity = (TextView) mHeaderView.findViewById(R.id.nav_header_user_antiquity);
         mNavHeaderUserBagSpace = (TextView) mHeaderView.findViewById(R.id.nav_header_user_bag_space);
-        mNavHeaderUserPokeBankSpace= (TextView) mHeaderView.findViewById(R.id.nav_header_user_pokebank_space);
+        mNavHeaderUserPokeBankSpace = (TextView) mHeaderView.findViewById(R.id.nav_header_user_pokebank_space);
 
         mNavHeaderXpBar = (SeekBar) mHeaderView.findViewById(R.id.bar_xp);
 
@@ -159,7 +163,7 @@ public class ActivityDashboard extends AppCompatActivity
 
             @Override
             public void onDrawerClosed(View drawerView) {
-                if (visibleFragment==Constants.FRAGMENT_MAPA){
+                if (visibleFragment == Constants.FRAGMENT_MAPA) {
                     mFragmentMapa.showCustomDialog();
                 }
             }
@@ -169,6 +173,21 @@ public class ActivityDashboard extends AppCompatActivity
 
             }
         });
+
+        getSupportFragmentManager().addOnBackStackChangedListener(
+                new FragmentManager.OnBackStackChangedListener() {
+                    public void onBackStackChanged() {
+                        // Update your UI here.
+                        Fragment f = getSupportFragmentManager().findFragmentById(R.id.content_fragment);
+                        if (f != null) {
+                            Log.i(TAG, "llamamos a UpdateTitle");
+                            updateNavigationView(f);
+                        } else {
+                            Log.i(TAG, "El fragment es = null");
+                        }
+
+                    }
+                });
 
         setUpData();
     }
@@ -195,13 +214,31 @@ public class ActivityDashboard extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-            mDrawerLayout.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
 
+        if (getSupportFragmentManager().getBackStackEntryCount() == 1){
+            if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                mDrawerLayout.closeDrawer(GravityCompat.START);
+            } else {
+                //Verificamos que no haya elementos seleccionados en la lista de pokémon
+                if (mFragmentPokemonBank!=null){
+                    if (mFragmentPokemonBank.canFinish()){
+                        finish();
+                    }
+                }else{
+                    finish();
+                }
+
+            }
+        }
+        else{
+            if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                mDrawerLayout.closeDrawer(GravityCompat.START);
+            } else {
+                super.onBackPressed();
+            }
+        }
+
+    }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -209,77 +246,124 @@ public class ActivityDashboard extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        //Showing the progress
-        showProgress(true);
-
         if (id == R.id.nav_fragment_map) {
             // Handle the camera action
             visibleFragment = Constants.FRAGMENT_MAPA;
-            setFragment(Constants.FRAGMENT_MAPA);
-        } else if (id == R.id.nav_fragment_bag) {
+            setFragment(Constants.FRAGMENT_MAPA, null);
+        }
+        else if (id == R.id.nav_fragment_bag) {
             visibleFragment = Constants.FRAGMENT_BAG;
-            setFragment(Constants.FRAGMENT_BAG);
-        } else if (id == R.id.nav_fragment_transfer) {
+            setFragment(Constants.FRAGMENT_BAG, null);
+        }
+        else if (id == R.id.nav_fragment_transfer) {
             // Handle the camera action
             visibleFragment = Constants.FRAGMENT_POKEBANK;
-            setFragment(Constants.FRAGMENT_POKEBANK);
-        }  else if (id == R.id.nav_sing_out) {
+            setFragment(Constants.FRAGMENT_POKEBANK, null);
+        }
+        else if (id == R.id.nav_sing_out) {
             deleteCredentials();
             startActivity(new Intent(ActivityDashboard.this, ActivitySelectAccount.class));
             finish();
-        }
-        else if (id== R.id.nav_contact){
+        } else if (id == R.id.nav_contact) {
             goToAppDetail();
         }
 
         mDrawerLayout.closeDrawer(GravityCompat.START);
+
+        //Showing the progress
+        showProgress(true);
+
         return true;
     }
 
-    public void setFragment(int position) {
-
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+    public void setFragment(int position, Object object) {
 
         switch (position) {
             case Constants.FRAGMENT_BLANK:
-                FragmentBlank mFragmentBlank  = FragmentBlank.newInstance();
-                fragmentTransaction.replace(R.id.content_fragment, mFragmentBlank);
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                FragmentBlank mFragmentBlank = FragmentBlank.newInstance();
+                fragmentTransaction.add(R.id.content_fragment, mFragmentBlank);
                 fragmentTransaction.commit();
-
                 break;
             case Constants.FRAGMENT_MAPA:
                 if (mGO != null) {
-                    mFragmentMapa = FragmentMapa.newInstance(mGO);
-                    fragmentTransaction.replace(R.id.content_fragment, mFragmentMapa);
-                    fragmentTransaction.commit();
+                    if (mFragmentMapa==null){
+                        mFragmentMapa = FragmentMapa.newInstance(mGO);
+                        replaceFragment(mFragmentMapa);
+                    }else{
+                        showProgress(false);
+                    }
                 }
-
                 break;
-
             case Constants.FRAGMENT_BAG:
                 if (mGO != null) {
-                    mFragmentBag = FragmentBag.newInstance(mGO);
-                    fragmentTransaction.replace(R.id.content_fragment, mFragmentBag);
-                    fragmentTransaction.commit();
+                    if (mFragmentBag==null){
+                        mFragmentBag = FragmentBag.newInstance(mGO);
+                        replaceFragment(mFragmentBag);
+                    }
+                    else{
+                        showProgress(false);
+                    }
                 }
-
                 break;
-
             case Constants.FRAGMENT_POKEBANK:
                 if (mGO != null) {
-                    //mFragmentPokemon = mFragmentPokemon.newInstance(mGO);
-                    //fragmentTransaction.replace(R.id.content_fragment, mFragmentPokemon);
-
-                    mFragmentPokemonBank =  mFragmentPokemonBank.newInstance(mGO);
-                    fragmentTransaction.replace(R.id.content_fragment, mFragmentPokemonBank);
-
-                    fragmentTransaction.commit();
+                    if (mFragmentPokemonBank==null){
+                        //mFragmentPokemon = mFragmentPokemon.newInstance(mGO);
+                        mFragmentPokemonBank = FragmentPokemonBank.newInstance(mGO);
+                        replaceFragment(mFragmentPokemonBank);
+                    }else{
+                        showProgress(false);
+                    }
                 }
                 break;
+
+            case Constants.FRAGMENT_COMPARE:
+                if (mGO != null) {
+                    mFragmentCompare = FragmentCompare.newInstance(mGO, (List<LocalUserPokemon>) object);
+                    replaceFragment(mFragmentCompare);
+                }
+                break;
+
         }
     }
 
+    private void replaceFragment(Fragment fragment) {
+        String backStateName = fragment.getClass().getSimpleName();
+        FragmentManager manager = getSupportFragmentManager();
+        boolean fragmentPopped = manager.popBackStackImmediate(backStateName, 0);
+
+        FragmentTransaction ft;
+
+        if (!fragmentPopped) { //fragment not in back stack, create it.
+
+            Log.i(TAG, "fragment not in back stack, create it");
+            ft = manager.beginTransaction();
+            ft.add(R.id.content_fragment, fragment);
+            ft.addToBackStack(backStateName);
+            ft.commit();
+        }
+    }
+
+    private void updateNavigationView(Fragment fragment) {
+        String fragClassName = fragment.getClass().getSimpleName();
+
+        switch (fragClassName){
+            case "FragmentPokemonBank":
+                mNavigationView.getMenu().getItem(Constants.FRAGMENT_POKEBANK).setChecked(true);
+                visibleFragment = Constants.FRAGMENT_POKEBANK;
+                break;
+            case "FragmentBag":
+                mNavigationView.getMenu().getItem(Constants.FRAGMENT_BAG).setChecked(true);
+                visibleFragment = Constants.FRAGMENT_BAG;
+                break;
+            case "FragmentMapa":
+                mNavigationView.getMenu().getItem(Constants.FRAGMENT_MAPA).setChecked(true);
+                visibleFragment = Constants.FRAGMENT_MAPA;
+                break;
+        }
+    }
 
     /**
      * @return Si se puede visualizar true, si no se puede visualizar false
@@ -302,27 +386,18 @@ public class ActivityDashboard extends AppCompatActivity
     }
 
     @Override
-    @TargetApi(Build.VERSION_CODES.M)
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE) {
 
+        if (requestCode == MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE) {
             final boolean canShow = showMapHead();
             if (!canShow) {
                 Log.i(TAG, "Permiso Denegado");
             }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
         }
 
-        if (requestCode == Constants.REQUEST_CODE_ACTIVITY_FILTROS && resultCode == RESULT_OK) {
-            mFragmentMapa.onActivityResult(requestCode, resultCode, data);
-        }
 
-    }
-
-    @Override
-    public void OnViewItemClick(Object childItem) {
-        if (mFragmentBag != null) {
-            mFragmentBag.startAction(childItem);
-        }
     }
 
     /**
@@ -380,10 +455,7 @@ public class ActivityDashboard extends AppCompatActivity
                         mCreationTime = playerData.getCreationTimestampMs();
                         mUserLevel = stats.getLevel();
                         mUserExperience = stats.getExperience();
-                        mUserPrevLevelXP = stats.getPrevLevelXp();
                         mUserNextLevelXP = stats.getNextLevelXp();
-
-
 
 
                         return true;
@@ -422,16 +494,16 @@ public class ActivityDashboard extends AppCompatActivity
 
                 mNavHeaderUserName.setText(mUserName);
                 mNavHeaderUserAntiquity.setText(getDate(mCreationTime));
-                mNavHeaderUserLevel.setText(getString(R.string.nav_header_user_level) +" " + String.valueOf(mUserLevel));
-                mNavHeaderUserXP.setText(String.valueOf(Long.valueOf(mRewardsMap.get(String.valueOf(mUserLevel))) - (mUserNextLevelXP-mUserExperience)) + " / "+ mRewardsMap.get(String.valueOf(mUserLevel)));
+                mNavHeaderUserLevel.setText(getString(R.string.nav_header_user_level) + " " + String.valueOf(mUserLevel));
+                mNavHeaderUserXP.setText(String.valueOf(Long.valueOf(mRewardsMap.get(String.valueOf(mUserLevel))) - (mUserNextLevelXP - mUserExperience)) + " / " + mRewardsMap.get(String.valueOf(mUserLevel)));
 
                 mNavHeaderXpBar.setMax(Integer.parseInt(mRewardsMap.get(String.valueOf(mUserLevel))));
-                mNavHeaderXpBar.setProgress(Integer.parseInt(mRewardsMap.get(String.valueOf(mUserLevel))) - Long.valueOf(mUserNextLevelXP-mUserExperience).intValue());
+                mNavHeaderXpBar.setProgress(Integer.parseInt(mRewardsMap.get(String.valueOf(mUserLevel))) - Long.valueOf(mUserNextLevelXP - mUserExperience).intValue());
 
-                mNavHeaderUserStardust.setText(getString(R.string.nav_header_user_stardust)  + " " + String.valueOf(mUserStardust));
+                mNavHeaderUserStardust.setText(getString(R.string.nav_header_user_stardust) + " " + String.valueOf(mUserStardust));
 
-                mNavHeaderUserBagSpace.setText(getString(R.string.nav_header_user_bag_space)  + " " + String.valueOf(mUserBagSpace));
-                mNavHeaderUserPokeBankSpace.setText(getString(R.string.nav_header_user_pokebank_space)  + " " + String.valueOf(mUserPokeBankSpace));
+                mNavHeaderUserBagSpace.setText(getString(R.string.nav_header_user_bag_space) + " " + String.valueOf(mUserBagSpace));
+                mNavHeaderUserPokeBankSpace.setText(getString(R.string.nav_header_user_pokebank_space) + " " + String.valueOf(mUserPokeBankSpace));
 
                 switch (mUserTeam) {
                     case 1:
@@ -447,16 +519,16 @@ public class ActivityDashboard extends AppCompatActivity
                         mNavHeaderImage.setImageResource(R.drawable.ic_gym_team_white);
                         break;
                 }
-                setFragment(visibleFragment);
+                setFragment(visibleFragment, null);
                 mNavigationView.getMenu().getItem(visibleFragment).setChecked(true);
 
-                if (prefmanager.isFirstTimeLaunch()){
+                if (prefmanager.isFirstTimeLaunch()) {
                     mDrawerLayout.openDrawer(mNavigationView);
                     prefmanager.setFirstTimeLaunch(false);
                 }
             } else {
 
-                setFragment(Constants.FRAGMENT_BLANK);
+                setFragment(Constants.FRAGMENT_BLANK, null);
                 mNavigationView.getMenu().getItem(visibleFragment).setChecked(false);
 
                 if (isDeviceOnline()) {
@@ -511,27 +583,24 @@ public class ActivityDashboard extends AppCompatActivity
 
     public boolean isDeviceOnline() {
 
-        // get Connectivity Manager object to check connection
-        ConnectivityManager connec =
-                (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        boolean isConnected = false;
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
 
-        // Check for network connections
-        if (connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.CONNECTED ||
-                connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.CONNECTING ||
-                connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.CONNECTING ||
-                connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.CONNECTED) {
-
-
-            return true;
-
-        } else if (
-                connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.DISCONNECTED ||
-                        connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.DISCONNECTED) {
-
-
-            return false;
+        if (activeNetwork != null) { // connected to the internet
+            if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI) {
+                // connected to wifi
+                isConnected = true;
+            } else if (activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
+                // connected to the mobile provider's data plan
+                isConnected = true;
+            }
+        } else {
+            // not connected to the internet
+            isConnected = false;
         }
-        return false;
+
+        return isConnected;
     }
 
     public void showSnackBar(String snacKMessage, final String buttonTitle) {
@@ -569,14 +638,6 @@ public class ActivityDashboard extends AppCompatActivity
         return pref;
     }
 
-    private Boolean getGooglePref(String KEY_PREF) {
-
-        SharedPreferences prefsPokeWhere = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
-
-        Boolean googlePref = prefsPokeWhere.getBoolean(KEY_PREF, false);
-
-        return googlePref;
-    }
 
     public void deleteCredentials() {
         SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
@@ -589,7 +650,7 @@ public class ActivityDashboard extends AppCompatActivity
         editor.putString(Constants.KEY_PREF_USER_EMAIL, "");
         editor.putString(Constants.KEY_PREF_USER_PASS, "");
 
-        editor.commit();
+        editor.apply();
     }
 
     public void sleep(long millis) {
@@ -600,47 +661,7 @@ public class ActivityDashboard extends AppCompatActivity
         }
     }
 
-    @Override
-    public void onFragmentCreatedViewStatus(Boolean status) {
-
-        //if (visibleFragment != Constants.FRAGMENT_BLANK) {
-            this.visibleFragment = visibleFragment;
-        //}
-    }
-
-    @Override
-    public void onFragmentActionPerform(int action) {
-        switch (action) {
-            case Constants.ACTION_START_SERVICE:
-                final boolean canShow = showMapHead();
-
-                if (!canShow) {
-                    // 広告トリガーのFloatingViewの表示許可設定
-                    @SuppressLint("InlinedApi")
-                    final Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + ActivityDashboard.this.getPackageName()));
-                    startActivityForResult(intent, MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE);
-                }
-                break;
-
-
-            case Constants.ACTION_REFRESH_TOKEN:
-                if (mConnectTask == null) {
-                    mConnectTask = new ConnectWithPokemonGoTask();
-                    mConnectTask.execute();
-                }
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    @Override
-    public void showProgress(Boolean show) {
-        showProgressView(show);
-    }
-
-    public void goToAppDetail(){
+    public void goToAppDetail() {
         final String packageName = Constants.PACKAGE_NAME;
         String url = "";
 
@@ -649,7 +670,7 @@ public class ActivityDashboard extends AppCompatActivity
             this.getPackageManager().getPackageInfo("com.android.vending", 0);
 
             url = "market://details?id=" + packageName;
-        } catch ( final Exception e ) {
+        } catch (final Exception e) {
             url = "https://play.google.com/store/apps/details?id=" + packageName;
         }
 
@@ -659,7 +680,6 @@ public class ActivityDashboard extends AppCompatActivity
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
         startActivity(intent);
     }
-
 
     public void setUpData() {
 
@@ -722,7 +742,6 @@ public class ActivityDashboard extends AppCompatActivity
         return DateFormat.format("dd-MM-yyyy", cal).toString();
     }
 
-
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         // ignore orientation change
@@ -731,5 +750,54 @@ public class ActivityDashboard extends AppCompatActivity
         }
     }
 
+    /**
+     * Allow an interaction in this fragment to be communicated
+     * to the activity and potentially other fragments contained in that
+     * activity.
+     * <p>
+     * >Communicating activity with Other Fragments</a> for more information.
+     */
+    @Override
+    public void onFragmentCreatedViewStatus(boolean status) {
+
+        //if (visibleFragment != Constants.FRAGMENT_BLANK) {
+        this.visibleFragment = visibleFragment;
+        //}
+    }
+
+    @Override
+    public void showProgress(Boolean show) {
+        showProgressView(show);
+    }
+
+    @Override
+    public void onFragmentActionPerform(int action, Object object) {
+        switch (action) {
+            case Constants.ACTION_START_SERVICE:
+                final boolean canShow = showMapHead();
+
+                if (!canShow) {
+                    // 広告トリガーのFloatingViewの表示許可設定
+                    @SuppressLint("InlinedApi")
+                    final Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + ActivityDashboard.this.getPackageName()));
+                    startActivityForResult(intent, MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE);
+                }
+                break;
+
+
+            case Constants.ACTION_REFRESH_TOKEN:
+                if (mConnectTask == null) {
+                    mConnectTask = new ConnectWithPokemonGoTask();
+                    mConnectTask.execute();
+                }
+                break;
+
+            case Constants.FRAGMENT_ACTION_VER_TODOS:
+                setFragment(Constants.FRAGMENT_COMPARE, object);
+                break;
+            default:
+                break;
+        }
+    }
 }
 

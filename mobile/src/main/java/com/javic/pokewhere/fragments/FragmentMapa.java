@@ -15,6 +15,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -68,7 +69,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.ActivityFiltros;
 import com.javic.pokewhere.R;
-import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
+import com.javic.pokewhere.interfaces.OnFragmentListener;
 import com.javic.pokewhere.models.LocalGym;
 import com.javic.pokewhere.models.LocalPokeStop;
 import com.javic.pokewhere.models.LocalPokemon;
@@ -156,7 +157,7 @@ public class FragmentMapa extends Fragment implements
 
     //Class and interface
     private CounterToRemoveMarkers mCounterToRemoveMarkers;
-    private OnFragmentCreatedViewListener mListener;
+    private OnFragmentListener mListener;
 
     //Handlres
     HandlerThread mHandlerThread;
@@ -282,11 +283,11 @@ public class FragmentMapa extends Fragment implements
         super.onAttach(context);
         mContext = context;
 
-        if (context instanceof OnFragmentCreatedViewListener) {
-            mListener = (OnFragmentCreatedViewListener) context;
+        if (context instanceof OnFragmentListener) {
+            mListener = (OnFragmentListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentCreatedViewListener");
+                    + " must implement OnFragmentListener");
         }
     }
 
@@ -1346,7 +1347,7 @@ public class FragmentMapa extends Fragment implements
                         }
                         break;
                     case R.id.action_start_service:
-                        mListener.onFragmentActionPerform(Constants.ACTION_START_SERVICE);
+                        mListener.onFragmentActionPerform(Constants.ACTION_START_SERVICE, null);
                         break;
                     default:
                         Intent intent = new Intent(mContext, ActivityFiltros.class);
@@ -1516,27 +1517,25 @@ public class FragmentMapa extends Fragment implements
 
     public boolean isDeviceOnline() {
 
-        // get Connectivity Manager object to check connection
-        ConnectivityManager connec =
-                (ConnectivityManager) mContext.getSystemService(mContext.CONNECTIVITY_SERVICE);
+        boolean isConnected = false;
+        ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
 
-        // Check for network connections
-        if (connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.CONNECTED ||
-                connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.CONNECTING ||
-                connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.CONNECTING ||
-                connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.CONNECTED) {
-
-
-            return true;
-
-        } else if (
-                connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.DISCONNECTED ||
-                        connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.DISCONNECTED) {
-
-
-            return false;
+        if (activeNetwork != null) { // connected to the internet
+            if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI) {
+                // connected to wifi
+                isConnected = true;
+            } else if (activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
+                // connected to the mobile provider's data plan
+                isConnected = true;
+            }
         }
-        return false;
+        else {
+            // not connected to the internet
+            isConnected = false;
+        }
+
+        return isConnected;
     }
 
     public static String createDate(long timestamp) {

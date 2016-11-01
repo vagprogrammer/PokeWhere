@@ -8,19 +8,13 @@
     android:fitsSystemWindows="true"
     tools:openDrawer="start">
 
-    <!--<include
-        layout="@layout/layout_app_bar_activity_main"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />-->
 
     <FrameLayout
         android:id="@+id/layout_main_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <include layout="@layout/layout_content_activity_main"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+        <include layout="@layout/layout_content_activity_main" />
 
     </FrameLayout>
 

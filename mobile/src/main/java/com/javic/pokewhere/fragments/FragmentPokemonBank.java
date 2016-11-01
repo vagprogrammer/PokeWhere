@@ -7,6 +7,7 @@ import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,11 +32,17 @@ import android.widget.Toast;
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerView;
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerViewAdapter;
 import com.afollestad.materialcab.MaterialCab;
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.daimajia.androidanimations.library.Techniques;
+import com.daimajia.androidanimations.library.YoYo;
 import com.javic.pokewhere.ActivityDashboard;
+import com.javic.pokewhere.ActivityPokemonDetail;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.adapters.AdapterPokemonBank;
-import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
+import com.javic.pokewhere.interfaces.OnFragmentListener;
+import com.javic.pokewhere.interfaces.OnViewItemClickListenner;
 import com.javic.pokewhere.models.LocalUserPokemon;
+import com.javic.pokewhere.util.Constants;
 import com.javic.pokewhere.util.PokemonCreationTimeComparator;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.pokemon.Pokemon;
@@ -47,21 +54,20 @@ import com.roughike.bottombar.OnTabSelectListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
-import POGOProtos.Enums.PokemonIdOuterClass;
+import static android.app.Activity.RESULT_OK;
 
-public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.ClickListener, DragSelectRecyclerViewAdapter.SelectionListener, MaterialCab.Callback{
+public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.ClickListener, DragSelectRecyclerViewAdapter.SelectionListener, MaterialCab.Callback, OnViewItemClickListenner {
 
     private static final String TAG = FragmentPokemonBank.class.getSimpleName();
 
     private static final int TASK_GETPOKEMON = 0;
 
-    private OnFragmentCreatedViewListener mListener;
+    //Callback
+    private OnFragmentListener mListener;
 
     //Context
     private Context mContext;
@@ -80,15 +86,18 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     private static PokemonGo mPokemonGo;
 
     //Listas
-    private List<Pokemon> mUserPokemonList;
-    private List<LocalUserPokemon> mLocalUserPokemonList;
+    static public List<Pokemon> mUserPokemonList;
+    static public List<LocalUserPokemon> mLocalUserPokemonList;
+    private List<LocalUserPokemon> specificPokemonList;
 
     //Variables
     public int pokemonStorage;
     public int totalPokemons;
+    public boolean favoriteTaskWasCanceled = false;
 
     //Tasks
     private GetPokemonsTask mGetPokemonsTask;
+    private SetFavoriteTask mSetFavoriteTask;
 
     //Adapter
     private AdapterPokemonBank mAdapter;
@@ -152,7 +161,8 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         mGridLayoutManager = new GridLayoutManager(mContext, 3);
         // Setup adapter and callbacks
         mLocalUserPokemonList = new ArrayList<>();
-        mAdapter = new AdapterPokemonBank(mContext,this, mLocalUserPokemonList);
+
+        mAdapter = new AdapterPokemonBank(mContext, this, this, mLocalUserPokemonList);
         // Receives selection updates, recommended to set before restoreInstanceState() so initial reselection is received
         mAdapter.setSelectionListener(this);
 
@@ -165,7 +175,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
             @Override
             public void onTabSelected(@IdRes int tabId) {
 
-                switch (tabId){
+                switch (tabId) {
                     case R.id.tab_iv:
                         // Sorting
                         Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
@@ -217,6 +227,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         return mView;
     }
 
+
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -244,11 +255,12 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
 
         final int selectedCount = mAdapter.getSelectedCount();
 
-        if (selectedCount>0){
+        if (selectedCount > 0) {
             mAdapter.toggleSelected(index);
-        }
-        else{
-            Toast.makeText(mContext, "Ver detalle", Toast.LENGTH_SHORT).show();
+        } else {
+            Intent i = new Intent(mContext, ActivityPokemonDetail.class);
+            i.putExtra("index", index);
+            startActivityForResult(i, Constants.REQUEST_CODE_ACTIVITY_POKEMON_DETAIL);
         }
     }
 
@@ -284,6 +296,38 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     @Override
     public boolean onCabCreated(MaterialCab cab, Menu menu) {
         return true;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        mAdapter.setSelectionListener(this);
+
+        if (favoriteTaskWasCanceled) {
+            favoriteTaskWasCanceled = false;
+
+            if (mGetPokemonsTask == null) {
+                mGetPokemonsTask = new GetPokemonsTask();
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                    mGetPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                } else {
+                    mGetPokemonsTask.execute();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if (mSetFavoriteTask != null) {
+            mSetFavoriteTask.cancel(true);
+        }
+
+        mAdapter.setSelectionListener(null);
     }
 
     @Override
@@ -325,8 +369,8 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         super.onAttach(context);
         mContext = context;
 
-        if (context instanceof OnFragmentCreatedViewListener) {
-            mListener = (OnFragmentCreatedViewListener) context;
+        if (context instanceof OnFragmentListener) {
+            mListener = (OnFragmentListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -339,10 +383,38 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         mListener = null;
     }
 
+    @Override
+    public void OnViewItemClick(Object childItem, View view) {
+
+        Log.i(TAG, "OnViewItemClick");
+
+        switch (view.getId()) {
+            case R.id.imgFavorite:
+                if (mSetFavoriteTask == null) {
+
+                    LocalUserPokemon localPokemon = (LocalUserPokemon) childItem;
+
+                    mSetFavoriteTask = new SetFavoriteTask(getUserPokemon(localPokemon.getId()), localPokemon);
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                        mSetFavoriteTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    } else {
+                        mSetFavoriteTask.execute();
+                    }
+                }
+                break;
+            case R.id.btnCompare:
+                if (mListener!=null){
+                    mListener.onFragmentActionPerform(Constants.FRAGMENT_ACTION_VER_TODOS, getAllPokemonByName(((LocalUserPokemon) childItem).getName()));
+                }
+                break;
+        }
+    }
+
 
     public class GetPokemonsTask extends AsyncTask<Void, Void, Boolean> {
 
-        private int specificPokemonCount = 0;
+        private int currentTabId;
 
         @Override
         protected void onPreExecute() {
@@ -354,6 +426,8 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
 
             mUserPokemonList = new ArrayList<>();
             mLocalUserPokemonList = new ArrayList<>();
+
+            currentTabId = mBottomBar.getCurrentTabId();
 
             super.onPreExecute();
         }
@@ -377,7 +451,6 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
 
                             LocalUserPokemon localUserPokemon = new LocalUserPokemon();
                             localUserPokemon.setId(pokemon.getId());
-                            localUserPokemon.setPokemonId(pokemon.getPokemonId().toString());
                             localUserPokemon.setName(pokemon.getPokemonId().toString());
                             localUserPokemon.setNickname(pokemon.getNickname());
                             localUserPokemon.setBitmap(getBitmapFromAssets(pokemon.getPokemonId().getNumber()));
@@ -396,11 +469,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
                             localUserPokemon.setPowerUpStardust(pokemon.getStardustCostsForPowerup());
                             localUserPokemon.setPoweUpCandies(pokemon.getCandyCostsForPowerup());
                             localUserPokemon.setEvolveCandies(pokemon.getCandiesToEvolve());
-                            localUserPokemon.setCreationTime(createDate(pokemon.getCreationTimeMs()));
-
-                            if (!containsEncounteredId(pokemon.getPokemonId())) {
-                                specificPokemonCount = mPokemonGo.getInventories().getPokebank().getPokemonByPokemonId(pokemon.getPokemonId()).size();
-                            }
+                            localUserPokemon.setCreationTimeMillis(pokemon.getCreationTimeMs());
 
                             mLocalUserPokemonList.add(localUserPokemon);
                         } else {
@@ -409,13 +478,50 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
                         }
                     }
 
-                    // Sorting
-                    Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-                        @Override
-                        public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-                            return pokemon2.getIv() - pokemon1.getIv(); // Ascending
-                        }
-                    });
+                    switch (currentTabId) {
+                        case R.id.tab_iv:
+                            // Sorting
+                            Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
+                                @Override
+                                public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
+                                    return pokemon2.getIv() - pokemon1.getIv(); // Ascending
+                                }
+                            });
+                            break;
+                        case R.id.tab_cp:
+                            // Sorting
+                            Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
+                                @Override
+                                public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
+                                    return pokemon2.getCp() - pokemon1.getCp(); // Ascending
+                                }
+                            });
+                            break;
+                        case R.id.tab_recents:
+                            Collections.sort(mLocalUserPokemonList, new PokemonCreationTimeComparator());
+                            break;
+                        case R.id.tab_name:
+                            // Sorting
+                            Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
+
+                                @Override
+                                public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
+
+                                    return pokemon1.getName().compareTo(pokemon2.getName());
+                                }
+                            });
+                            break;
+                        case R.id.tab_number:
+                            // Sorting
+                            Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
+                                @Override
+                                public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
+                                    return pokemon1.getNumber() - pokemon2.getNumber(); // Ascending
+                                }
+                            });
+                            break;
+
+                    }
 
                     Log.i(TAG, "GET_POKEMON_TASK: doInBackground: true");
                     return true;
@@ -442,7 +548,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
             mGetPokemonsTask = null;
 
             if (succes) {
-                setActionBarTitle(String.valueOf(totalPokemons) + "/" + String.valueOf(pokemonStorage) + " pokemons");
+                setActionBarTitle(String.valueOf(totalPokemons) + "/" + String.valueOf(pokemonStorage) + " " + getString(R.string.text_pokemones));
                 mAdapter.upDateAdapter(mLocalUserPokemonList);
             } else {
                 setActionBarTitle(getString(R.string.snack_bar_error_with_pokemon));
@@ -466,26 +572,119 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
 
     }
 
+    public class SetFavoriteTask extends AsyncTask<Void, String, Boolean> {
+
+        private Pokemon pokemon;
+        private LocalUserPokemon localUserPokemon;
+
+        private MaterialDialog.Builder builder;
+        private MaterialDialog dialog;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            Log.i(TAG, "SET_FAVORITE_TASK: onPreExecute");
+
+            builder = new MaterialDialog.Builder(mContext)
+                    .content(getString(R.string.dialog_content_please_wait))
+                    .cancelable(false)
+                    .progress(true, 0)
+                    .progressIndeterminateStyle(true);
+            dialog = builder.build();
+            dialog.show();
+        }
+
+        public SetFavoriteTask(Pokemon pokemon, LocalUserPokemon localUserPokemon) {
+            this.pokemon = pokemon;
+            this.localUserPokemon = localUserPokemon;
+            Log.i(TAG, "SET_FAVORITE_TASK: constructor");
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+            Log.i(TAG, "SET_FAVORITE_TASK: doInBackground:start");
+            try {
+                try {
+                    pokemon.setFavoritePokemon(!localUserPokemon.getFavorite());
+                    mPokemonGo.getInventories().updateInventories(true);
+                    Log.i(TAG, "SET_FAVORITE_TASK: doInBackground: true");
+                    return true;
+                } catch (LoginFailedException | RemoteServerException e) {
+                    e.printStackTrace();
+                    Log.i(TAG, "SET_FAVORITE_TASK: doInBackground: login or remote server exception");
+                    return false;
+                }
+
+            } catch (Exception e) {
+                Log.e(TAG, e.toString());
+                Log.i(TAG, "SET_FAVORITE_TASK: doInBackground: exception");
+                return false;
+
+            }
+
+        }
+
+        @Override
+        protected void onPostExecute(Boolean succes) {
+            Log.i(TAG, "SET_FAVORITE_TASK: onPostExecute");
+            mSetFavoriteTask = null;
+            dialog.dismiss();
+
+            if (succes) {
+                AdapterPokemonBank.PokemonBankViewHolder
+                        holder = (AdapterPokemonBank.PokemonBankViewHolder) mRecyclerView.findViewHolderForAdapterPosition(mLocalUserPokemonList.indexOf(localUserPokemon));
+
+                YoYo.with(Techniques.RotateIn)
+                        .duration(800)
+                        .playOn(holder.imgFavorite);
+
+                if (!localUserPokemon.getFavorite()) {
+                    holder.imgFavorite.setImageResource(R.drawable.ic_bookmarked);
+                } else {
+                    holder.imgFavorite.setImageResource(R.drawable.ic_bookmark);
+                }
+
+
+                localUserPokemon.setFavorite(!localUserPokemon.getFavorite());
+            } else {
+                Toast.makeText(mContext, getString(R.string.snack_bar_error_with_pokemon), Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+            Log.i(TAG, "SET_FAVORITE_TASK: onCancelled");
+            dialog.dismiss();
+            mSetFavoriteTask = null;
+
+            localUserPokemon.setFavorite(!localUserPokemon.getFavorite());
+            favoriteTaskWasCanceled = true;
+        }
+
+    }
+
 
     public boolean isDeviceOnline() {
 
-        // get Connectivity Manager object to check connection
-        ConnectivityManager connec =
-                (ConnectivityManager) mContext.getSystemService(mContext.CONNECTIVITY_SERVICE);
+        boolean isConnected = false;
+        ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
 
-        // Check for network connections
-        if (connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.CONNECTED ||
-                connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.CONNECTING ||
-                connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.CONNECTING ||
-                connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.CONNECTED) {
-            return true;
-
-        } else if (
-                connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.DISCONNECTED ||
-                        connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.DISCONNECTED) {
-            return false;
+        if (activeNetwork != null) { // connected to the internet
+            if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI) {
+                // connected to wifi
+                isConnected = true;
+            } else if (activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
+                // connected to the mobile provider's data plan
+                isConnected = true;
+            }
+        } else {
+            // not connected to the internet
+            isConnected = false;
         }
-        return false;
+
+        return isConnected;
     }
 
     public void setActionBarTitle(final String message) {
@@ -493,18 +692,16 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(message);
     }
 
+    public Pokemon getUserPokemon(Long idPokemon) {
 
-    public boolean containsEncounteredId(PokemonIdOuterClass.PokemonId enconunteredPokemonId) {
+        for (Pokemon pokemon : mUserPokemonList) {
+            Long id = pokemon.getId();
 
-        //If the encontered id exist, return true, if it doesn't exist return false
-
-        for (LocalUserPokemon localUserPokemon : mLocalUserPokemonList) {
-            if (localUserPokemon.getId().equals(enconunteredPokemonId.toString())) {
-                return true;
+            if (String.valueOf(id).equalsIgnoreCase(String.valueOf(idPokemon))) {
+                return pokemon;
             }
         }
-
-        return false;
+        return null;
     }
 
     public void showSnackBar(String snacKMessage, final String buttonTitle, final int task) {
@@ -546,20 +743,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         mSnackBar.show();
     }
 
-    public Calendar createDate(long timestamp) {
-
-        //Fri Aug 26 19:54:06 CDT 2016
-        Date date = new Date(timestamp);
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-
-        Log.i(TAG, date.toString());
-        return calendar;
-
-    }
-
-    public Bitmap getBitmapFromAssets(int pokemonIdNumber){
+    public Bitmap getBitmapFromAssets(int pokemonIdNumber) {
         AssetManager assetManager = mContext.getAssets();
 
         Bitmap bitmap = null;
@@ -568,7 +752,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
             InputStream is = null;
 
             if (pokemonIdNumber < 10) {
-                is = assetManager.open(String.valueOf("00" +pokemonIdNumber) + ".png");
+                is = assetManager.open(String.valueOf("00" + pokemonIdNumber) + ".png");
             } else if (pokemonIdNumber < 100) {
                 is = assetManager.open(String.valueOf("0" + pokemonIdNumber) + ".png");
             } else {
@@ -581,5 +765,47 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         }
 
         return bitmap;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == Constants.REQUEST_CODE_ACTIVITY_POKEMON_DETAIL && resultCode == RESULT_OK) {
+
+            boolean isChanged = data.getExtras().getBoolean("resultado");
+
+            if (isChanged) {
+                if (mGetPokemonsTask == null) {
+                    mGetPokemonsTask = new GetPokemonsTask();
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                        mGetPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    } else {
+                        mGetPokemonsTask.execute();
+                    }
+                }
+            }
+        }
+    }
+
+    public boolean canFinish(){
+        if (mAdapter.getSelectedCount() > 0) {
+            mAdapter.clearSelected();
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
+
+    private List<LocalUserPokemon> getAllPokemonByName(String name){
+        specificPokemonList = new ArrayList<>();
+
+        for (LocalUserPokemon specificPokemon:mLocalUserPokemonList){
+            if (specificPokemon.getName().equals(name)){
+                specificPokemonList.add(specificPokemon);
+            }
+        }
+
+        return  specificPokemonList;
     }
 }

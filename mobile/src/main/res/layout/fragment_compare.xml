@@ -31,13 +31,6 @@
             app:dsrv_autoScrollHotspotHeight="56dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-        <com.roughike.bottombar.BottomBar
-            android:id="@+id/bottomBar"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_alignParentBottom="true"
-            app:bb_tabXmlResource="@xml/bottombar_tabs" />
-
     </RelativeLayout>
 
 </android.support.design.widget.CoordinatorLayout>

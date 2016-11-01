@@ -8,7 +8,7 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".ActivityDashboard"
     android:background="@drawable/background_login"
-    tools:showIn="@layout/layout_app_bar_activity_main">
+    tools:showIn="@layout/activity_main">
 
 
     <!-- Login progress -->

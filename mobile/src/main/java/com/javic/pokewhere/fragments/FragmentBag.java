@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -30,7 +31,8 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.adapters.AdapterChildItem;
-import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
+import com.javic.pokewhere.interfaces.OnFragmentListener;
+import com.javic.pokewhere.interfaces.OnViewItemClickListenner;
 import com.javic.pokewhere.models.ChildItem;
 import com.javic.pokewhere.models.GroupItem;
 import com.pokegoapi.api.PokemonGo;
@@ -46,14 +48,14 @@ import java.util.List;
 import POGOProtos.Inventory.Item.ItemIdOuterClass;
 import biz.kasual.materialnumberpicker.MaterialNumberPicker;
 
-public class FragmentBag extends Fragment {
+public class FragmentBag extends Fragment implements OnViewItemClickListenner {
 
     private static final String TAG = FragmentBag.class.getSimpleName();
 
     private static final int TASK_ITEMS = 0;
     private static final int TASK_DELETE = 1;
 
-    private OnFragmentCreatedViewListener mListener;
+    private OnFragmentListener mListener;
 
     // API PokemonGO
     private static PokemonGo mPokemonGo;
@@ -198,11 +200,11 @@ public class FragmentBag extends Fragment {
         super.onAttach(context);
         mContext = context;
 
-        if (context instanceof OnFragmentCreatedViewListener) {
-            mListener = (OnFragmentCreatedViewListener) context;
+        if (context instanceof OnFragmentListener) {
+            mListener = (OnFragmentListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentCreatedViewListener");
+                    + " must implement OnFragmentListener");
         }
     }
 
@@ -210,6 +212,11 @@ public class FragmentBag extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void OnViewItemClick(Object childItem, View view) {
+        startAction(childItem);
     }
 
     public class GetItemsTask extends AsyncTask<Void, String, Boolean> {
@@ -629,7 +636,7 @@ public class FragmentBag extends Fragment {
                 setHasOptionsMenu(true);
 
                 //instantiate your adapter with the list of bands
-                mAdapterChildItem = new AdapterChildItem(mGroupItemList, mContext);
+                mAdapterChildItem = new AdapterChildItem(mGroupItemList, mContext, FragmentBag.this);
                 mRecyclerView.setLayoutManager(mLayoutManager);
                 mRecyclerView.setAdapter(mAdapterChildItem);
 
@@ -805,23 +812,25 @@ public class FragmentBag extends Fragment {
 
     public boolean isDeviceOnline() {
 
-        // get Connectivity Manager object to check connection
-        ConnectivityManager connec =
-                (ConnectivityManager) mContext.getSystemService(mContext.CONNECTIVITY_SERVICE);
+        boolean isConnected = false;
+        ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
 
-        // Check for network connections
-        if (connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.CONNECTED ||
-                connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.CONNECTING ||
-                connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.CONNECTING ||
-                connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.CONNECTED) {
-            return true;
-
-        } else if (
-                connec.getNetworkInfo(0).getState() == android.net.NetworkInfo.State.DISCONNECTED ||
-                        connec.getNetworkInfo(1).getState() == android.net.NetworkInfo.State.DISCONNECTED) {
-            return false;
+        if (activeNetwork != null) { // connected to the internet
+            if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI) {
+                // connected to wifi
+                isConnected = true;
+            } else if (activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
+                // connected to the mobile provider's data plan
+                isConnected = true;
+            }
         }
-        return false;
+        else {
+            // not connected to the internet
+            isConnected = false;
+        }
+
+        return isConnected;
     }
 
     public void sleep(long millis) {

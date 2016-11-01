@@ -9,14 +9,14 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.javic.pokewhere.R;
-import com.javic.pokewhere.interfaces.OnFragmentCreatedViewListener;
+import com.javic.pokewhere.interfaces.OnFragmentListener;
 
 
 public class FragmentBlank extends Fragment {
 
     private Context mContext;
 
-    private OnFragmentCreatedViewListener mListener;
+    private OnFragmentListener mListener;
 
     private View mView;
 
@@ -60,11 +60,11 @@ public class FragmentBlank extends Fragment {
         super.onAttach(context);
         mContext = context;
 
-        if (context instanceof OnFragmentCreatedViewListener) {
-            mListener = (OnFragmentCreatedViewListener) context;
+        if (context instanceof OnFragmentListener) {
+            mListener = (OnFragmentListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentCreatedViewListener");
+                    + " must implement OnFragmentListener");
         }
     }
 

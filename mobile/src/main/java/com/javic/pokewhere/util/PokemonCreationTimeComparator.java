@@ -10,6 +10,7 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 
 import java.util.Calendar;
 import java.util.Comparator;
+import java.util.Date;
 
 /**
  * This comparator sorts a list of Creation time by year, month, day, minute, second
@@ -19,12 +20,27 @@ public class PokemonCreationTimeComparator implements Comparator<LocalUserPokemo
 
     @Override
     public int compare(LocalUserPokemon p1, LocalUserPokemon p2) {
+        Calendar calendar1 = createDate(p1.getCreationTimeMillis());
+        Calendar calendar2 = createDate(p2.getCreationTimeMillis());
+
         return new CompareToBuilder()
-                .append(p2.getCreationTime().get(Calendar.YEAR), p1.getCreationTime().get(Calendar.YEAR))
-                .append(p2.getCreationTime().get(Calendar.MONTH), p1.getCreationTime().get(Calendar.MONTH))
-                .append(p2.getCreationTime().get(Calendar.DAY_OF_MONTH), p1.getCreationTime().get(Calendar.DAY_OF_MONTH))
-                .append(p2.getCreationTime().get(Calendar.HOUR), p1.getCreationTime().get(Calendar.HOUR))
-                .append(p2.getCreationTime().get(Calendar.MINUTE), p1.getCreationTime().get(Calendar.MINUTE))
+                .append(calendar2.get(Calendar.YEAR), calendar1.get(Calendar.YEAR))
+                .append(calendar2.get(Calendar.MONTH), calendar1.get(Calendar.MONTH))
+                .append(calendar2.get(Calendar.DAY_OF_MONTH), calendar1.get(Calendar.DAY_OF_MONTH))
+                .append(calendar2.get(Calendar.HOUR), calendar1.get(Calendar.HOUR))
+                .append(calendar2.get(Calendar.MINUTE), calendar1.get(Calendar.MINUTE))
                 .toComparison();
+    }
+
+    public Calendar createDate(long timestamp) {
+
+        //Fri Aug 26 19:54:06 CDT 2016
+        Date date = new Date(timestamp);
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+
+        return calendar;
+
     }
 }
