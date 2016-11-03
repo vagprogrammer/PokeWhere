@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.IdRes;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -23,7 +24,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +32,7 @@ import android.widget.Toast;
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerView;
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerViewAdapter;
 import com.afollestad.materialcab.MaterialCab;
+import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
@@ -42,6 +43,7 @@ import com.javic.pokewhere.adapters.AdapterPokemonBank;
 import com.javic.pokewhere.interfaces.OnFragmentListener;
 import com.javic.pokewhere.interfaces.OnViewItemClickListenner;
 import com.javic.pokewhere.models.LocalUserPokemon;
+import com.javic.pokewhere.models.ProgressTransferPokemon;
 import com.javic.pokewhere.util.Constants;
 import com.javic.pokewhere.util.PokemonCreationTimeComparator;
 import com.pokegoapi.api.PokemonGo;
@@ -58,6 +60,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import POGOProtos.Networking.Responses.ReleasePokemonResponseOuterClass;
+
 import static android.app.Activity.RESULT_OK;
 
 public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.ClickListener, DragSelectRecyclerViewAdapter.SelectionListener, MaterialCab.Callback, OnViewItemClickListenner {
@@ -65,6 +69,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     private static final String TAG = FragmentPokemonBank.class.getSimpleName();
 
     private static final int TASK_GETPOKEMON = 0;
+    private static final int TASK_TRANSFER = 1;
 
     //Callback
     private OnFragmentListener mListener;
@@ -87,9 +92,10 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     private static PokemonGo mPokemonGo;
 
     //Listas
-    static public List<Pokemon> mUserPokemonList;
-    static public List<LocalUserPokemon> mLocalUserPokemonList = new ArrayList<>();
+    private List<Pokemon> mUserPokemonList;
+    private List<LocalUserPokemon> mLocalUserPokemonList = new ArrayList<>();
     private List<LocalUserPokemon> specificPokemonList;
+
 
     //Variables
     public int pokemonStorage;
@@ -99,6 +105,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     //Tasks
     private GetPokemonsTask mGetPokemonsTask;
     private SetFavoriteTask mSetFavoriteTask;
+    private TransferPokemonsTask mTransferPokemonsTask;
 
     //Adapter
     private AdapterPokemonBank mAdapter;
@@ -141,9 +148,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         // Inflate the layout for this fragment
         mView = inflater.inflate(R.layout.fragment_pokemon_bank, container, false);
 
-
         mToolbar = (Toolbar) mView.findViewById(R.id.appbar);
-        mCab = MaterialCab.restoreState(savedInstanceState, (AppCompatActivity) mContext, this);
 
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
         ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -223,7 +228,6 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         return mView;
     }
 
-
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -246,6 +250,26 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     }
 
     @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == Constants.REQUEST_CODE_ACTIVITY_POKEMON_DETAIL && resultCode == RESULT_OK) {
+
+            boolean isChanged = data.getExtras().getBoolean("resultado");
+
+            if (isChanged) {
+                if (mGetPokemonsTask == null) {
+                    mGetPokemonsTask = new GetPokemonsTask();
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                        mGetPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    } else {
+                        mGetPokemonsTask.execute();
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
 
@@ -253,13 +277,12 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
             ActivityDashboard.mDrawerLayout.removeDrawerListener(mDrawerToggle);
         }
 
+
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
-        //mAdapter.setSelectionListener(this);
 
         if (favoriteTaskWasCanceled) {
             favoriteTaskWasCanceled = false;
@@ -289,9 +312,10 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         if (mSetFavoriteTask != null) {
             mSetFavoriteTask.cancel(true);
         }
-
-        //mAdapter.setSelectionListener(null);
     }
+
+
+    // RecyclerView Callbacks
 
     @Override
     public void onClick(int index) {
@@ -302,18 +326,17 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         if (selectedCount > 0) {
             mAdapter.toggleSelected(index);
         } else {
+            ActivityPokemonDetail.mLocalUserPokemonList = mLocalUserPokemonList;
             Intent i = new Intent(mContext, ActivityPokemonDetail.class);
             i.putExtra("index", index);
             startActivityForResult(i, Constants.REQUEST_CODE_ACTIVITY_POKEMON_DETAIL);
         }
     }
-
     @Override
     public void onLongClick(int index) {
         // Long click initializes drag selection, and selects the initial item
         mRecyclerView.setDragSelectActive(true, index);
     }
-
     @Override
     public void onDragSelectionChanged(int count) {
 
@@ -321,52 +344,20 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
             if (mCab == null) {
                 mCab = new MaterialCab((AppCompatActivity) mContext, R.id.cab_stub)
                         .setMenu(R.menu.cab)
-                        .setCloseDrawableRes(android.R.drawable.ic_menu_close_clear_cancel)
+                        .setCloseDrawableRes(android.R.drawable.ic_delete)
                         .start(this);
             }
-            mCab.setTitleRes(R.string.title_fragment_bag, count);
+
+            mCab.setTitle(String.valueOf(count) + " " + getString(R.string.title_selected));
             mAdapter.changeSelectingState(true);
-            mBottomBar.setEnabled(false);
+            mBottomBar.setVisibility(View.GONE);
         } else if (mCab != null && mCab.isActive()) {
             mCab.reset().finish();
             mCab = null;
             mAdapter.changeSelectingState(false);
-            mBottomBar.setEnabled(true);
+            mBottomBar.setVisibility(View.VISIBLE);
         }
     }
-
-    // Material CAB Callbacks
-
-    @Override
-    public boolean onCabCreated(MaterialCab cab, Menu menu) {
-        return true;
-    }
-
-
-    @Override
-    public boolean onCabItemClicked(MenuItem item) {
-        if (item.getItemId() == R.id.done) {
-            StringBuilder sb = new StringBuilder();
-            int traverse = 0;
-            for (Integer index : mAdapter.getSelectedIndices()) {
-                if (traverse > 0) sb.append(", ");
-                sb.append(mAdapter.getItemId(index));
-                traverse++;
-            }
-            Toast.makeText(mContext,
-                    String.format("Selected letters (%d): %s", mAdapter.getSelectedCount(), sb.toString()),
-                    Toast.LENGTH_LONG).show();
-            mAdapter.clearSelected();
-        }
-        return true;
-    }
-
-    @Override
-    public boolean onCabFinished(MaterialCab cab) {
-        mAdapter.clearSelected();
-        return true;
-    }
-
     @Override
     public void OnViewItemClick(Object childItem, View view) {
 
@@ -388,13 +379,183 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
                 }
                 break;
             case R.id.btnCompare:
-                if (mListener!=null){
+                if (mListener != null) {
                     mListener.onFragmentActionPerform(Constants.FRAGMENT_ACTION_VER_TODOS, getAllPokemonByName(((LocalUserPokemon) childItem).getName()));
                 }
                 break;
         }
     }
 
+    // Material CAB Callbacks
+
+    @Override
+    public boolean onCabCreated(MaterialCab cab, Menu menu) {
+        return true;
+    }
+    @Override
+    public boolean onCabItemClicked(MenuItem item) {
+        if (item.getItemId() == R.id.action_transferir) {
+
+            if (mTransferPokemonsTask == null) {
+                mTransferPokemonsTask = new TransferPokemonsTask();
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                    mTransferPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                } else {
+                    mTransferPokemonsTask.execute();
+                }
+            }
+        }
+        return true;
+    }
+    @Override
+    public boolean onCabFinished(MaterialCab cab) {
+        mAdapter.clearSelected();
+        return true;
+    }
+
+
+    /*
+    *
+    * General Method's
+    *
+     */
+
+    public boolean isDeviceOnline() {
+
+        boolean isConnected = false;
+        ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
+        if (activeNetwork != null) { // connected to the internet
+            if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI) {
+                // connected to wifi
+                isConnected = true;
+            } else if (activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
+                // connected to the mobile provider's data plan
+                isConnected = true;
+            }
+        } else {
+            // not connected to the internet
+            isConnected = false;
+        }
+
+        return isConnected;
+    }
+
+    public void setActionBarTitle(final String message) {
+
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(message);
+    }
+
+    public Pokemon getUserPokemon(Long idPokemon) {
+
+        for (Pokemon pokemon : mUserPokemonList) {
+            Long id = pokemon.getId();
+
+            if (String.valueOf(id).equalsIgnoreCase(String.valueOf(idPokemon))) {
+                return pokemon;
+            }
+        }
+        return null;
+    }
+
+    public void showSnackBar(String snacKMessage, final String buttonTitle, final int task) {
+
+        mSnackBar = Snackbar.make(mView, snacKMessage, Snackbar.LENGTH_INDEFINITE)
+                .setAction(buttonTitle, new View.OnClickListener() {
+                    @Override
+                    @TargetApi(Build.VERSION_CODES.M)
+                    public void onClick(View v) {
+                        if (buttonTitle.equalsIgnoreCase("Reintentar")) {
+
+                            if (task == TASK_GETPOKEMON) {
+                                mGetPokemonsTask = new GetPokemonsTask();
+
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                                    mGetPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                } else {
+                                    mGetPokemonsTask.execute();
+                                }
+
+                            }
+                            else if (task == TASK_TRANSFER) {
+
+                                mTransferPokemonsTask = new TransferPokemonsTask();
+
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                                    mTransferPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                } else {
+                                    mTransferPokemonsTask.execute();
+                                }
+                            }
+                        } else {
+
+                            startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+                        }
+                    }
+                });
+
+        mSnackBar.show();
+    }
+
+    public Bitmap getBitmapFromAssets(int pokemonIdNumber) {
+        AssetManager assetManager = mContext.getAssets();
+
+        Bitmap bitmap = null;
+
+        try {
+            InputStream is = null;
+
+            if (pokemonIdNumber < 10) {
+                is = assetManager.open(String.valueOf("00" + pokemonIdNumber) + ".png");
+            } else if (pokemonIdNumber < 100) {
+                is = assetManager.open(String.valueOf("0" + pokemonIdNumber) + ".png");
+            } else {
+                is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
+            }
+
+            bitmap = BitmapFactory.decodeStream(is);
+        } catch (IOException e) {
+            Log.e("ERROR", e.getMessage());
+        }
+
+        return bitmap;
+    }
+
+    public boolean canFinish() {
+        if (mAdapter.getSelectedCount() > 0) {
+            mAdapter.clearSelected();
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private List<LocalUserPokemon> getAllPokemonByName(String name) {
+        specificPokemonList = new ArrayList<>();
+
+        for (LocalUserPokemon specificPokemon : mLocalUserPokemonList) {
+            if (specificPokemon.getName().equals(name)) {
+                specificPokemonList.add(specificPokemon);
+            }
+        }
+
+        return specificPokemonList;
+    }
+
+    public void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /*
+    *TASK
+    *
+     */
 
     public class GetPokemonsTask extends AsyncTask<Void, Void, Boolean> {
 
@@ -648,116 +809,136 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
 
     }
 
+    public class TransferPokemonsTask extends AsyncTask<Void, ProgressTransferPokemon, Boolean> {
 
-    public boolean isDeviceOnline() {
+        private MaterialDialog.Builder builder;
+        private MaterialDialog dialog;
 
-        boolean isConnected = false;
-        ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        //Object sended to onProgressUpdate method
+        private ProgressTransferPokemon progress;
 
-        if (activeNetwork != null) { // connected to the internet
-            if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI) {
-                // connected to wifi
-                isConnected = true;
-            } else if (activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
-                // connected to the mobile provider's data plan
-                isConnected = true;
-            }
-        } else {
-            // not connected to the internet
-            isConnected = false;
-        }
+        private List<LocalUserPokemon> mTransferablePokemonList;
 
-        return isConnected;
-    }
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            Log.i(TAG, "TRANSFER_POKEMON_TASK: onPreExecute");
 
-    public void setActionBarTitle(final String message) {
+            progress = new ProgressTransferPokemon();
 
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(message);
-    }
-
-    public Pokemon getUserPokemon(Long idPokemon) {
-
-        for (Pokemon pokemon : mUserPokemonList) {
-            Long id = pokemon.getId();
-
-            if (String.valueOf(id).equalsIgnoreCase(String.valueOf(idPokemon))) {
-                return pokemon;
-            }
-        }
-        return null;
-    }
-
-    public void showSnackBar(String snacKMessage, final String buttonTitle, final int task) {
-
-        mSnackBar = Snackbar.make(mView, snacKMessage, Snackbar.LENGTH_INDEFINITE)
-                .setAction(buttonTitle, new View.OnClickListener() {
-                    @Override
-                    @TargetApi(Build.VERSION_CODES.M)
-                    public void onClick(View v) {
-                        if (buttonTitle.equalsIgnoreCase("Reintentar")) {
-
-                            if (task == TASK_GETPOKEMON) {
-                                mGetPokemonsTask = new GetPokemonsTask();
-
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                                    mGetPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                                } else {
-                                    mGetPokemonsTask.execute();
-                                }
-
+            builder = new MaterialDialog.Builder(mContext)
+                    .title(getString(R.string.dialog_title_transfer_pokemons))
+                    .content(getString(R.string.dialog_content_please_wait))
+                    .cancelable(false)
+                    .negativeText(getString(R.string.location_alert_neg_btn))
+                    .progress(false, mAdapter.getItemCount(), true)
+                    .onNegative(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                            // TODO
+                            if (mTransferPokemonsTask != null) {
+                                mTransferPokemonsTask.cancel(true);
                             }
-                            /*else if (task == TASK_TRANSFER) {
-
-                                mTransferPokemonsTask = new FragmentPokemon.TransferPokemonsTask();
-
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                                    mTransferPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                                } else {
-                                    mTransferPokemonsTask.execute();
-                                }
-                            }*/
-                        } else {
-
-                            startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
                         }
-                    }
-                });
+                    });
+            dialog = builder.build();
+            dialog.show();
 
-        mSnackBar.show();
-    }
 
-    public Bitmap getBitmapFromAssets(int pokemonIdNumber) {
-        AssetManager assetManager = mContext.getAssets();
+            //Initialize the list of pokemon to transfer
+            mTransferablePokemonList = new ArrayList<>();
 
-        Bitmap bitmap = null;
-
-        try {
-            InputStream is = null;
-
-            if (pokemonIdNumber < 10) {
-                is = assetManager.open(String.valueOf("00" + pokemonIdNumber) + ".png");
-            } else if (pokemonIdNumber < 100) {
-                is = assetManager.open(String.valueOf("0" + pokemonIdNumber) + ".png");
-            } else {
-                is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
+            for (Integer index : mAdapter.getSelectedIndices()) {
+                Log.i(TAG, mLocalUserPokemonList.get(index).getName());
+                mTransferablePokemonList.add(mLocalUserPokemonList.get(index));
             }
-
-            bitmap = BitmapFactory.decodeStream(is);
-        } catch (IOException e) {
-            Log.e("ERROR", e.getMessage());
         }
 
-        return bitmap;
-    }
+        @Override
+        protected Boolean doInBackground(Void... params) {
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == Constants.REQUEST_CODE_ACTIVITY_POKEMON_DETAIL && resultCode == RESULT_OK) {
+            Log.i(TAG, "TRANSFER_POKEMON_TASK: doInBackground");
 
-            boolean isChanged = data.getExtras().getBoolean("resultado");
+            try {
+                try {
 
-            if (isChanged) {
+                    for (LocalUserPokemon transferablePokemon : mTransferablePokemonList) {
+
+                        if (!isCancelled()) {
+
+                            Pokemon pokemonToTransfer = getUserPokemon(transferablePokemon.getId());
+
+                            if (pokemonToTransfer != null) {
+                                progress.setProgressMessage(pokemonToTransfer.getPokemonId().toString());
+                                progress.setUpdateProgress(false);
+                                publishProgress(progress);
+                                //pokemonToTransfer.debug();
+                                ReleasePokemonResponseOuterClass.ReleasePokemonResponse.Result result = pokemonToTransfer.transferPokemon();
+                                progress.setProgressMessage(result.toString());
+                                progress.setUpdateProgress(true);
+                                publishProgress(progress);
+                                sleep(900);
+                                mPokemonGo.getInventories().updateInventories(true);
+                            }
+                        } else {
+                            Log.i(TAG, "TRANSFER_POKEMON_TASK: doInBackground: task is cancelled");
+                            return false;
+                        }
+
+                    }
+
+                    Log.i(TAG, "TRANSFER_POKEMON_TASK: doInBackground: true");
+                    return true;
+
+
+                } catch (LoginFailedException | RemoteServerException e) {
+                    e.printStackTrace();
+                    Log.i(TAG, "TRANSFER_POKEMON_TASK: doInBackground: exception");
+                    return false;
+                }
+
+            } catch (Exception e) {
+                Log.e(TAG, e.toString());
+                Log.i(TAG, "TRANSFER_POKEMON_TASK: doInBackground: exception");
+                return false;
+
+            }
+
+
+        }
+
+        @Override
+        protected void onProgressUpdate(ProgressTransferPokemon... data) {
+
+            super.onProgressUpdate(data);
+            Log.i(TAG, "TRANSFER_POKEMON_TASK: onProgressUpdate: " + data[0]);
+
+            // Increment the dialog's progress by 1 after sleeping for 50ms
+            dialog.setContent(data[0].getProgressMessage());
+
+            if (data[0].getUpdateProgress()) {
+                dialog.incrementProgress(1);
+            }
+
+
+        }
+
+        @Override
+        protected void onPostExecute(Boolean succes) {
+
+            Log.i(TAG, "TRANSFER_POKEMON_TASK: onProgressUpdate: " + succes.toString());
+            mTransferPokemonsTask = null;
+
+            //Hiding the menu
+            setHasOptionsMenu(false);
+
+            //Dismissing the dialog
+            dialog.dismiss();
+
+            if (succes) {
+
+                mAdapter.clearSelected();
+
                 if (mGetPokemonsTask == null) {
                     mGetPokemonsTask = new GetPokemonsTask();
 
@@ -767,29 +948,24 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
                         mGetPokemonsTask.execute();
                     }
                 }
+
+            } else {
+
+                if (isDeviceOnline()) {
+                    setActionBarTitle(getString(R.string.snack_bar_error_with_pokemon));
+                    showSnackBar(getString(R.string.snack_bar_error_with_pokemon), getString(R.string.snack_bar_error_with_pokemon_positive_btn), TASK_TRANSFER);
+                } else {
+                    showSnackBar(getString(R.string.snack_bar_error_with_internet_acces), getString(R.string.snack_bar_error_with_internet_acces_positive_btn), TASK_TRANSFER);
+                }
+
             }
         }
-    }
 
-    public boolean canFinish(){
-        if (mAdapter.getSelectedCount() > 0) {
+        @Override
+        protected void onCancelled() {
+            Log.i(TAG, "TRANSFER_POKEMON_TASK: onCancelled");
+            mTransferPokemonsTask = null;
             mAdapter.clearSelected();
-            return false;
         }
-        else{
-            return true;
-        }
-    }
-
-    private List<LocalUserPokemon> getAllPokemonByName(String name){
-        specificPokemonList = new ArrayList<>();
-
-        for (LocalUserPokemon specificPokemon:mLocalUserPokemonList){
-            if (specificPokemon.getName().equals(name)){
-                specificPokemonList.add(specificPokemon);
-            }
-        }
-
-        return  specificPokemonList;
     }
 }

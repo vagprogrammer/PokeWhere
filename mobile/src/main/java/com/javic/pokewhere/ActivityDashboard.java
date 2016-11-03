@@ -137,7 +137,6 @@ public class ActivityDashboard extends AppCompatActivity
         mNavHeaderUserAntiquity = (TextView) mHeaderView.findViewById(R.id.nav_header_user_antiquity);
         mNavHeaderUserBagSpace = (TextView) mHeaderView.findViewById(R.id.nav_header_user_bag_space);
         mNavHeaderUserPokeBankSpace = (TextView) mHeaderView.findViewById(R.id.nav_header_user_pokebank_space);
-
         mNavHeaderXpBar = (SeekBar) mHeaderView.findViewById(R.id.bar_xp);
 
         //Disabel the drag
@@ -147,30 +146,22 @@ public class ActivityDashboard extends AppCompatActivity
                 return true;
             }
         });
+
         mNavigationView.setNavigationItemSelectedListener(this);
 
 
         mDrawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
             @Override
-            public void onDrawerSlide(View drawerView, float slideOffset) {
-
-            }
-
+            public void onDrawerSlide(View drawerView, float slideOffset) {}
             @Override
-            public void onDrawerOpened(View drawerView) {
-
-            }
-
+            public void onDrawerOpened(View drawerView) {}
+            @Override
+            public void onDrawerStateChanged(int newState) {}
             @Override
             public void onDrawerClosed(View drawerView) {
                 if (visibleFragment == Constants.FRAGMENT_MAPA) {
                     mFragmentMapa.showCustomDialog();
                 }
-            }
-
-            @Override
-            public void onDrawerStateChanged(int newState) {
-
             }
         });
 
@@ -245,43 +236,55 @@ public class ActivityDashboard extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
+        boolean show = false;
 
-        if (id == R.id.nav_fragment_map) {
-            // Handle the camera action
-            visibleFragment = Constants.FRAGMENT_MAPA;
-            setFragment(Constants.FRAGMENT_MAPA, null);
-        }
-        else if (id == R.id.nav_fragment_bag) {
-            visibleFragment = Constants.FRAGMENT_BAG;
-            setFragment(Constants.FRAGMENT_BAG, null);
-        }
-        else if (id == R.id.nav_fragment_transfer) {
-            // Handle the camera action
-            visibleFragment = Constants.FRAGMENT_POKEBANK;
-            setFragment(Constants.FRAGMENT_POKEBANK, null);
-        }
-        else if (id == R.id.nav_sing_out) {
-            deleteCredentials();
-            startActivity(new Intent(ActivityDashboard.this, ActivitySelectAccount.class));
-            finish();
-        } else if (id == R.id.nav_contact) {
-            goToAppDetail();
+        switch (id){
+            case R.id.nav_fragment_transfer:
+                // Handle the camera action
+                visibleFragment = Constants.FRAGMENT_POKEBANK;
+                setFragment(Constants.FRAGMENT_POKEBANK, null);
+                show= true;
+                break;
+
+            case R.id.nav_fragment_bag:
+                visibleFragment = Constants.FRAGMENT_BAG;
+                setFragment(Constants.FRAGMENT_BAG, null);
+                show= true;
+                break;
+
+            case R.id.nav_fragment_map:
+                visibleFragment = Constants.FRAGMENT_MAPA;
+                setFragment(Constants.FRAGMENT_MAPA, null);
+                show= true;
+                break;
+
+            case R.id.nav_sing_out:
+                deleteCredentials();
+                startActivity(new Intent(ActivityDashboard.this, ActivitySelectAccount.class));
+                finish();
+                break;
+            case R.id.nav_contact:
+                goToAppDetail();
+                break;
+            default:
+                show = false;
+                break;
         }
 
+        showProgress(show);
         mDrawerLayout.closeDrawer(GravityCompat.START);
-
-        //Showing the progress
-        showProgress(true);
 
         return true;
     }
 
     public void setFragment(int position, Object object) {
 
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
         switch (position) {
             case Constants.FRAGMENT_BLANK:
-                FragmentManager fragmentManager = getSupportFragmentManager();
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
                 FragmentBlank mFragmentBlank = FragmentBlank.newInstance();
                 fragmentTransaction.add(R.id.content_fragment, mFragmentBlank);
                 fragmentTransaction.commit();
@@ -323,6 +326,7 @@ public class ActivityDashboard extends AppCompatActivity
                 if (mGO != null) {
                     mFragmentCompare = FragmentCompare.newInstance(mGO, (List<LocalUserPokemon>) object);
                     replaceFragment(mFragmentCompare);
+
                 }
                 break;
 
@@ -637,7 +641,6 @@ public class ActivityDashboard extends AppCompatActivity
         String pref = prefsPokeWhere.getString(KEY_PREF, "");
         return pref;
     }
-
 
     public void deleteCredentials() {
         SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);

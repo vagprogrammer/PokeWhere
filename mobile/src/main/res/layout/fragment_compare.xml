@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.FragmentPokemonBank">
+    tools:context=".fragments.FragmentCompare">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -15,10 +15,6 @@
         <include layout="@layout/layout_toolbar" />
         <!-- This could be your fragment container, or something -->
 
-        <ViewStub
-            android:id="@+id/cab_stub"
-            android:layout_width="match_parent"
-            android:layout_height="?actionBarSize" />
 
         <com.afollestad.dragselectrecyclerview.DragSelectRecyclerView
             android:id="@+id/recyclerView"
@@ -30,6 +26,11 @@
             app:dsrv_autoScrollEnabled="true"
             app:dsrv_autoScrollHotspotHeight="56dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+        <ViewStub
+            android:id="@+id/cab_stub"
+            android:layout_width="match_parent"
+            android:layout_height="?actionBarSize" />
 
         <com.roughike.bottombar.BottomBar
             android:id="@+id/bottomBar"

@@ -14,7 +14,6 @@ import com.ToxicBakery.viewpager.transforms.BackgroundToForegroundTransformer;
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
 import com.javic.pokewhere.adapters.AdapterPokemonDetail;
-import com.javic.pokewhere.fragments.FragmentPokemonBank;
 import com.javic.pokewhere.fragments.FragmentPokemonDetail;
 import com.javic.pokewhere.models.LocalUserPokemon;
 import com.nineoldandroids.animation.Animator;
@@ -27,8 +26,10 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
     private AdapterPokemonDetail mAdapter;
     private ViewPager mViewPager;
     private ImageView leftArrow, rightArrow;
+
+
     //Listas
-    private List<LocalUserPokemon> mLocalUserPokemonList;
+    public static List<LocalUserPokemon> mLocalUserPokemonList;
 
     //Variables
     private int mIndex;
@@ -59,7 +60,6 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
         leftArrow = (ImageView) findViewById(R.id.leftArrow);
         rightArrow = (ImageView) findViewById(R.id.rightArrow);
 
-        mLocalUserPokemonList = FragmentPokemonBank.mLocalUserPokemonList;
         mViewPager = (ViewPager) findViewById(R.id.vp_slider);
         mViewPager.setClipToPadding(false);
         mAdapter = new AdapterPokemonDetail(this.getSupportFragmentManager(),mLocalUserPokemonList);
@@ -78,10 +78,16 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
             leftArrow.setVisibility(View.GONE);
         }
 
-        YoYo.with(Techniques.Flash)
-                .withListener(this)
-                .duration(1000)
-                .playOn(rightArrow);
+        if (mLocalUserPokemonList.size()>1){
+            YoYo.with(Techniques.Flash)
+                    .withListener(this)
+                    .duration(1000)
+                    .playOn(rightArrow);
+        }
+        else{
+            rightArrow.setVisibility(View.GONE);
+        }
+
 
     }
 

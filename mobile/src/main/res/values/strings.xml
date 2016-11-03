@@ -122,7 +122,7 @@
     <string name="message_json_request_error">Ha ocurrido un error, vuelve a intentarlo más tarde!</string>
     <string name="text_hint_searchbar">Indicar ubicación, ej. Santa Monica Pier,CA...</string>
     <string name="dialog_title_unaviable_service">¡Servicio NO disponible!</string>
-    <string name="dialog_content_unaviable_service">Por ahora, todas las herramientas de terceros, incluyendo los boots y mapas de localización NO están funcionando. Estamos trabjando para que todo regrese a la normalidad muy pronto. \nSaludos!</string>
+    <string name="dialog_content_unaviable_service">Por ahora, todas las herramientas de terceros, incluyendo los boots y mapas de localización NO están funcionando. Estamos trabajando para que todo regrese a la normalidad muy pronto. \nSaludos!</string>
     <string name="dialog_positive_unaviable_service">Entendido</string>
 
     <!-- Strings related to Pokebank Fragment -->
@@ -134,7 +134,7 @@
     <string name="message_untrasferable">Ahora no puedes transferir este pokémon, intentalo más tarde</string>
     <string name="text_pokemones">Pokemones</string>
     <string name="text_bar_recents">Recientes</string>
-    <string name="text_bar_name">Name</string>
+    <string name="text_bar_name">Nombre</string>
     <string name="text_bar_number">Número</string>
     <string name="text_bar_attack">Ataque</string>
     <string name="text_bar_defense">Defensa</string>

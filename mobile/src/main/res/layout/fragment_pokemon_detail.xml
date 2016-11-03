@@ -484,7 +484,7 @@
                     android:orientation="vertical"
                     android:paddingLeft="5.0dip"
                     android:paddingRight="5.0dip"
-                    android:visibility="visible">
+                    android:visibility="gone">
 
                     <TextView
                         android:id="@+id/txtAttack1"

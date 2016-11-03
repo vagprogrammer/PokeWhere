@@ -308,7 +308,7 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
 
     }
 
-    public Pokemon getUserPokemon(Long idPokemon) {
+    /*public Pokemon getUserPokemonn(Long idPokemon) {
 
         for (Pokemon pokemon : FragmentPokemonBank.mUserPokemonList) {
             Long id = pokemon.getId();
@@ -318,7 +318,7 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
             }
         }
         return null;
-    }
+    }*/
 
     /**
      * This interface must be implemented by activities that contain this

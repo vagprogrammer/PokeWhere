@@ -1,18 +1,12 @@
 package com.javic.pokewhere.fragments;
 
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -26,7 +20,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerView;
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerViewAdapter;
@@ -38,7 +31,6 @@ import com.javic.pokewhere.interfaces.OnFragmentListener;
 import com.javic.pokewhere.interfaces.OnViewItemClickListenner;
 import com.javic.pokewhere.models.LocalUserPokemon;
 import com.javic.pokewhere.util.Constants;
-import com.javic.pokewhere.util.PokemonCreationTimeComparator;
 import com.pokegoapi.api.PokemonGo;
 import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnTabSelectListener;
@@ -48,6 +40,7 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
 
 public class FragmentCompare extends Fragment implements AdapterPokemonBank.ClickListener, DragSelectRecyclerViewAdapter.SelectionListener, MaterialCab.Callback, OnViewItemClickListenner {
 
@@ -107,7 +100,11 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+
+        String conte = "Context: "+ context.getClass().getSimpleName();
         mContext = context;
+
+        Log.i(TAG, conte);
 
         if (context instanceof OnFragmentListener) {
             mListener = (OnFragmentListener) context;
@@ -124,14 +121,12 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
         mView = inflater.inflate(R.layout.fragment_compare, container, false);
 
         mToolbar = (Toolbar) mView.findViewById(R.id.appbar);
-        mCab = MaterialCab.restoreState(savedInstanceState, (AppCompatActivity) mContext, this);
 
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
         ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " +mLocalUserPokemonList.get(0).getName());
 
         mGridLayoutManager = new GridLayoutManager(mContext, 3);
-
 
         mAdapter = new AdapterPokemonBank(mContext, this, this, mLocalUserPokemonList);
         mAdapter.setSelectionListener(this);
@@ -256,22 +251,49 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
 
     @Override
     public void onDragSelectionChanged(int count) {
+
         if (count > 0) {
             if (mCab == null) {
                 mCab = new MaterialCab((AppCompatActivity) mContext, R.id.cab_stub)
                         .setMenu(R.menu.cab)
-                        .setCloseDrawableRes(android.R.drawable.ic_menu_close_clear_cancel)
+                        .setCloseDrawableRes(android.R.drawable.ic_delete)
                         .start(this);
             }
-            mCab.setTitleRes(R.string.title_fragment_bag, count);
+
+            mCab.setTitle(String.valueOf(count)+ " " +getString(R.string.title_selected));
             mAdapter.changeSelectingState(true);
-            mBottomBar.setEnabled(false);
+            mBottomBar.setVisibility(View.GONE);
         } else if (mCab != null && mCab.isActive()) {
             mCab.reset().finish();
             mCab = null;
             mAdapter.changeSelectingState(false);
-            mBottomBar.setEnabled(true);
+            mBottomBar.setVisibility(View.VISIBLE);
         }
+    }
+
+    // Material CAB Callbacks
+    @Override
+    public boolean onCabCreated(MaterialCab cab, Menu menu) {
+        return true;
+    }
+
+
+    @Override
+    public boolean onCabItemClicked(MenuItem item) {
+        if (item.getItemId() == R.id.action_transferir) {
+
+            for (Integer index : mAdapter.getSelectedIndices()) {
+                Log.i(TAG, mLocalUserPokemonList.get(index).getName());
+            }
+            mAdapter.clearSelected();
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onCabFinished(MaterialCab cab) {
+        mAdapter.clearSelected();
+        return true;
     }
 
     @Override
@@ -283,6 +305,7 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
         if (selectedCount > 0) {
             mAdapter.toggleSelected(index);
         } else {
+            ActivityPokemonDetail.mLocalUserPokemonList = mLocalUserPokemonList;
             Intent i = new Intent(mContext, ActivityPokemonDetail.class);
             i.putExtra("index", index);
             startActivityForResult(i, Constants.REQUEST_CODE_ACTIVITY_POKEMON_DETAIL);
@@ -293,35 +316,6 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     public void onLongClick(int index) {
         // Long click initializes drag selection, and selects the initial item
         mRecyclerView.setDragSelectActive(true, index);
-    }
-
-    @Override
-    public boolean onCabCreated(MaterialCab cab, Menu menu) {
-        return true;
-    }
-
-    @Override
-    public boolean onCabItemClicked(MenuItem item) {
-        if (item.getItemId() == R.id.done) {
-            StringBuilder sb = new StringBuilder();
-            int traverse = 0;
-            for (Integer index : mAdapter.getSelectedIndices()) {
-                if (traverse > 0) sb.append(", ");
-                sb.append(mAdapter.getItemId(index));
-                traverse++;
-            }
-            Toast.makeText(mContext,
-                    String.format("Selected letters (%d): %s", mAdapter.getSelectedCount(), sb.toString()),
-                    Toast.LENGTH_LONG).show();
-            mAdapter.clearSelected();
-        }
-        return true;
-    }
-
-    @Override
-    public boolean onCabFinished(MaterialCab cab) {
-        mAdapter.clearSelected();
-        return true;
     }
 
     @Override
