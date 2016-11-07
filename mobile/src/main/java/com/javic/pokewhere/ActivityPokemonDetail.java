@@ -78,7 +78,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
             leftArrow.setVisibility(View.GONE);
         }
 
-        if (mLocalUserPokemonList.size()>1){
+        if ((mLocalUserPokemonList.size()-1)>mIndex){
             YoYo.with(Techniques.Flash)
                     .withListener(this)
                     .duration(1000)
@@ -87,7 +87,6 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
         else{
             rightArrow.setVisibility(View.GONE);
         }
-
 
     }
 

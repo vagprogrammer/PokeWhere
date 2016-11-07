@@ -243,7 +243,7 @@ public class FragmentMapa extends Fragment implements
 
         if (mPokemonGo!=null){
 
-            mListener.onFragmentCreatedViewStatus(true);
+            mListener.onFragmentCreatedViewStatus(Constants.FRAGMENT_MAPA);
 
             mapView = (MapView) mView.findViewById(R.id.map);
             mSearchView = (FloatingSearchView) mView.findViewById(R.id.floating_search_view);

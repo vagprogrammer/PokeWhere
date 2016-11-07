@@ -32,7 +32,7 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
     private final ClickListener mCallback;
     private List<LocalUserPokemon> mLocalUserPokemonList;
 
-    public boolean isSelecting = false;
+    private boolean isSelecting = false;
 
     // Constructor takes click listener callback
     public AdapterPokemonBank(Context mContext, ClickListener mCallback, OnViewItemClickListenner mListener, List<LocalUserPokemon> mLocalUserPokemonList) {
@@ -58,6 +58,7 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
         holder.attack.setText(String.valueOf(pokemon.getAttack()));
         holder.defense.setText(String.valueOf(pokemon.getDefense()));
         holder.stamina.setText(String.valueOf(pokemon.getStamina()));
+        holder.candies.setText(":"+String.valueOf(pokemon.getCandies()));
 
         if (pokemon.getNickname().equals("")){
             holder.name.setText(pokemon.getName());
@@ -103,8 +104,12 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
 
         if (isSelecting){
             holder.mCheckBox.setVisibility(View.VISIBLE);
+            holder.imgFavorite.setClickable(false);
+            holder.btnCompare.setClickable(false);
         }else{
             holder.mCheckBox.setVisibility(View.INVISIBLE);
+            holder.imgFavorite.setClickable(true);
+            holder.btnCompare.setClickable(true);
         }
 
         if (isIndexSelected(position)) {
@@ -148,12 +153,12 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
 
     public class PokemonBankViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener{
 
-        public final View mContainer;
+        private final View mContainer;
         private final CheckBox mCheckBox;
-        private final TextView name, cp,iv,attack,defense,stamina;
+        private final TextView name, cp,iv,attack,defense,stamina, candies;
         private final ImageView imgPokemon;
         public final ImageView imgFavorite;
-        public final Button btnCompare;
+        private final Button btnCompare;
 
 
         private PokemonBankViewHolder(View itemView) {
@@ -166,6 +171,7 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
             this.attack = (TextView) itemView.findViewById(R.id.txtAttack);
             this.defense = (TextView) itemView.findViewById(R.id.txtDefense);
             this.stamina = (TextView) itemView.findViewById(R.id.txtStamina);
+            this.candies = (TextView) itemView.findViewById(R.id.txtCandies);
             this.itemView.setOnClickListener(this);
             this.itemView.setOnLongClickListener(this);
             this.imgPokemon = (ImageView) itemView.findViewById(R.id.imgPokemon);

@@ -35,6 +35,7 @@ import com.javic.pokewhere.interfaces.OnFragmentListener;
 import com.javic.pokewhere.interfaces.OnViewItemClickListenner;
 import com.javic.pokewhere.models.ChildItem;
 import com.javic.pokewhere.models.GroupItem;
+import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.Item;
 import com.pokegoapi.exceptions.LoginFailedException;
@@ -154,7 +155,7 @@ public class FragmentBag extends Fragment implements OnViewItemClickListenner {
 
         if (mPokemonGo != null) {
 
-            mListener.onFragmentCreatedViewStatus(true);
+            mListener.onFragmentCreatedViewStatus(Constants.FRAGMENT_BAG);
 
             if (mGetItemsTask == null) {
                 mGetItemsTask = new GetItemsTask();

@@ -3,7 +3,7 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_fragment_transfer"
+            android:id="@+id/nav_fragment_pokebank"
             android:icon="@drawable/ic_pokemon"
             android:title="@string/nav_fragment_transfer" />
 

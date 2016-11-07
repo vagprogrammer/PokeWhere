@@ -31,7 +31,10 @@ public class Constants {
     //Dashboard Actions
     public static final int ACTION_START_SERVICE = 1;
     public static final int ACTION_REFRESH_TOKEN = 2;
-    public static final int FRAGMENT_ACTION_VER_TODOS = 3;
+    public static final int ACTION_FRAGMENT_VER_TODOS = 3;
+    public static final int ACTION_FRAGMENT_TRANSFER_POKEMON = 4;
+    public static final int ACTION_FRAGMENT_GET_USER_POKEMON = 5;
+    public static final int ACTION_FRAGMENT_SET_FAVORITE_POKEMON = 6;
 
 
     //Fragments

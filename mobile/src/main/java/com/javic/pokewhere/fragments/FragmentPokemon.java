@@ -148,7 +148,7 @@ public class FragmentPokemon extends Fragment implements OnCheckChildClickListen
         mToolbar = (Toolbar) mView.findViewById(R.id.appbar);
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
         ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("");
+        mToolbar.setTitle("");
 
         mDrawerToggle = new ActionBarDrawerToggle(getActivity(), ActivityDashboard.mDrawerLayout, mToolbar, R.string.open_location_settings, R.string.open_location_settings);
         mDrawerToggle.setDrawerIndicatorEnabled(true);
@@ -168,7 +168,7 @@ public class FragmentPokemon extends Fragment implements OnCheckChildClickListen
 
         if (mPokemonGo != null) {
 
-            mListener.onFragmentCreatedViewStatus(true);
+            //mListener.onFragmentCreatedViewStatus(Constants.FRAGMENT_POKEBANK);
 
             if (mGetPokemonsTask == null) {
                 mGetPokemonsTask = new GetPokemonsTask();
