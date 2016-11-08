@@ -51,6 +51,7 @@ import com.javic.pokewhere.services.ServiceFloatingMap;
 import com.javic.pokewhere.util.Constants;
 import com.javic.pokewhere.util.PrefManager;
 import com.pokegoapi.api.PokemonGo;
+import com.pokegoapi.api.inventory.Item;
 import com.pokegoapi.api.inventory.Stats;
 import com.pokegoapi.api.player.PlayerProfile;
 import com.pokegoapi.api.pokemon.Pokemon;
@@ -80,12 +81,6 @@ public class ActivityDashboard extends AppCompatActivity
 
 
     private static final String TAG = ActivityDashboard.class.getSimpleName();
-
-    public static final int TASK_CONNECT_WITH_POKEMON_GO = 0;
-    public static final int TASK_GET_POKEMON = 1;
-    public static final int TASK_TRANSFER = 2;
-    public static final int TASK_SET_FAVORITE = 3;
-
 
     private static final int MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE = 100;
 
@@ -133,13 +128,12 @@ public class ActivityDashboard extends AppCompatActivity
 
     //Task
     private ConnectWithPokemonGoTask mConnectTask;
-    private GetPokemonsTask mGetPokemonsTask;
     private TransferPokemonsTask mTransferPokemonsTask;
     private SetFavoriteTask mSetFavoriteTask;
 
     //Listas
     private List<Pokemon> mUserPokemonList;
-    private List<LocalUserPokemon> mLocalUserPokemonList;
+    private List<Item> mUserBagItemList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -184,11 +178,17 @@ public class ActivityDashboard extends AppCompatActivity
 
         mDrawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
             @Override
-            public void onDrawerSlide(View drawerView, float slideOffset) {}
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+            }
+
             @Override
-            public void onDrawerOpened(View drawerView) {}
+            public void onDrawerOpened(View drawerView) {
+            }
+
             @Override
-            public void onDrawerStateChanged(int newState) {}
+            public void onDrawerStateChanged(int newState) {
+            }
+
             @Override
             public void onDrawerClosed(View drawerView) {
                 if (visibleFragment == Constants.FRAGMENT_MAPA) {
@@ -243,31 +243,27 @@ public class ActivityDashboard extends AppCompatActivity
     @Override
     public void onBackPressed() {
 
-        switch (visibleFragment){
-            case Constants.FRAGMENT_POKEBANK:
-                if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    mDrawerLayout.closeDrawer(GravityCompat.START);
-                } else {
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            switch (visibleFragment) {
+                case Constants.FRAGMENT_POKEBANK:
                     //Verificamos que no haya elementos seleccionados en la lista de pokémon
-                    if (mFragmentPokemonBank!=null){
-                        if (mFragmentPokemonBank.canFinish()){
+                    if (mFragmentPokemonBank != null) {
+                        if (mFragmentPokemonBank.canFinish()) {
                             finish();
                         }
                     }
-                }
-                break;
-            case Constants.FRAGMENT_COMPARE:
-                if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    mDrawerLayout.closeDrawer(GravityCompat.START);
-                } else {
+                    break;
+                case Constants.FRAGMENT_COMPARE:
                     //Verificamos que no haya elementos seleccionados en la lista de pokémon
-                    if (mFragmentCompare!=null){
-                        if (mFragmentCompare.canFinish()){
+                    if (mFragmentCompare != null) {
+                        if (mFragmentCompare.canFinish()) {
                             super.onBackPressed();
                         }
                     }
-                }
-                break;
+                    break;
+            }
         }
     }
 
@@ -278,21 +274,21 @@ public class ActivityDashboard extends AppCompatActivity
         int id = item.getItemId();
         boolean show = false;
 
-        switch (id){
+        switch (id) {
             case R.id.nav_fragment_pokebank:
                 // Handle the camera action
                 setFragment(Constants.FRAGMENT_POKEBANK, null);
-                show= true;
+                show = true;
                 break;
 
             case R.id.nav_fragment_bag:
                 setFragment(Constants.FRAGMENT_BAG, null);
-                show= true;
+                show = true;
                 break;
 
             case R.id.nav_fragment_map:
                 setFragment(Constants.FRAGMENT_MAPA, null);
-                show= true;
+                show = true;
                 break;
 
             case R.id.nav_sing_out:
@@ -308,7 +304,7 @@ public class ActivityDashboard extends AppCompatActivity
                 break;
         }
 
-        showProgress(show);
+        showProgressView(show);
         mDrawerLayout.closeDrawer(GravityCompat.START);
 
         return true;
@@ -321,52 +317,47 @@ public class ActivityDashboard extends AppCompatActivity
 
         switch (position) {
             case Constants.FRAGMENT_BLANK:
-
                 FragmentBlank mFragmentBlank = FragmentBlank.newInstance();
                 fragmentTransaction.add(R.id.content_fragment, mFragmentBlank);
                 fragmentTransaction.commit();
                 break;
             case Constants.FRAGMENT_MAPA:
                 if (mGO != null) {
-                    if (mFragmentMapa==null){
+                    if (mFragmentMapa == null) {
                         mFragmentMapa = FragmentMapa.newInstance(mGO);
                         replaceFragment(mFragmentMapa);
-                    }else{
-                        showProgress(false);
+                    } else {
+                        showProgressView(false);
                     }
                 }
                 break;
             case Constants.FRAGMENT_BAG:
-                if (mGO != null) {
-                    if (mFragmentBag==null){
-                        mFragmentBag = FragmentBag.newInstance(mGO);
-                        replaceFragment(mFragmentBag);
-                    }
-                    else{
-                        showProgress(false);
-                    }
+                if (mFragmentBag == null) {
+                    mFragmentBag = FragmentBag.newInstance(mGO);
+                    replaceFragment(mFragmentBag);
+                } else {
+                    showProgressView(false);
                 }
                 break;
             case Constants.FRAGMENT_POKEBANK:
-                if (mGO != null) {
-                    if (mFragmentPokemonBank==null){
-                        //mFragmentPokemon = mFragmentPokemon.newInstance(mGO);
-                        if (mLocalUserPokemonList!=null){
-                            mFragmentPokemonBank = FragmentPokemonBank.newInstance(mLocalUserPokemonList);
-                            replaceFragment(mFragmentPokemonBank);
-                        }
-                    }else{
-                        showProgress(false);
+
+                if (mFragmentPokemonBank == null) {
+                    //mFragmentPokemon = mFragmentPokemon.newInstance(mGO);
+                    if (mUserPokemonList != null) {
+                        mFragmentPokemonBank = FragmentPokemonBank.newInstance(mUserPokemonList);
+                        replaceFragment(mFragmentPokemonBank);
                     }
+                } else {
+                    showProgressView(false);
                 }
+
                 break;
 
             case Constants.FRAGMENT_COMPARE:
-                if (mGO != null) {
-                    mFragmentCompare = FragmentCompare.newInstance(mGO, (List<LocalUserPokemon>) object);
-                    replaceFragment(mFragmentCompare);
 
-                }
+                mFragmentCompare = FragmentCompare.newInstance(mGO, (List<LocalUserPokemon>) object);
+                replaceFragment(mFragmentCompare);
+
                 break;
 
         }
@@ -392,7 +383,7 @@ public class ActivityDashboard extends AppCompatActivity
     private void updateNavigationView(Fragment fragment) {
         String fragClassName = fragment.getClass().getSimpleName();
 
-        switch (fragClassName){
+        switch (fragClassName) {
             case "FragmentPokemonBank":
                 mNavigationView.getMenu().getItem(Constants.FRAGMENT_POKEBANK).setChecked(true);
                 visibleFragment = Constants.FRAGMENT_POKEBANK;
@@ -441,18 +432,17 @@ public class ActivityDashboard extends AppCompatActivity
             boolean isChanged = data.getExtras().getBoolean("resultado");
 
             if (isChanged) {
-                if (mGetPokemonsTask == null) {
-                    mGetPokemonsTask = new GetPokemonsTask();
+                if (mConnectTask == null) {
+                    mConnectTask = new ConnectWithPokemonGoTask();
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                        mGetPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                        mConnectTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                     } else {
-                        mGetPokemonsTask.execute();
+                        mConnectTask.execute();
                     }
                 }
             }
-        }
-        else {
+        } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
@@ -512,7 +502,7 @@ public class ActivityDashboard extends AppCompatActivity
         return isConnected;
     }
 
-    public void showSnackBar(String snacKMessage, final String buttonTitle, final int task) {
+    public void showSnackBar(String snacKMessage, final String buttonTitle, final int task, final Object obj) {
 
         mSnackBar = Snackbar.make(mView, snacKMessage, Snackbar.LENGTH_INDEFINITE)
                 .setAction(buttonTitle, new View.OnClickListener() {
@@ -521,7 +511,7 @@ public class ActivityDashboard extends AppCompatActivity
                     public void onClick(View v) {
                         if (buttonTitle.equalsIgnoreCase("Reintentar")) {
 
-                            if (task == TASK_CONNECT_WITH_POKEMON_GO){
+                            if (task == Constants.ACTION_CONNECT_WITH_PG) {
 
                                 mConnectTask = new ConnectWithPokemonGoTask();
 
@@ -530,26 +520,16 @@ public class ActivityDashboard extends AppCompatActivity
                                 } else {
                                     mConnectTask.execute();
                                 }
-                            } else if (task == TASK_GET_POKEMON) {
-                                mGetPokemonsTask = new GetPokemonsTask();
+                            } else if (task == Constants.ACTION_TRANSFER_POKEMON) {
 
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                                    mGetPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                                } else {
-                                    mGetPokemonsTask.execute();
-                                }
-
-                            }
-                            /*else if (task == TASK_TRANSFER) {
-
-                                mTransferPokemonsTask = new FragmentPokemonBank.TransferPokemonsTask();
+                                mTransferPokemonsTask = new TransferPokemonsTask((List<LocalUserPokemon>) obj);
 
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                                     mTransferPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                 } else {
                                     mTransferPokemonsTask.execute();
                                 }
-                            }*/
+                            }
                         } else {
 
                             startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
@@ -669,30 +649,6 @@ public class ActivityDashboard extends AppCompatActivity
         return DateFormat.format("dd-MM-yyyy", cal).toString();
     }
 
-    private Bitmap getBitmapFromAssets(int pokemonIdNumber) {
-        AssetManager assetManager = getAssets();
-
-        Bitmap bitmap = null;
-
-        try {
-            InputStream is = null;
-
-            if (pokemonIdNumber < 10) {
-                is = assetManager.open(String.valueOf("00" + pokemonIdNumber) + ".png");
-            } else if (pokemonIdNumber < 100) {
-                is = assetManager.open(String.valueOf("0" + pokemonIdNumber) + ".png");
-            } else {
-                is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
-            }
-
-            bitmap = BitmapFactory.decodeStream(is);
-        } catch (IOException e) {
-            Log.e("ERROR", e.getMessage());
-        }
-
-        return bitmap;
-    }
-
     public Pokemon getUserPokemon(Long idPokemon) {
 
         for (Pokemon pokemon : mUserPokemonList) {
@@ -761,11 +717,7 @@ public class ActivityDashboard extends AppCompatActivity
 
                 break;
 
-            case Constants.ACTION_FRAGMENT_VER_TODOS:
-                setFragment(Constants.FRAGMENT_COMPARE, object);
-                break;
-
-            case Constants.ACTION_FRAGMENT_SET_FAVORITE_POKEMON:
+            case Constants.ACTION_SET_FAVORITE_POKEMON:
 
                 mSetFavoriteTask = new SetFavoriteTask((LocalUserPokemon) object);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -774,7 +726,8 @@ public class ActivityDashboard extends AppCompatActivity
                     mSetFavoriteTask.execute();
                 }
                 break;
-            case Constants.ACTION_FRAGMENT_TRANSFER_POKEMON:
+
+            case Constants.ACTION_TRANSFER_POKEMON:
                 mTransferPokemonsTask = new TransferPokemonsTask((List<LocalUserPokemon>) object);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                     mTransferPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -782,6 +735,11 @@ public class ActivityDashboard extends AppCompatActivity
                     mTransferPokemonsTask.execute();
                 }
                 break;
+
+            case Constants.ACTION_VER_TODOS:
+                setFragment(Constants.FRAGMENT_COMPARE, object);
+                break;
+
             default:
                 break;
         }
@@ -797,7 +755,9 @@ public class ActivityDashboard extends AppCompatActivity
         protected void onPreExecute() {
             Log.i(TAG, "CONNECT_WITH_POKEMON_TASK: onPreExecute");
             super.onPreExecute();
-            showProgress(true);
+            showProgressView(true);
+            mUserPokemonList = new ArrayList<>();
+            mUserBagItemList = new ArrayList<>();
         }
 
         @Override
@@ -844,14 +804,13 @@ public class ActivityDashboard extends AppCompatActivity
                         mUserExperience = stats.getExperience();
                         mUserNextLevelXP = stats.getNextLevelXp();
 
-                        mGetPokemonsTask = new GetPokemonsTask();
+                        //Actualizando lista de pokemon
+                        publishProgress(getString(R.string.message_update_pokemon));
+                        mUserPokemonList = mGO.getInventories().getPokebank().getPokemons();
 
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                            mGetPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                        } else {
-                            mGetPokemonsTask.execute();
-                        }
-
+                        //Actualizando lista de objetos
+                        publishProgress(getString(R.string.message_update_objects));
+                        mUserBagItemList = new ArrayList<>(mGO.getInventories().getItemBag().getItems());
                         return true;
                     }
                 } catch (LoginFailedException | RemoteServerException e) {
@@ -913,7 +872,9 @@ public class ActivityDashboard extends AppCompatActivity
                         mNavHeaderImage.setImageResource(R.drawable.ic_gym_team_white);
                         break;
                 }
-                setFragment(visibleFragment, null);
+
+                setFragment(visibleFragment, mUserPokemonList);
+
                 mNavigationView.getMenu().getItem(visibleFragment).setChecked(true);
 
                 if (prefmanager.isFirstTimeLaunch()) {
@@ -926,10 +887,10 @@ public class ActivityDashboard extends AppCompatActivity
                 mNavigationView.getMenu().getItem(visibleFragment).setChecked(false);
 
                 if (isDeviceOnline()) {
-                    showSnackBar(getString(R.string.snack_bar_error_with_pokemon), getString(R.string.snack_bar_error_with_pokemon_positive_btn), TASK_CONNECT_WITH_POKEMON_GO);
+                    showSnackBar(getString(R.string.snack_bar_error_with_pokemon), getString(R.string.snack_bar_error_with_pokemon_positive_btn), Constants.ACTION_CONNECT_WITH_PG, null);
 
                 } else {
-                    showSnackBar(getString(R.string.snack_bar_error_with_internet_acces), getString(R.string.snack_bar_error_with_internet_acces_positive_btn), TASK_CONNECT_WITH_POKEMON_GO);
+                    showSnackBar(getString(R.string.snack_bar_error_with_internet_acces), getString(R.string.snack_bar_error_with_internet_acces_positive_btn), Constants.ACTION_CONNECT_WITH_PG, null);
                 }
 
             }
@@ -943,121 +904,6 @@ public class ActivityDashboard extends AppCompatActivity
         }
     }
 
-    public class GetPokemonsTask extends AsyncTask<Void, Void, Boolean> {
-
-        private int totalPokemons=0;
-        private int pokemonStorage=0;
-
-        @Override
-        protected void onPreExecute() {
-
-            Log.i(TAG, "GET_POKEMON_TASK: onPreExecute");
-
-            //Show the progressBar
-            showProgress(true);
-
-            mUserPokemonList = new ArrayList<>();
-            mLocalUserPokemonList = new ArrayList<>();
-
-            super.onPreExecute();
-        }
-
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-
-            Log.i(TAG, "GET_POKEMON_TASK: doInBackground: start");
-
-            try {
-                try {
-                    mGO.getInventories().updateInventories(true);
-                    mUserPokemonList = mGO.getInventories().getPokebank().getPokemons();
-                    totalPokemons = mUserPokemonList.size() + mGO.getInventories().getHatchery().getEggs().size();
-                    pokemonStorage = mGO.getPlayerProfile().getPlayerData().getMaxPokemonStorage();
-
-                    for (Pokemon pokemon : mUserPokemonList) {
-
-                        if (!isCancelled()) {
-
-                            LocalUserPokemon localUserPokemon = new LocalUserPokemon();
-                            localUserPokemon.setId(pokemon.getId());
-                            localUserPokemon.setName(pokemon.getPokemonId().toString());
-                            localUserPokemon.setNickname(pokemon.getNickname());
-                            localUserPokemon.setBitmap(getBitmapFromAssets(pokemon.getPokemonId().getNumber()));
-                            localUserPokemon.setNumber(pokemon.getPokemonId().getNumber());
-                            localUserPokemon.setFavorite(pokemon.isFavorite());
-                            localUserPokemon.setDead(pokemon.isInjured());
-                            localUserPokemon.setCp(pokemon.getCp());
-                            localUserPokemon.setIv(((int) (pokemon.getIvRatio() * 100)));
-                            localUserPokemon.setAttack(pokemon.getIndividualAttack());
-                            localUserPokemon.setDefense(pokemon.getIndividualDefense());
-                            localUserPokemon.setStamina(pokemon.getIndividualStamina());
-                            localUserPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer());
-                            localUserPokemon.setEvolveCP(pokemon.getCpAfterEvolve());
-                            localUserPokemon.setLevel(pokemon.getLevel());
-                            localUserPokemon.setCandies(pokemon.getCandy());
-                            localUserPokemon.setPowerUpStardust(pokemon.getStardustCostsForPowerup());
-                            localUserPokemon.setPoweUpCandies(pokemon.getCandyCostsForPowerup());
-                            localUserPokemon.setEvolveCandies(pokemon.getCandiesToEvolve());
-                            localUserPokemon.setCreationTimeMillis(pokemon.getCreationTimeMs());
-
-                            mLocalUserPokemonList.add(localUserPokemon);
-                        } else {
-                            Log.i(TAG, "GET_POKEMON_TASK: doInBackground: task is cancelled");
-                            return false;
-                        }
-                    }
-
-                    Log.i(TAG, "GET_POKEMON_TASK: doInBackground: true");
-                    return true;
-
-                } catch (LoginFailedException | RemoteServerException e) {
-                    Log.i(TAG, "GET_POKEMON_TASK: doInBackground: login or remote_server exception");
-                    Log.i(TAG, e.toString());
-                    return false;
-                }
-
-            } catch (Exception e) {
-                Log.i(TAG, "GET_POKEMON_TASK: doInBackground: general exception");
-                Log.i(TAG, e.toString());
-                return false;
-
-            }
-
-        }
-
-        @Override
-        protected void onPostExecute(Boolean succes) {
-
-            Log.i(TAG, "GET_POKEMON_TASK: onPostExecute: " + succes.toString());
-            mGetPokemonsTask = null;
-
-            if (succes) {
-                //setActionBarTitle(String.valueOf(totalPokemons) + "/" + String.valueOf(pokemonStorage) + " " + getString(R.string.text_pokemones));
-                //mAdapter.upDateAdapter(mLocalUserPokemonList);
-            } else {
-                //setActionBarTitle(getString(R.string.snack_bar_error_with_pokemon));
-
-                if (isDeviceOnline()) {
-                    showSnackBar(getString(R.string.snack_bar_error_with_pokemon), getString(R.string.snack_bar_error_with_pokemon_positive_btn), TASK_GET_POKEMON);
-                } else {
-                    showSnackBar(getString(R.string.snack_bar_error_with_internet_acces), getString(R.string.snack_bar_error_with_internet_acces_positive_btn), TASK_GET_POKEMON);
-                }
-            }
-
-            //Show the progressBar
-            showProgress(false);
-        }
-
-        @Override
-        protected void onCancelled() {
-            Log.i(TAG, "GET_POKEMON_TASK: onCancelled");
-            taskGetPokemonWasCanceled = true;
-            mGetPokemonsTask = null;
-        }
-
-    }
-
     public class TransferPokemonsTask extends AsyncTask<Void, ProgressTransferPokemon, Boolean> {
 
         private MaterialDialog.Builder builder;
@@ -1068,7 +914,7 @@ public class ActivityDashboard extends AppCompatActivity
 
         private List<LocalUserPokemon> mTransferablePokemonList;
 
-        public TransferPokemonsTask(List<LocalUserPokemon> mTransferablePokemonList){
+        public TransferPokemonsTask(List<LocalUserPokemon> mTransferablePokemonList) {
             this.mTransferablePokemonList = mTransferablePokemonList;
         }
 
@@ -1131,6 +977,8 @@ public class ActivityDashboard extends AppCompatActivity
 
                     }
 
+                    mUserPokemonList = mGO.getInventories().getPokebank().getPokemons();
+
                     Log.i(TAG, "TRANSFER_POKEMON_TASK: doInBackground: true");
                     return true;
 
@@ -1145,10 +993,7 @@ public class ActivityDashboard extends AppCompatActivity
                 Log.e(TAG, e.toString());
                 Log.i(TAG, "TRANSFER_POKEMON_TASK: doInBackground: exception");
                 return false;
-
             }
-
-
         }
 
         @Override
@@ -1164,7 +1009,6 @@ public class ActivityDashboard extends AppCompatActivity
                 dialog.incrementProgress(1);
             }
 
-
         }
 
         @Override
@@ -1178,22 +1022,17 @@ public class ActivityDashboard extends AppCompatActivity
 
             if (succes) {
 
-                if (mGetPokemonsTask == null) {
-                    mGetPokemonsTask = new GetPokemonsTask();
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                        mGetPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                    } else {
-                        mGetPokemonsTask.execute();
-                    }
+                if (visibleFragment == Constants.FRAGMENT_POKEBANK) {
+                    mFragmentPokemonBank.onTaskFinish(Constants.ACTION_TRANSFER_POKEMON, false, mUserPokemonList);
+                } else if (visibleFragment == Constants.FRAGMENT_COMPARE) {
+                    //mFragmentCompare.onTaskFinish(Constants.ACTION_TRANSFER_POKEMON, false, mUserPokemonList);
                 }
-
             } else {
 
                 if (isDeviceOnline()) {
-                    showSnackBar(getString(R.string.snack_bar_error_with_pokemon), getString(R.string.snack_bar_error_with_pokemon_positive_btn), TASK_TRANSFER);
+                    showSnackBar(getString(R.string.snack_bar_error_with_pokemon), getString(R.string.snack_bar_error_with_pokemon_positive_btn), Constants.ACTION_TRANSFER_POKEMON, mTransferablePokemonList);
                 } else {
-                    showSnackBar(getString(R.string.snack_bar_error_with_internet_acces), getString(R.string.snack_bar_error_with_internet_acces_positive_btn), TASK_TRANSFER);
+                    showSnackBar(getString(R.string.snack_bar_error_with_internet_acces), getString(R.string.snack_bar_error_with_internet_acces_positive_btn), Constants.ACTION_TRANSFER_POKEMON, mTransferablePokemonList);
                 }
 
             }
@@ -1269,8 +1108,14 @@ public class ActivityDashboard extends AppCompatActivity
 
             if (succes) {
 
-                if (visibleFragment == Constants.FRAGMENT_POKEBANK){
-                    mFragmentPokemonBank.onTaskFinish(Constants.ACTION_FRAGMENT_SET_FAVORITE_POKEMON, false, localUserPokemon);
+                if (visibleFragment == Constants.FRAGMENT_POKEBANK) {
+                    mFragmentPokemonBank.onTaskFinish(Constants.ACTION_SET_FAVORITE_POKEMON, false, localUserPokemon);
+                } else if (visibleFragment == Constants.FRAGMENT_COMPARE) {
+                    mFragmentCompare.onTaskFinish(Constants.ACTION_SET_FAVORITE_POKEMON, false, localUserPokemon);
+
+                    if (mFragmentPokemonBank!=null){
+                        mFragmentPokemonBank.onTaskFinish(Constants.ACTION_SET_FAVORITE_POKEMON, false, localUserPokemon);
+                    }
                 }
 
             } else {
@@ -1286,8 +1131,8 @@ public class ActivityDashboard extends AppCompatActivity
 
             dialog.dismiss();
 
-            if (visibleFragment == Constants.FRAGMENT_POKEBANK){
-                mFragmentPokemonBank.onTaskFinish(Constants.ACTION_FRAGMENT_SET_FAVORITE_POKEMON, true, localUserPokemon);
+            if (visibleFragment == Constants.FRAGMENT_POKEBANK) {
+                mFragmentPokemonBank.onTaskFinish(Constants.ACTION_SET_FAVORITE_POKEMON, true, localUserPokemon);
             }
 
         }

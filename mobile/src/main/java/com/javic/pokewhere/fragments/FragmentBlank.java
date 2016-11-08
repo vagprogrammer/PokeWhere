@@ -36,27 +36,6 @@ public class FragmentBlank extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-
-        // Inflate the layout for this fragment
-        mView = inflater.inflate(R.layout.fragment_blank, container, false);
-
-        // Inflate the layout for this fragment
-        return mView;
-    }
-
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        mListener.onFragmentCreatedViewStatus(Constants.FRAGMENT_BLANK);
-        mListener.showProgress(false);
-    }
-
-
-
-    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         mContext = context;
@@ -76,4 +55,22 @@ public class FragmentBlank extends Fragment {
         mListener = null;
     }
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+
+        // Inflate the layout for this fragment
+        mView = inflater.inflate(R.layout.fragment_blank, container, false);
+
+        // Inflate the layout for this fragment
+        return mView;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        //mListener.onFragmentCreatedViewStatus(Constants.FRAGMENT_BLANK);
+        mListener.showProgress(false);
+    }
 }

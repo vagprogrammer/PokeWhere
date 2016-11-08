@@ -20,6 +20,8 @@ import android.widget.Toast;
 
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerView;
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerViewAdapter;
+import com.daimajia.androidanimations.library.Techniques;
+import com.daimajia.androidanimations.library.YoYo;
 import com.javic.pokewhere.ActivityPokemonDetail;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.adapters.AdapterPokemonBank;
@@ -98,10 +100,9 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
 
-        if (mAdapter.getSelectedCount() > 0){
+        if (mAdapter.getSelectedCount() > 0) {
             menu.findItem(R.id.action_transferir).setVisible(true);
-        }
-        else{
+        } else {
             menu.findItem(R.id.action_transferir).setVisible(false);
         }
 
@@ -112,7 +113,7 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     public void onAttach(Context context) {
         super.onAttach(context);
 
-        String conte = "Context: "+ context.getClass().getSimpleName();
+        String conte = "Context: " + context.getClass().getSimpleName();
         mContext = context;
 
         Log.i(TAG, conte);
@@ -136,7 +137,7 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
         mToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
         ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " +mLocalUserPokemonList.get(0).getName());
+        mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " + mLocalUserPokemonList.get(0).getName());
 
         mGridLayoutManager = new GridLayoutManager(mContext, 3);
 
@@ -216,12 +217,9 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        if (mPokemonGo != null) {
+        mListener.onFragmentCreatedViewStatus(Constants.FRAGMENT_COMPARE);
+        mListener.showProgress(false);
 
-            mListener.onFragmentCreatedViewStatus(Constants.FRAGMENT_COMPARE);
-            mListener.showProgress(false);
-
-        }
     }
 
 
@@ -229,7 +227,7 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                if (canFinish()){
+                if (canFinish()) {
                     getActivity().onBackPressed();
                 }
 
@@ -245,15 +243,15 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
 
         if (count > 0) {
 
-            mToolbar.setNavigationIcon(android.R.drawable.ic_delete);
-            mToolbar.setTitle(String.valueOf(count)+ " " +getString(R.string.title_selected));
+            mToolbar.setNavigationIcon(R.drawable.ic_close_white_24dp);
+            mToolbar.setTitle(String.valueOf(count) + " " + getString(R.string.title_selected));
             menu.findItem(R.id.action_transferir).setVisible(true);
             mAdapter.changeSelectingState(true);
             mBottomBar.setVisibility(View.GONE);
-        } else  {
+        } else {
 
             mToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
-            mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " +mLocalUserPokemonList.get(0).getName());
+            mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " + mLocalUserPokemonList.get(0).getName());
             menu.findItem(R.id.action_transferir).setVisible(false);
             mAdapter.changeSelectingState(false);
             mBottomBar.setVisibility(View.VISIBLE);
@@ -290,29 +288,21 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
         switch (view.getId()) {
             case R.id.imgFavorite:
 
-                Toast.makeText(mContext, getString(R.string.dialog_title_unaviable_service), Toast.LENGTH_SHORT).show();
+                LocalUserPokemon localUserPokemon = (LocalUserPokemon) childItem;
 
-                /*if (mSetFavoriteTask == null) {
+                if (mListener != null) {
+                    mListener.onFragmentActionPerform(Constants.ACTION_SET_FAVORITE_POKEMON, localUserPokemon);
+                }
 
-                    LocalUserPokemon localPokemon = (LocalUserPokemon) childItem;
-
-                    mSetFavoriteTask = new FragmentPokemonBank.SetFavoriteTask(getUserPokemon(localPokemon.getId()), localPokemon);
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                        mSetFavoriteTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                    } else {
-                        mSetFavoriteTask.execute();
-                    }
-                }*/
                 break;
         }
     }
 
-    public Boolean canFinish(){
+    public Boolean canFinish() {
         if (mAdapter.getSelectedCount() > 0) {
 
             mToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
-            mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " +mLocalUserPokemonList.get(0).getName());
+            mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " + mLocalUserPokemonList.get(0).getName());
 
             menu.findItem(R.id.action_transferir).setVisible(false);
             mAdapter.clearSelected();
@@ -323,7 +313,42 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
         }
     }
 
-    public void animateStar(){
+    public void onTaskFinish(int task, boolean cancelled, Object object){
 
+        if (!cancelled){
+
+            switch (task){
+                case Constants.ACTION_SET_FAVORITE_POKEMON:
+                    AdapterPokemonBank.PokemonBankViewHolder
+                            holder = (AdapterPokemonBank.PokemonBankViewHolder) mRecyclerView.findViewHolderForAdapterPosition(mLocalUserPokemonList.indexOf((LocalUserPokemon)object));
+
+                    YoYo.with(Techniques.RotateIn)
+                            .duration(800)
+                            .playOn(holder.imgFavorite);
+
+                    if (!((LocalUserPokemon) object).getFavorite()) {
+                        holder.imgFavorite.setImageResource(R.drawable.ic_bookmarked);
+                    } else {
+                        holder.imgFavorite.setImageResource(R.drawable.ic_bookmark);
+                    }
+
+                    ((LocalUserPokemon)object).setFavorite(!((LocalUserPokemon)object).getFavorite());
+                    break;
+
+                /*case Constants.ACTION_TRANSFER_POKEMON:
+                    mUserPokemonList = (List<Pokemon>) object;
+                    setUpData();
+                    mAdapter.upDateAdapter(mLocalUserPokemonList);
+                    break;*/
+
+            }
+        }
+        else{
+            switch (task) {
+                case Constants.ACTION_SET_FAVORITE_POKEMON:
+                    ((LocalUserPokemon)object).setFavorite(!((LocalUserPokemon)object).getFavorite());
+                    break;
+            }
+        }
     }
 }

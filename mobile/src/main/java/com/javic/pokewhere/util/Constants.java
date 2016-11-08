@@ -11,7 +11,6 @@ public class Constants {
     public static final int ALERT_ADDRESS_RESULT_RECIVER = 0;
     public static final int ALERT_RESUME_TASK = 1;
     public static final int REQUEST_PERMISSION_ACCESS_COARSE_LOCATION = 1;
-
     public final static int REQUEST_CODE_ACTIVITY_FILTROS = 0;
     public final static int REQUEST_CODE_ACTIVITY_POKEMON_DETAIL = 10;
 
@@ -29,13 +28,12 @@ public class Constants {
     public static final int USER_ZOOM =15;
 
     //Dashboard Actions
+    public static final int ACTION_CONNECT_WITH_PG = 0;
     public static final int ACTION_START_SERVICE = 1;
     public static final int ACTION_REFRESH_TOKEN = 2;
-    public static final int ACTION_FRAGMENT_VER_TODOS = 3;
-    public static final int ACTION_FRAGMENT_TRANSFER_POKEMON = 4;
-    public static final int ACTION_FRAGMENT_GET_USER_POKEMON = 5;
-    public static final int ACTION_FRAGMENT_SET_FAVORITE_POKEMON = 6;
-
+    public static final int ACTION_VER_TODOS = 3;
+    public static final int ACTION_TRANSFER_POKEMON = 4;
+    public static final int ACTION_SET_FAVORITE_POKEMON = 5;
 
     //Fragments
     public static final int FRAGMENT_BLANK = -1;
@@ -43,7 +41,6 @@ public class Constants {
     public static final int FRAGMENT_BAG = 1;
     public static final int FRAGMENT_MAPA = 2;
     public static final int FRAGMENT_COMPARE = 3;
-
 
 
     // Preferencias
@@ -60,7 +57,6 @@ public class Constants {
     public static final String KEY_PREF_BUSQUEDA_MARKERS="pref_busqueda_markers";
     public static final String KEY_PREF_NORMAL_POKESTOPS_MARKERS="pref_normal_pokestops";
     public static final String KEY_PREF_LURED_POKESTOPS_MARKERS="pref_lured_pokestops";
-
     public static final String KEY_PREF_BLUE_GYMS_MARKERS="pref_blue_gyms";
     public static final String KEY_PREF_RED_GYMS_MARKERS="pref_red_gyms";
     public static final String KEY_PREF_YELLOW_GYMS_MARKERS="pref_yellow_gyms";
