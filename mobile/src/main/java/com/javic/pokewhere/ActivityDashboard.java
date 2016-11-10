@@ -49,6 +49,7 @@ import com.javic.pokewhere.models.LocalUserPokemon;
 import com.javic.pokewhere.models.ProgressTransferPokemon;
 import com.javic.pokewhere.services.ServiceFloatingMap;
 import com.javic.pokewhere.util.Constants;
+import com.javic.pokewhere.util.PokemonCreationTimeComparator;
 import com.javic.pokewhere.util.PrefManager;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.Item;
@@ -65,6 +66,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -134,6 +137,8 @@ public class ActivityDashboard extends AppCompatActivity
     //Listas
     private List<Pokemon> mUserPokemonList;
     private List<Item> mUserBagItemList;
+    private List<LocalUserPokemon> mLocalUserPokemonList;
+    private List<LocalUserPokemon> specificPokemonList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -254,6 +259,9 @@ public class ActivityDashboard extends AppCompatActivity
                             finish();
                         }
                     }
+                    else{
+                        finish();
+                    }
                     break;
                 case Constants.FRAGMENT_COMPARE:
                     //Verificamos que no haya elementos seleccionados en la lista de pokémon
@@ -262,6 +270,9 @@ public class ActivityDashboard extends AppCompatActivity
                             super.onBackPressed();
                         }
                     }
+                    break;
+                default:
+                    super.onBackPressed();
                     break;
             }
         }
@@ -344,7 +355,7 @@ public class ActivityDashboard extends AppCompatActivity
                 if (mFragmentPokemonBank == null) {
                     //mFragmentPokemon = mFragmentPokemon.newInstance(mGO);
                     if (mUserPokemonList != null) {
-                        mFragmentPokemonBank = FragmentPokemonBank.newInstance(mUserPokemonList);
+                        mFragmentPokemonBank = FragmentPokemonBank.newInstance(getLocalUserpokemonList());
                         replaceFragment(mFragmentPokemonBank);
                     }
                 } else {
@@ -355,7 +366,7 @@ public class ActivityDashboard extends AppCompatActivity
 
             case Constants.FRAGMENT_COMPARE:
 
-                mFragmentCompare = FragmentCompare.newInstance(mGO, (List<LocalUserPokemon>) object);
+                mFragmentCompare = FragmentCompare.newInstance(getLocalSpecificPokemonList(((LocalUserPokemon)object).getName()));
                 replaceFragment(mFragmentCompare);
 
                 break;
@@ -522,7 +533,16 @@ public class ActivityDashboard extends AppCompatActivity
                                 }
                             } else if (task == Constants.ACTION_TRANSFER_POKEMON) {
 
-                                mTransferPokemonsTask = new TransferPokemonsTask((List<LocalUserPokemon>) obj);
+                                List<LocalUserPokemon> list = (List<LocalUserPokemon>) obj;
+
+                                if (visibleFragment == Constants.FRAGMENT_COMPARE){
+
+                                    mTransferPokemonsTask = new TransferPokemonsTask(list, list.get(0));
+                                }
+                                else{
+                                    mTransferPokemonsTask = new TransferPokemonsTask(list,null);
+                                }
+
 
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                                     mTransferPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -728,7 +748,16 @@ public class ActivityDashboard extends AppCompatActivity
                 break;
 
             case Constants.ACTION_TRANSFER_POKEMON:
-                mTransferPokemonsTask = new TransferPokemonsTask((List<LocalUserPokemon>) object);
+                List<LocalUserPokemon> list = (List<LocalUserPokemon>) object;
+
+                if (visibleFragment == Constants.FRAGMENT_COMPARE){
+
+                    mTransferPokemonsTask = new TransferPokemonsTask(list, list.get(0));
+                }
+                else{
+                    mTransferPokemonsTask = new TransferPokemonsTask(list,null);
+                }
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                     mTransferPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 } else {
@@ -805,11 +834,11 @@ public class ActivityDashboard extends AppCompatActivity
                         mUserNextLevelXP = stats.getNextLevelXp();
 
                         //Actualizando lista de pokemon
-                        publishProgress(getString(R.string.message_update_pokemon));
+                        //publishProgress(getString(R.string.message_update_pokemon));
                         mUserPokemonList = mGO.getInventories().getPokebank().getPokemons();
 
                         //Actualizando lista de objetos
-                        publishProgress(getString(R.string.message_update_objects));
+                        //publishProgress(getString(R.string.message_update_objects));
                         mUserBagItemList = new ArrayList<>(mGO.getInventories().getItemBag().getItems());
                         return true;
                     }
@@ -874,8 +903,8 @@ public class ActivityDashboard extends AppCompatActivity
                 }
 
                 setFragment(visibleFragment, mUserPokemonList);
-
                 mNavigationView.getMenu().getItem(visibleFragment).setChecked(true);
+
 
                 if (prefmanager.isFirstTimeLaunch()) {
                     mDrawerLayout.openDrawer(mNavigationView);
@@ -884,6 +913,7 @@ public class ActivityDashboard extends AppCompatActivity
             } else {
 
                 setFragment(Constants.FRAGMENT_BLANK, null);
+
                 mNavigationView.getMenu().getItem(visibleFragment).setChecked(false);
 
                 if (isDeviceOnline()) {
@@ -912,10 +942,13 @@ public class ActivityDashboard extends AppCompatActivity
         //Object sended to onProgressUpdate method
         private ProgressTransferPokemon progress;
 
-        private List<LocalUserPokemon> mTransferablePokemonList;
 
-        public TransferPokemonsTask(List<LocalUserPokemon> mTransferablePokemonList) {
+        private List<LocalUserPokemon> mTransferablePokemonList;
+        private LocalUserPokemon localUserPokemon;
+
+        public TransferPokemonsTask(List<LocalUserPokemon> mTransferablePokemonList, LocalUserPokemon localUserPokemon) {
             this.mTransferablePokemonList = mTransferablePokemonList;
+            this.localUserPokemon =localUserPokemon;
         }
 
         @Override
@@ -1023,9 +1056,13 @@ public class ActivityDashboard extends AppCompatActivity
             if (succes) {
 
                 if (visibleFragment == Constants.FRAGMENT_POKEBANK) {
-                    mFragmentPokemonBank.onTaskFinish(Constants.ACTION_TRANSFER_POKEMON, false, mUserPokemonList);
+                    mFragmentPokemonBank.onTaskFinish(Constants.ACTION_TRANSFER_POKEMON,  null , getLocalUserpokemonList());
                 } else if (visibleFragment == Constants.FRAGMENT_COMPARE) {
-                    //mFragmentCompare.onTaskFinish(Constants.ACTION_TRANSFER_POKEMON, false, mUserPokemonList);
+                    mFragmentCompare.onTaskFinish(Constants.ACTION_TRANSFER_POKEMON, null, getLocalSpecificPokemonList(localUserPokemon.getName()));
+
+                    if (mFragmentPokemonBank!=null){
+                        mFragmentPokemonBank.onTaskFinish(Constants.ACTION_TRANSFER_POKEMON, null, getLocalUserpokemonList());
+                    }
                 }
             } else {
 
@@ -1083,6 +1120,7 @@ public class ActivityDashboard extends AppCompatActivity
                 try {
                     pokemon.setFavoritePokemon(!localUserPokemon.getFavorite());
                     mGO.getInventories().updateInventories(true);
+
                     Log.i(TAG, "SET_FAVORITE_TASK: doInBackground: true");
                     return true;
                 } catch (LoginFailedException | RemoteServerException e) {
@@ -1109,12 +1147,12 @@ public class ActivityDashboard extends AppCompatActivity
             if (succes) {
 
                 if (visibleFragment == Constants.FRAGMENT_POKEBANK) {
-                    mFragmentPokemonBank.onTaskFinish(Constants.ACTION_SET_FAVORITE_POKEMON, false, localUserPokemon);
+                    mFragmentPokemonBank.onTaskFinish(Constants.ACTION_SET_FAVORITE_POKEMON,  localUserPokemon , getLocalUserpokemonList() );
                 } else if (visibleFragment == Constants.FRAGMENT_COMPARE) {
-                    mFragmentCompare.onTaskFinish(Constants.ACTION_SET_FAVORITE_POKEMON, false, localUserPokemon);
+                    mFragmentCompare.onTaskFinish(Constants.ACTION_SET_FAVORITE_POKEMON, localUserPokemon, getLocalSpecificPokemonList(localUserPokemon.getName()));
 
                     if (mFragmentPokemonBank!=null){
-                        mFragmentPokemonBank.onTaskFinish(Constants.ACTION_SET_FAVORITE_POKEMON, false, localUserPokemon);
+                        mFragmentPokemonBank.onTaskFinish(Constants.ACTION_SET_FAVORITE_POKEMON, localUserPokemon, getLocalUserpokemonList());
                     }
                 }
 
@@ -1137,6 +1175,101 @@ public class ActivityDashboard extends AppCompatActivity
 
         }
 
+    }
+
+
+
+    public  List<LocalUserPokemon> getLocalUserpokemonList(){
+
+       mLocalUserPokemonList = new ArrayList<>();
+
+        for (Pokemon pokemon : mUserPokemonList) {
+            LocalUserPokemon localUserPokemon = new LocalUserPokemon();
+            localUserPokemon.setId(pokemon.getId());
+            localUserPokemon.setName(pokemon.getPokemonId().name());
+            localUserPokemon.setNickname(pokemon.getNickname());
+            localUserPokemon.setBitmap(getBitmapFromAssets(pokemon.getPokemonId().getNumber()));
+            localUserPokemon.setNumber(pokemon.getPokemonId().getNumber());
+            localUserPokemon.setFavorite(pokemon.isFavorite());
+            localUserPokemon.setDead(pokemon.isInjured());
+            localUserPokemon.setCp(pokemon.getCp());
+            localUserPokemon.setIv(((int) (pokemon.getIvRatio() * 100)));
+            localUserPokemon.setAttack(pokemon.getIndividualAttack());
+            localUserPokemon.setDefense(pokemon.getIndividualDefense());
+            localUserPokemon.setStamina(pokemon.getIndividualStamina());
+            localUserPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer());
+            localUserPokemon.setEvolveCP(pokemon.getCpAfterEvolve());
+            localUserPokemon.setLevel(pokemon.getLevel());
+            localUserPokemon.setCandies(pokemon.getCandy());
+            localUserPokemon.setPowerUpStardust(pokemon.getStardustCostsForPowerup());
+            localUserPokemon.setPoweUpCandies(pokemon.getCandyCostsForPowerup());
+            localUserPokemon.setEvolveCandies(pokemon.getCandiesToEvolve());
+            localUserPokemon.setCreationTimeMillis(pokemon.getCreationTimeMs());
+
+            mLocalUserPokemonList.add(localUserPokemon);
+        }
+
+        return  mLocalUserPokemonList;
+    }
+
+    private List<LocalUserPokemon> getLocalSpecificPokemonList(String name) {
+        specificPokemonList = new ArrayList<>();
+
+        for (Pokemon specificPokemon : mUserPokemonList) {
+            if (specificPokemon.getPokemonId().name().equals(name)) {
+
+                LocalUserPokemon localUserPokemon = new LocalUserPokemon();
+                localUserPokemon.setId(specificPokemon.getId());
+                localUserPokemon.setName(specificPokemon.getPokemonId().name());
+                localUserPokemon.setNickname(specificPokemon.getNickname());
+                localUserPokemon.setBitmap(getBitmapFromAssets(specificPokemon.getPokemonId().getNumber()));
+                localUserPokemon.setNumber(specificPokemon.getPokemonId().getNumber());
+                localUserPokemon.setFavorite(specificPokemon.isFavorite());
+                localUserPokemon.setDead(specificPokemon.isInjured());
+                localUserPokemon.setCp(specificPokemon.getCp());
+                localUserPokemon.setIv(((int) (specificPokemon.getIvRatio() * 100)));
+                localUserPokemon.setAttack(specificPokemon.getIndividualAttack());
+                localUserPokemon.setDefense(specificPokemon.getIndividualDefense());
+                localUserPokemon.setStamina(specificPokemon.getIndividualStamina());
+                localUserPokemon.setMaxCp(specificPokemon.getMaxCpFullEvolveAndPowerupForPlayer());
+                localUserPokemon.setEvolveCP(specificPokemon.getCpAfterEvolve());
+                localUserPokemon.setLevel(specificPokemon.getLevel());
+                localUserPokemon.setCandies(specificPokemon.getCandy());
+                localUserPokemon.setPowerUpStardust(specificPokemon.getStardustCostsForPowerup());
+                localUserPokemon.setPoweUpCandies(specificPokemon.getCandyCostsForPowerup());
+                localUserPokemon.setEvolveCandies(specificPokemon.getCandiesToEvolve());
+                localUserPokemon.setCreationTimeMillis(specificPokemon.getCreationTimeMs());
+
+                specificPokemonList.add(localUserPokemon);
+            }
+        }
+
+        return specificPokemonList;
+    }
+
+
+    private Bitmap getBitmapFromAssets(int pokemonIdNumber) {
+        AssetManager assetManager = getAssets();
+
+        Bitmap bitmap = null;
+
+        try {
+            InputStream is = null;
+
+            if (pokemonIdNumber < 10) {
+                is = assetManager.open(String.valueOf("00" + pokemonIdNumber) + ".png");
+            } else if (pokemonIdNumber < 100) {
+                is = assetManager.open(String.valueOf("0" + pokemonIdNumber) + ".png");
+            } else {
+                is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
+            }
+
+            bitmap = BitmapFactory.decodeStream(is);
+        } catch (IOException e) {
+            Log.e("ERROR", e.getMessage());
+        }
+
+        return bitmap;
     }
 }
 

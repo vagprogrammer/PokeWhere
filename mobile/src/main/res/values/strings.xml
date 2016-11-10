@@ -142,6 +142,9 @@
     <string name="text_bar_defense">Defensa</string>
     <string name="text_bar_stamina">Salud</string>
 
+    <!-- Strings related to Compare Fragment -->
+    <string name="text_no_pokemon">Todos los pokemon se han transferido</string>
+
     <!-- Strings related to Bag Fragment -->
     <string name="group_pokeballs">POKE BALLS</string>
     <string name="group_incenses">INCENSES</string>

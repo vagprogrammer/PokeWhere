@@ -65,10 +65,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     private ActionBarDrawerToggle mDrawerToggle;
 
     //Listas
-    private static List<Pokemon> mUserPokemonList;
-    private List<LocalUserPokemon> mLocalUserPokemonList;
-    private List<LocalUserPokemon> specificPokemonList;
-
+    private static List<LocalUserPokemon> mLocalUserPokemonList;
 
     //Adapter
     private AdapterPokemonBank mAdapter;
@@ -77,11 +74,11 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         // Required empty public constructor
     }
 
-    public static FragmentPokemonBank newInstance(List<Pokemon> userPokemonList) {
+    public static FragmentPokemonBank newInstance(List<LocalUserPokemon> localUserPokemonList) {
         FragmentPokemonBank fragment = new FragmentPokemonBank();
         Bundle args = new Bundle();
         fragment.setArguments(args);
-        mUserPokemonList = userPokemonList;
+        mLocalUserPokemonList = localUserPokemonList;
         return fragment;
     }
 
@@ -128,8 +125,6 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         // Tie DrawerLayout events to the ActionBarToggle
         ActivityDashboard.mDrawerLayout.addDrawerListener(mDrawerToggle);
 
-        setUpData();
-
         mGridLayoutManager = new GridLayoutManager(mContext, 3);
 
         // Setup adapter and callbacks
@@ -145,53 +140,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         mBottomBar.setOnTabSelectListener(new OnTabSelectListener() {
             @Override
             public void onTabSelected(@IdRes int tabId) {
-
-                switch (tabId) {
-                    case R.id.tab_iv:
-                        // Sorting
-                        Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-                            @Override
-                            public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-                                return pokemon2.getIv() - pokemon1.getIv(); // Ascending
-                            }
-                        });
-                        break;
-                    case R.id.tab_cp:
-                        // Sorting
-                        Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-                            @Override
-                            public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-                                return pokemon2.getCp() - pokemon1.getCp(); // Ascending
-                            }
-                        });
-                        break;
-                    case R.id.tab_recents:
-                        Collections.sort(mLocalUserPokemonList, new PokemonCreationTimeComparator());
-                        break;
-                    case R.id.tab_name:
-                        // Sorting
-                        Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-
-                            @Override
-                            public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-
-                                return pokemon1.getName().compareTo(pokemon2.getName());
-                            }
-                        });
-                        break;
-                    case R.id.tab_number:
-                        // Sorting
-                        Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-                            @Override
-                            public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-                                return pokemon1.getNumber() - pokemon2.getNumber(); // Ascending
-                            }
-                        });
-                        break;
-
-                }
-
-                mAdapter.upDateAdapter(mLocalUserPokemonList);
+                orderList(tabId);
             }
         });
 
@@ -233,6 +182,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
             startActivityForResult(i, Constants.REQUEST_CODE_ACTIVITY_POKEMON_DETAIL);
         }
     }
+
     @Override
     public void onLongClick(int index) {
         // Long click initializes drag selection, and selects the initial item
@@ -252,6 +202,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
                             public boolean onCabCreated(MaterialCab cab, Menu menu) {
                                 return true;
                             }
+
                             @Override
                             public boolean onCabItemClicked(MenuItem item) {
                                 if (item.getItemId() == R.id.action_transferir) {
@@ -259,7 +210,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
                                     List<LocalUserPokemon> pokemonTotrasnferList = new ArrayList<>();
                                     Integer indices[] = mAdapter.getSelectedIndices();
 
-                                    for (Integer indice: indices) {
+                                    for (Integer indice : indices) {
                                         pokemonTotrasnferList.add(mLocalUserPokemonList.get(indice));
                                     }
 
@@ -269,6 +220,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
                                 }
                                 return true;
                             }
+
                             @Override
                             public boolean onCabFinished(MaterialCab cab) {
                                 mAdapter.clearSelected();
@@ -296,7 +248,8 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         switch (view.getId()) {
             case R.id.imgFavorite:
 
-                LocalUserPokemon localUserPokemon = (LocalUserPokemon) childItem;
+                //Variables
+                final LocalUserPokemon localUserPokemon = (LocalUserPokemon) childItem;
 
                 if (mListener != null) {
                     mListener.onFragmentActionPerform(Constants.ACTION_SET_FAVORITE_POKEMON, localUserPokemon);
@@ -305,7 +258,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
                 break;
             case R.id.btnCompare:
                 if (mListener != null) {
-                    mListener.onFragmentActionPerform(Constants.ACTION_VER_TODOS, getAllPokemonByName(((LocalUserPokemon) childItem).getName()));
+                    mListener.onFragmentActionPerform(Constants.ACTION_VER_TODOS, childItem);
                 }
                 break;
         }
@@ -326,166 +279,110 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         }
     }
 
-    public  void setUpData(){
 
-        mLocalUserPokemonList = new ArrayList<>();
+    public void onTaskFinish(int task, Object object, Object objectList) {
 
-        for (Pokemon pokemon : mUserPokemonList) {
-                LocalUserPokemon localUserPokemon = new LocalUserPokemon();
-                localUserPokemon.setId(pokemon.getId());
-                localUserPokemon.setName(pokemon.getPokemonId().toString());
-                localUserPokemon.setNickname(pokemon.getNickname());
-                localUserPokemon.setBitmap(getBitmapFromAssets(pokemon.getPokemonId().getNumber()));
-                localUserPokemon.setNumber(pokemon.getPokemonId().getNumber());
-                localUserPokemon.setFavorite(pokemon.isFavorite());
-                localUserPokemon.setDead(pokemon.isInjured());
-                localUserPokemon.setCp(pokemon.getCp());
-                localUserPokemon.setIv(((int) (pokemon.getIvRatio() * 100)));
-                localUserPokemon.setAttack(pokemon.getIndividualAttack());
-                localUserPokemon.setDefense(pokemon.getIndividualDefense());
-                localUserPokemon.setStamina(pokemon.getIndividualStamina());
-                localUserPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer());
-                localUserPokemon.setEvolveCP(pokemon.getCpAfterEvolve());
-                localUserPokemon.setLevel(pokemon.getLevel());
-                localUserPokemon.setCandies(pokemon.getCandy());
-                localUserPokemon.setPowerUpStardust(pokemon.getStardustCostsForPowerup());
-                localUserPokemon.setPoweUpCandies(pokemon.getCandyCostsForPowerup());
-                localUserPokemon.setEvolveCandies(pokemon.getCandiesToEvolve());
-                localUserPokemon.setCreationTimeMillis(pokemon.getCreationTimeMs());
+        switch (task) {
+            case Constants.ACTION_SET_FAVORITE_POKEMON:
 
-                mLocalUserPokemonList.add(localUserPokemon);
-        }
+                mLocalUserPokemonList = (List<LocalUserPokemon>) objectList;
 
-        if (mBottomBar!=null){
-            switch (mBottomBar.getCurrentTabId()){
-                case R.id.tab_iv:
-                    // Sorting
-                    Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-                        @Override
-                        public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-                            return pokemon2.getIv() - pokemon1.getIv(); // Ascending
-                        }
-                    });
-                    break;
-                case R.id.tab_cp:
-                    // Sorting
-                    Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-                        @Override
-                        public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-                            return pokemon2.getCp() - pokemon1.getCp(); // Ascending
-                        }
-                    });
-                    break;
-                case R.id.tab_recents:
-                    Collections.sort(mLocalUserPokemonList, new PokemonCreationTimeComparator());
-                    break;
-                case R.id.tab_name:
-                    // Sorting
-                    Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-
-                        @Override
-                        public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-
-                            return pokemon1.getName().compareTo(pokemon2.getName());
-                        }
-                    });
-                    break;
-                case R.id.tab_number:
-                    // Sorting
-                    Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-                        @Override
-                        public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-                            return pokemon1.getNumber() - pokemon2.getNumber(); // Ascending
-                        }
-                    });
-                    break;
-            }
-        }else{
-            // Sorting
-            Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-                @Override
-                public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-                    return pokemon2.getIv() - pokemon1.getIv(); // Ascending
+                if (mBottomBar!=null){
+                    orderList(mBottomBar.getCurrentTabId());
                 }
-            });
-        }
-    }
 
-    private Bitmap getBitmapFromAssets(int pokemonIdNumber) {
-        AssetManager assetManager = mContext.getAssets();
+                /*LocalUserPokemon local = getSpecificPokemon((LocalUserPokemon) object);
 
-        Bitmap bitmap = null;
+                AdapterPokemonBank.PokemonBankViewHolder
+                        holder = (AdapterPokemonBank.PokemonBankViewHolder) mRecyclerView.findViewHolderForAdapterPosition(mLocalUserPokemonList.indexOf(local));
 
-        try {
-            InputStream is = null;
+                YoYo.with(Techniques.RotateIn)
+                        .duration(800)
+                        .playOn(holder.imgFavorite);
 
-            if (pokemonIdNumber < 10) {
-                is = assetManager.open(String.valueOf("00" + pokemonIdNumber) + ".png");
-            } else if (pokemonIdNumber < 100) {
-                is = assetManager.open(String.valueOf("0" + pokemonIdNumber) + ".png");
-            } else {
-                is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
-            }
-
-            bitmap = BitmapFactory.decodeStream(is);
-        } catch (IOException e) {
-            Log.e("ERROR", e.getMessage());
-        }
-
-        return bitmap;
-    }
-
-    private List<LocalUserPokemon> getAllPokemonByName(String name) {
-        specificPokemonList = new ArrayList<>();
-
-        for (LocalUserPokemon specificPokemon : mLocalUserPokemonList) {
-            if (specificPokemon.getName().equals(name)) {
-                specificPokemonList.add(specificPokemon);
-            }
-        }
-
-        return specificPokemonList;
-    }
-
-    public void onTaskFinish(int task, boolean cancelled, Object object){
-
-        if (!cancelled){
-
-            switch (task){
-                case Constants.ACTION_SET_FAVORITE_POKEMON:
-                    ((LocalUserPokemon)object).setFavorite(!((LocalUserPokemon)object).getFavorite());
-
-                    AdapterPokemonBank.PokemonBankViewHolder
-                            holder = (AdapterPokemonBank.PokemonBankViewHolder) mRecyclerView.findViewHolderForAdapterPosition(mLocalUserPokemonList.indexOf(object));
-
-                    YoYo.with(Techniques.RotateIn)
-                            .duration(800)
-                            .playOn(holder.imgFavorite);
-
-                    if (!((LocalUserPokemon) object).getFavorite()) {
-                        holder.imgFavorite.setImageResource(R.drawable.ic_bookmarked);
-                    } else {
-                        holder.imgFavorite.setImageResource(R.drawable.ic_bookmark);
-                    }
+                if (local.getFavorite()) {
+                    holder.imgFavorite.setImageResource(R.drawable.ic_bookmarked);
+                } else {
+                    holder.imgFavorite.setImageResource(R.drawable.ic_bookmark);
+                }*/
 
                 break;
 
-                case Constants.ACTION_TRANSFER_POKEMON:
-                    mUserPokemonList = (List<Pokemon>) object;
-                    setUpData();
-                    mAdapter.clearSelected();
-                    mAdapter.upDateAdapter(mLocalUserPokemonList);
-                    break;
+            case Constants.ACTION_TRANSFER_POKEMON:
+                mLocalUserPokemonList = (List<LocalUserPokemon>) objectList;
+                mAdapter.clearSelected();
+                mAdapter.upDateAdapter(mLocalUserPokemonList);
 
+                if (mBottomBar!=null){
+                    orderList(mBottomBar.getCurrentTabId());
+                }
+
+                break;
+        }
+    }
+
+    private LocalUserPokemon getSpecificPokemon(LocalUserPokemon pokemon) {
+
+        LocalUserPokemon localUserPokemon = null;
+
+        for (LocalUserPokemon specificPokemon : mLocalUserPokemonList) {
+            String specificId = String.valueOf(specificPokemon.getId());
+
+            if (specificId.equals(String.valueOf(pokemon.getId()))) {
+                localUserPokemon = specificPokemon;
             }
         }
-        else{
-            switch (task) {
-                case Constants.ACTION_SET_FAVORITE_POKEMON:
-                    ((LocalUserPokemon)object).setFavorite(!((LocalUserPokemon)object).getFavorite());
-                    break;
-            }
+
+        return localUserPokemon;
+    }
+
+    private void orderList(@IdRes int tabId){
+        switch (tabId) {
+            case R.id.tab_iv:
+                // Sorting
+                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
+                    @Override
+                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
+                        return pokemon2.getIv() - pokemon1.getIv(); // Ascending
+                    }
+                });
+                break;
+            case R.id.tab_cp:
+                // Sorting
+                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
+                    @Override
+                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
+                        return pokemon2.getCp() - pokemon1.getCp(); // Ascending
+                    }
+                });
+                break;
+            case R.id.tab_recents:
+                Collections.sort(mLocalUserPokemonList, new PokemonCreationTimeComparator());
+                break;
+            case R.id.tab_name:
+                // Sorting
+                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
+
+                    @Override
+                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
+
+                        return pokemon1.getName().compareTo(pokemon2.getName());
+                    }
+                });
+                break;
+            case R.id.tab_number:
+                // Sorting
+                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
+                    @Override
+                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
+                        return pokemon1.getNumber() - pokemon2.getNumber(); // Ascending
+                    }
+                });
+                break;
+
         }
+
+        mAdapter.upDateAdapter(mLocalUserPokemonList);
     }
 
 }

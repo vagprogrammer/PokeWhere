@@ -29,10 +29,12 @@ import com.javic.pokewhere.interfaces.OnFragmentListener;
 import com.javic.pokewhere.interfaces.OnViewItemClickListenner;
 import com.javic.pokewhere.models.LocalUserPokemon;
 import com.javic.pokewhere.util.Constants;
+import com.javic.pokewhere.util.PokemonCreationTimeComparator;
 import com.pokegoapi.api.PokemonGo;
 import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnTabSelectListener;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -41,8 +43,6 @@ import java.util.List;
 public class FragmentCompare extends Fragment implements AdapterPokemonBank.ClickListener, DragSelectRecyclerViewAdapter.SelectionListener, OnViewItemClickListenner {
 
     private static final String TAG = FragmentCompare.class.getSimpleName();
-
-    private static final int TASK_GETPOKEMON = 0;
 
     //Context
     private Context mContext;
@@ -57,9 +57,6 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     private DragSelectRecyclerView mRecyclerView;
     private GridLayoutManager mGridLayoutManager;
 
-    // API PokemonGO
-    private static PokemonGo mPokemonGo;
-
     //Adapter
     private AdapterPokemonBank mAdapter;
 
@@ -67,19 +64,20 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     private static List<LocalUserPokemon> mLocalUserPokemonList;
 
     //Variables
-    public boolean favoriteTaskWasCanceled = false;
     private Menu menu;
+
+    //Variables
+    private LocalUserPokemon localUserPokemon;
 
     public FragmentCompare() {
         // Required empty public constructor
     }
 
-    public static FragmentCompare newInstance(PokemonGo pokemonGo, List<LocalUserPokemon> mList) {
+    public static FragmentCompare newInstance(List<LocalUserPokemon> mList) {
         FragmentCompare fragment = new FragmentCompare();
         Bundle args = new Bundle();
         fragment.setArguments(args);
 
-        mPokemonGo = pokemonGo;
         mLocalUserPokemonList = mList;
 
         return fragment;
@@ -137,6 +135,7 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
         mToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
         ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " + mLocalUserPokemonList.get(0).getName());
 
         mGridLayoutManager = new GridLayoutManager(mContext, 3);
@@ -153,60 +152,7 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
             @Override
             public void onTabSelected(@IdRes int tabId) {
 
-                switch (tabId) {
-                    case R.id.tab_iv:
-                        // Sorting
-                        Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-                            @Override
-                            public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-                                return pokemon2.getIv() - pokemon1.getIv(); // Ascending
-                            }
-                        });
-                        break;
-                    case R.id.tab_cp:
-                        // Sorting
-                        Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-                            @Override
-                            public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-                                return pokemon2.getCp() - pokemon1.getCp(); // Ascending
-                            }
-                        });
-                        break;
-                    case R.id.tab_attack:
-                        // Sorting
-                        Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-
-                            @Override
-                            public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-
-                                return pokemon2.getAttack() - pokemon1.getAttack();
-                            }
-                        });
-                        break;
-                    case R.id.tab_defense:
-                        // Sorting
-                        Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-
-                            @Override
-                            public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-
-                                return pokemon2.getDefense() - pokemon1.getDefense();
-                            }
-                        });
-                        break;
-                    case R.id.tab_stamina:
-                        // Sorting
-                        Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-                            @Override
-                            public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-                                return pokemon2.getStamina() - pokemon1.getStamina(); // Ascending
-                            }
-                        });
-                        break;
-
-                }
-
-                mAdapter.upDateAdapter(mLocalUserPokemonList);
+                orderList(tabId);
             }
         });
 
@@ -231,6 +177,18 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
                     getActivity().onBackPressed();
                 }
 
+                break;
+            case R.id.action_transferir:
+                List<LocalUserPokemon> pokemonTotrasnferList = new ArrayList<>();
+                Integer indices[] = mAdapter.getSelectedIndices();
+
+                for (Integer indice : indices) {
+                    pokemonTotrasnferList.add(mLocalUserPokemonList.get(indice));
+                }
+
+                if (mListener != null) {
+                    mListener.onFragmentActionPerform(Constants.ACTION_TRANSFER_POKEMON, pokemonTotrasnferList);
+                }
                 break;
             default:
                 break;
@@ -313,42 +271,134 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
         }
     }
 
-    public void onTaskFinish(int task, boolean cancelled, Object object){
+    public void onTaskFinish(int task, Object object, Object objectList) {
 
-        if (!cancelled){
 
-            switch (task){
-                case Constants.ACTION_SET_FAVORITE_POKEMON:
-                    AdapterPokemonBank.PokemonBankViewHolder
-                            holder = (AdapterPokemonBank.PokemonBankViewHolder) mRecyclerView.findViewHolderForAdapterPosition(mLocalUserPokemonList.indexOf((LocalUserPokemon)object));
+        switch (task) {
+            case Constants.ACTION_SET_FAVORITE_POKEMON:
 
-                    YoYo.with(Techniques.RotateIn)
-                            .duration(800)
-                            .playOn(holder.imgFavorite);
+                mLocalUserPokemonList = (List<LocalUserPokemon>) objectList;
 
-                    if (!((LocalUserPokemon) object).getFavorite()) {
-                        holder.imgFavorite.setImageResource(R.drawable.ic_bookmarked);
-                    } else {
-                        holder.imgFavorite.setImageResource(R.drawable.ic_bookmark);
+                if (mBottomBar != null) {
+                    orderList(mBottomBar.getCurrentTabId());
+                }
+
+                /*LocalUserPokemon local = getSpecificPokemon((LocalUserPokemon) object);
+
+                AdapterPokemonBank.PokemonBankViewHolder
+                        holder = (AdapterPokemonBank.PokemonBankViewHolder) mRecyclerView.findViewHolderForAdapterPosition(mLocalUserPokemonList.indexOf(local));
+
+                YoYo.with(Techniques.RotateIn)
+                        .duration(800)
+                        .playOn(holder.imgFavorite);
+
+                if (local.getFavorite()) {
+                    holder.imgFavorite.setImageResource(R.drawable.ic_bookmarked);
+                } else {
+                    holder.imgFavorite.setImageResource(R.drawable.ic_bookmark);
+                }*/
+
+                break;
+
+            case Constants.ACTION_TRANSFER_POKEMON:
+                mLocalUserPokemonList = (List<LocalUserPokemon>) objectList;
+
+                mToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
+
+                if (mLocalUserPokemonList.size() > 0) {
+                    mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " + mLocalUserPokemonList.get(0).getName());
+                } else {
+                    mToolbar.setTitle(getString(R.string.text_no_pokemon));
+                }
+
+                menu.findItem(R.id.action_transferir).setVisible(false);
+                mAdapter.changeSelectingState(false);
+                mAdapter.clearSelected();
+                mAdapter.upDateAdapter(mLocalUserPokemonList);
+
+                if (mBottomBar != null) {
+                    orderList(mBottomBar.getCurrentTabId());
+                }
+
+                mBottomBar.setVisibility(View.VISIBLE);
+
+                break;
+
+        }
+
+
+    }
+
+    private LocalUserPokemon getSpecificPokemon(String id) {
+
+        LocalUserPokemon localUserPokemon = null;
+
+        for (LocalUserPokemon specificPokemon : mLocalUserPokemonList) {
+            String specificId = String.valueOf(specificPokemon.getId());
+
+            if (specificId.equals(id)) {
+                localUserPokemon = specificPokemon;
+            }
+        }
+
+        return localUserPokemon;
+    }
+
+
+    private void orderList(@IdRes int tabId) {
+        switch (tabId) {
+            case R.id.tab_iv:
+                // Sorting
+                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
+                    @Override
+                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
+                        return pokemon2.getIv() - pokemon1.getIv(); // Ascending
                     }
+                });
+                break;
+            case R.id.tab_cp:
+                // Sorting
+                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
+                    @Override
+                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
+                        return pokemon2.getCp() - pokemon1.getCp(); // Ascending
+                    }
+                });
+                break;
+            case R.id.tab_attack:
+                // Sorting
+                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
 
-                    ((LocalUserPokemon)object).setFavorite(!((LocalUserPokemon)object).getFavorite());
-                    break;
+                    @Override
+                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
 
-                /*case Constants.ACTION_TRANSFER_POKEMON:
-                    mUserPokemonList = (List<Pokemon>) object;
-                    setUpData();
-                    mAdapter.upDateAdapter(mLocalUserPokemonList);
-                    break;*/
+                        return pokemon2.getAttack() - pokemon1.getAttack();
+                    }
+                });
+                break;
+            case R.id.tab_defense:
+                // Sorting
+                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
 
-            }
+                    @Override
+                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
+
+                        return pokemon2.getDefense() - pokemon1.getDefense();
+                    }
+                });
+                break;
+            case R.id.tab_stamina:
+                // Sorting
+                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
+                    @Override
+                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
+                        return pokemon2.getStamina() - pokemon1.getStamina(); // Ascending
+                    }
+                });
+                break;
+
         }
-        else{
-            switch (task) {
-                case Constants.ACTION_SET_FAVORITE_POKEMON:
-                    ((LocalUserPokemon)object).setFavorite(!((LocalUserPokemon)object).getFavorite());
-                    break;
-            }
-        }
+
+        mAdapter.upDateAdapter(mLocalUserPokemonList);
     }
 }
