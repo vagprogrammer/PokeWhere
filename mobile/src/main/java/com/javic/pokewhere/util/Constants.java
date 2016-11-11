@@ -34,6 +34,7 @@ public class Constants {
     public static final int ACTION_VER_TODOS = 3;
     public static final int ACTION_TRANSFER_POKEMON = 4;
     public static final int ACTION_SET_FAVORITE_POKEMON = 5;
+    public static final int ACTION_DELETE_ITEMS = 6;
 
     //Fragments
     public static final int FRAGMENT_BLANK = -1;

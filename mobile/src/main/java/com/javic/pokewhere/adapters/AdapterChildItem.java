@@ -16,6 +16,7 @@ import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
 
 import java.util.List;
 
+
 /**
  * Created by victor on 29/09/16.
  */
@@ -23,9 +24,11 @@ import java.util.List;
 public class AdapterChildItem extends ExpandableRecyclerViewAdapter<GroupItemViewHolder, ChildItemViewHolder> {
     private Context mContext;
     private OnViewItemClickListenner mListener;
+    private List<GroupItem> mGroupItemList;
 
-    public AdapterChildItem(List<? extends ExpandableGroup> groups, Context mContext, OnViewItemClickListenner mListener) {
+    public AdapterChildItem(List<GroupItem> groups, Context mContext, OnViewItemClickListenner mListener) {
         super(groups);
+        this.mGroupItemList = groups;
         this.mContext = mContext;
         this.mListener = mListener;
     }
@@ -61,6 +64,10 @@ public class AdapterChildItem extends ExpandableRecyclerViewAdapter<GroupItemVie
         holder.setChildItemImage(childItem.getImage());*/
     }
 
+    public void upDateAdapter(List<GroupItem> mGroupItemList){
+        this.mGroupItemList = mGroupItemList;
+        this.notifyDataSetChanged();
+    }
 
 
 }

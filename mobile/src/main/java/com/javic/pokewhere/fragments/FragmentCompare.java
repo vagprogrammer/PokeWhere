@@ -8,7 +8,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,6 +16,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerView;
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerViewAdapter;
@@ -34,7 +34,6 @@ import com.roughike.bottombar.OnTabSelectListener;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 
@@ -210,7 +209,9 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
         } else {
 
             mToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
-            mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " + mLocalUserPokemonList.get(0).getName());
+            if (mLocalUserPokemonList.size() > 0) {
+                mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " + mLocalUserPokemonList.get(0).getName());
+            }
             menu.findItem(R.id.action_transferir).setVisible(false);
             mAdapter.changeSelectingState(false);
             mBottomBar.setVisibility(View.VISIBLE);
@@ -274,7 +275,6 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
 
     public void onTaskFinish(int task, Object object, Object objectList) {
 
-
         switch (task) {
             case Constants.ACTION_SET_FAVORITE_POKEMON:
 
@@ -306,12 +306,6 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
 
                 mToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
 
-                if (mLocalUserPokemonList.size() > 0) {
-                    mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " + mLocalUserPokemonList.get(0).getName());
-                } else {
-                    mToolbar.setTitle(getString(R.string.text_no_pokemon));
-                }
-
                 menu.findItem(R.id.action_transferir).setVisible(false);
                 mAdapter.changeSelectingState(false);
                 mAdapter.clearSelected();
@@ -322,6 +316,13 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
                 }
 
                 mBottomBar.setVisibility(View.VISIBLE);
+
+                if (mLocalUserPokemonList.size() > 0) {
+                    mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " + mLocalUserPokemonList.get(0).getName());
+                } else {
+                    Toast.makeText(mContext, getString(R.string.text_no_pokemon), Toast.LENGTH_SHORT).show();
+                    getActivity().onBackPressed();
+                }
 
                 break;
 

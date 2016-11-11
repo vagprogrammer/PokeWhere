@@ -35,7 +35,6 @@ import com.roughike.bottombar.OnTabSelectListener;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.ClickListener, DragSelectRecyclerViewAdapter.SelectionListener, OnViewItemClickListenner {
@@ -63,15 +62,19 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     //Adapter
     private AdapterPokemonBank mAdapter;
 
+    //Variables
+    private static int mUserPokeBankSpace = 0;
+
     public FragmentPokemonBank() {
         // Required empty public constructor
     }
 
-    public static FragmentPokemonBank newInstance(List<LocalUserPokemon> localUserPokemonList) {
+    public static FragmentPokemonBank newInstance(List<LocalUserPokemon> localUserPokemonList, int userPokeBankSpace) {
         FragmentPokemonBank fragment = new FragmentPokemonBank();
         Bundle args = new Bundle();
         fragment.setArguments(args);
         mLocalUserPokemonList = localUserPokemonList;
+        mUserPokeBankSpace = userPokeBankSpace;
         return fragment;
     }
 
@@ -109,7 +112,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
 
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
         ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("");
+        mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + "/" + String.valueOf(mUserPokeBankSpace) + " " + getString(R.string.text_pokemones));
 
         mDrawerToggle = new ActionBarDrawerToggle(getActivity(), ActivityDashboard.mDrawerLayout, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         mDrawerToggle.setDrawerIndicatorEnabled(true);
@@ -316,6 +319,8 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
                 if (mBottomBar!=null){
                     orderList(mBottomBar.getCurrentTabId());
                 }
+
+                mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + "/" + String.valueOf(mUserPokeBankSpace) + " " + getString(R.string.text_pokemones));
 
                 break;
         }
