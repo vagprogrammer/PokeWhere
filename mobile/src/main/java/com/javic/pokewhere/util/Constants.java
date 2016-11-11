@@ -62,4 +62,13 @@ public class Constants {
     public static final String KEY_PREF_YELLOW_GYMS_MARKERS="pref_yellow_gyms";
     public static final String KEY_PREF_WHITE_GYMS_MARKERS="pref_white_gyms";
 
+    //COMAPRE
+    public static final int VALUE_IV = 0;
+    public static final int VALUE_CP = 1;
+    public static final int VALUE_RECENTS = 2;
+    public static final int VALUE_NAME = 3;
+    public static final int VALUE_NUMBER = 4;
+    public static final int VALUE_ATACK = 5;
+    public static final int VALUE_DEFENSE = 6;
+    public static final int VALUE_STAMINA = 7;
 }

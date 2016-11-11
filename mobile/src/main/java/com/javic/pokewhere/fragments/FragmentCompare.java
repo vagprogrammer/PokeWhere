@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,12 +17,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerView;
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerViewAdapter;
-import com.daimajia.androidanimations.library.Techniques;
-import com.daimajia.androidanimations.library.YoYo;
 import com.javic.pokewhere.ActivityPokemonDetail;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.adapters.AdapterPokemonBank;
@@ -29,9 +27,9 @@ import com.javic.pokewhere.interfaces.OnFragmentListener;
 import com.javic.pokewhere.interfaces.OnViewItemClickListenner;
 import com.javic.pokewhere.models.LocalUserPokemon;
 import com.javic.pokewhere.util.Constants;
-import com.javic.pokewhere.util.PokemonCreationTimeComparator;
-import com.pokegoapi.api.PokemonGo;
+import com.javic.pokewhere.util.PokemonComparator;
 import com.roughike.bottombar.BottomBar;
+import com.roughike.bottombar.OnTabReselectListener;
 import com.roughike.bottombar.OnTabSelectListener;
 
 import java.util.ArrayList;
@@ -151,8 +149,13 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
         mBottomBar.setOnTabSelectListener(new OnTabSelectListener() {
             @Override
             public void onTabSelected(@IdRes int tabId) {
-
                 orderList(tabId);
+            }
+        });
+        mBottomBar.setOnTabReselectListener(new OnTabReselectListener() {
+            @Override
+            public void onTabReSelected(@IdRes int tabId) {
+                mGridLayoutManager.scrollToPositionWithOffset(0,0);
             }
         });
 
@@ -162,10 +165,8 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         mListener.onFragmentCreatedViewStatus(Constants.FRAGMENT_COMPARE);
         mListener.showProgress(false);
-
     }
 
 
@@ -346,59 +347,28 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
 
 
     private void orderList(@IdRes int tabId) {
+        int valueToCompare =0;
+
         switch (tabId) {
             case R.id.tab_iv:
-                // Sorting
-                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-                    @Override
-                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-                        return pokemon2.getIv() - pokemon1.getIv(); // Ascending
-                    }
-                });
+                valueToCompare = Constants.VALUE_IV;
                 break;
             case R.id.tab_cp:
-                // Sorting
-                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-                    @Override
-                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-                        return pokemon2.getCp() - pokemon1.getCp(); // Ascending
-                    }
-                });
+                valueToCompare = Constants.VALUE_CP;
                 break;
             case R.id.tab_attack:
-                // Sorting
-                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-
-                    @Override
-                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-
-                        return pokemon2.getAttack() - pokemon1.getAttack();
-                    }
-                });
+                valueToCompare = Constants.VALUE_ATACK;
                 break;
             case R.id.tab_defense:
-                // Sorting
-                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-
-                    @Override
-                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-
-                        return pokemon2.getDefense() - pokemon1.getDefense();
-                    }
-                });
+                valueToCompare = Constants.VALUE_DEFENSE;
                 break;
             case R.id.tab_stamina:
-                // Sorting
-                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-                    @Override
-                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-                        return pokemon2.getStamina() - pokemon1.getStamina(); // Ascending
-                    }
-                });
+                valueToCompare = Constants.VALUE_STAMINA;
                 break;
 
         }
 
+        Collections.sort(mLocalUserPokemonList, new PokemonComparator(valueToCompare));
         mAdapter.upDateAdapter(mLocalUserPokemonList);
     }
 }

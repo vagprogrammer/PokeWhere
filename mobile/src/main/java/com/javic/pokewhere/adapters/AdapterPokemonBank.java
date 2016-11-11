@@ -59,7 +59,7 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
         holder.defense.setText(String.valueOf(pokemon.getDefense()));
         holder.stamina.setText(String.valueOf(pokemon.getStamina()));
         holder.candies.setText(":"+String.valueOf(pokemon.getCandies()));
-
+        holder.btnCompare.setText(mContext.getString(R.string.text_btn_show_all)+ " ("+ String.valueOf(pokemon.getPokemonCount())+ ")");
         if (pokemon.getNickname().equals("")){
             holder.name.setText(pokemon.getName());
         }else {

@@ -49,7 +49,6 @@ import com.javic.pokewhere.models.LocalUserPokemon;
 import com.javic.pokewhere.models.ProgressTransferPokemon;
 import com.javic.pokewhere.services.ServiceFloatingMap;
 import com.javic.pokewhere.util.Constants;
-import com.javic.pokewhere.util.PokemonCreationTimeComparator;
 import com.javic.pokewhere.util.PrefManager;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.Item;
@@ -66,8 +65,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -840,6 +837,8 @@ public class ActivityDashboard extends AppCompatActivity
                         //Actualizando lista de objetos
                         //publishProgress(getString(R.string.message_update_objects));
                         mUserBagItemList = new ArrayList<>(mGO.getInventories().getItemBag().getItems());
+
+
                         return true;
                     }
                 } catch (LoginFailedException | RemoteServerException e) {
@@ -1205,7 +1204,7 @@ public class ActivityDashboard extends AppCompatActivity
             localUserPokemon.setPoweUpCandies(pokemon.getCandyCostsForPowerup());
             localUserPokemon.setEvolveCandies(pokemon.getCandiesToEvolve());
             localUserPokemon.setCreationTimeMillis(pokemon.getCreationTimeMs());
-
+            localUserPokemon.setPokemonCount(mGO.getInventories().getPokebank().getPokemonByPokemonId(pokemon.getPokemonId()).size());
             mLocalUserPokemonList.add(localUserPokemon);
         }
 
@@ -1239,7 +1238,7 @@ public class ActivityDashboard extends AppCompatActivity
                 localUserPokemon.setPoweUpCandies(specificPokemon.getCandyCostsForPowerup());
                 localUserPokemon.setEvolveCandies(specificPokemon.getCandiesToEvolve());
                 localUserPokemon.setCreationTimeMillis(specificPokemon.getCreationTimeMs());
-
+                localUserPokemon.setPokemonCount(mGO.getInventories().getPokebank().getPokemonByPokemonId(specificPokemon.getPokemonId()).size());
                 specificPokemonList.add(localUserPokemon);
             }
         }

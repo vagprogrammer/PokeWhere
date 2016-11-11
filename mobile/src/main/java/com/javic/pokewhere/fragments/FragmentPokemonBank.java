@@ -2,9 +2,6 @@ package com.javic.pokewhere.fragments;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.AssetManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
@@ -23,8 +20,6 @@ import android.view.ViewGroup;
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerView;
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerViewAdapter;
 import com.afollestad.materialcab.MaterialCab;
-import com.daimajia.androidanimations.library.Techniques;
-import com.daimajia.androidanimations.library.YoYo;
 import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.ActivityPokemonDetail;
 import com.javic.pokewhere.R;
@@ -33,13 +28,11 @@ import com.javic.pokewhere.interfaces.OnFragmentListener;
 import com.javic.pokewhere.interfaces.OnViewItemClickListenner;
 import com.javic.pokewhere.models.LocalUserPokemon;
 import com.javic.pokewhere.util.Constants;
-import com.javic.pokewhere.util.PokemonCreationTimeComparator;
-import com.pokegoapi.api.pokemon.Pokemon;
+import com.javic.pokewhere.util.PokemonComparator;
 import com.roughike.bottombar.BottomBar;
+import com.roughike.bottombar.OnTabReselectListener;
 import com.roughike.bottombar.OnTabSelectListener;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -141,6 +134,13 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
             @Override
             public void onTabSelected(@IdRes int tabId) {
                 orderList(tabId);
+            }
+        });
+
+        mBottomBar.setOnTabReselectListener(new OnTabReselectListener() {
+            @Override
+            public void onTabReSelected(@IdRes int tabId) {
+                mGridLayoutManager.scrollToPositionWithOffset(0,0);
             }
         });
 
@@ -337,51 +337,26 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     }
 
     private void orderList(@IdRes int tabId){
+        int valueToCompare =0;
         switch (tabId) {
             case R.id.tab_iv:
-                // Sorting
-                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-                    @Override
-                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-                        return pokemon2.getIv() - pokemon1.getIv(); // Ascending
-                    }
-                });
+                valueToCompare = Constants.VALUE_IV;
                 break;
             case R.id.tab_cp:
-                // Sorting
-                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-                    @Override
-                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-                        return pokemon2.getCp() - pokemon1.getCp(); // Ascending
-                    }
-                });
+                valueToCompare = Constants.VALUE_CP;
                 break;
             case R.id.tab_recents:
-                Collections.sort(mLocalUserPokemonList, new PokemonCreationTimeComparator());
+                valueToCompare = Constants.VALUE_RECENTS;
                 break;
             case R.id.tab_name:
-                // Sorting
-                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-
-                    @Override
-                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-
-                        return pokemon1.getName().compareTo(pokemon2.getName());
-                    }
-                });
+                valueToCompare = Constants.VALUE_NAME;
                 break;
             case R.id.tab_number:
-                // Sorting
-                Collections.sort(mLocalUserPokemonList, new Comparator<LocalUserPokemon>() {
-                    @Override
-                    public int compare(LocalUserPokemon pokemon1, LocalUserPokemon pokemon2) {
-                        return pokemon1.getNumber() - pokemon2.getNumber(); // Ascending
-                    }
-                });
+                valueToCompare = Constants.VALUE_NUMBER;
                 break;
-
         }
 
+        Collections.sort(mLocalUserPokemonList, new PokemonComparator(valueToCompare));
         mAdapter.upDateAdapter(mLocalUserPokemonList);
     }
 

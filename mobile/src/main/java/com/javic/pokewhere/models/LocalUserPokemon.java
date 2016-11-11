@@ -31,12 +31,13 @@ public class LocalUserPokemon implements Parcelable{
     private int poweUpCandies;
     private int evolveCandies;
     private Long creationTimeMillis;
+    private int pokemonCount;
 
     public LocalUserPokemon(){
         //Empty constructor is needed
     }
 
-    public LocalUserPokemon(Long id, String name, Bitmap bitmap, int number, String nickname, Boolean isFavorite, Boolean isDead,int cp, int iv, int attack, int defense, int stamina, int maxCp, int evolveCP, float level, int candies, int powerUpStardust, int poweUpCandies, int evolveCandies, Calendar creationTime, Long creationTimeMillis) {
+    public LocalUserPokemon(Long id, String name, Bitmap bitmap, int number, String nickname, Boolean isFavorite, Boolean isDead,int cp, int iv, int attack, int defense, int stamina, int maxCp, int evolveCP, float level, int candies, int powerUpStardust, int poweUpCandies, int evolveCandies, Calendar creationTime, Long creationTimeMillis, int pokemonCount) {
         this.id = id;
         this.name = name;
         this.bitmap = bitmap;
@@ -57,6 +58,7 @@ public class LocalUserPokemon implements Parcelable{
         this.poweUpCandies = poweUpCandies;
         this.evolveCandies = evolveCandies;
         this.creationTimeMillis = creationTimeMillis;
+        this.pokemonCount = pokemonCount;
     }
 
     protected LocalUserPokemon(Parcel in){
@@ -80,6 +82,7 @@ public class LocalUserPokemon implements Parcelable{
         poweUpCandies = in.readInt();
         evolveCandies = in.readInt();
         creationTimeMillis = in.readLong();
+        pokemonCount = in.readInt();
     }
 
 
@@ -105,6 +108,7 @@ public class LocalUserPokemon implements Parcelable{
         parcel.writeInt(poweUpCandies);
         parcel.writeInt(evolveCandies);
         parcel.writeLong(creationTimeMillis);
+        parcel.writeInt(pokemonCount);
 
     }
 
@@ -286,5 +290,11 @@ public class LocalUserPokemon implements Parcelable{
         this.creationTimeMillis = creationTimeMillis;
     }
 
+    public int getPokemonCount() {
+        return pokemonCount;
+    }
 
+    public void setPokemonCount(int pokemonCount) {
+        this.pokemonCount = pokemonCount;
+    }
 }

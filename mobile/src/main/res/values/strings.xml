@@ -134,6 +134,7 @@
     <string name="message_count_selected">Pokémon para transferir</string>
     <string name="message_untrasferable_favorite">No puedes transferir un pokémon favorito</string>
     <string name="message_untrasferable">Ahora no puedes transferir este pokémon, intentalo más tarde</string>
+    <string name="text_btn_show_all">VER TODOS</string>
     <string name="text_pokemones">Pokemones</string>
     <string name="text_bar_recents">Recientes</string>
     <string name="text_bar_name">Nombre</string>
