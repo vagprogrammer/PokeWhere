@@ -1,33 +1,31 @@
 <resources>
     <string name="app_name">PokeEASY</string>
-    <string name="title_activity_login">Sign in</string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_activity_splash_screen">Splash Screen</string>
-    <string name="title_activity_pokemon_detail">Detalle</string>
-    <string name="title_fragment_bag">Bag</string>
+    <string name="title_activity_pokemon_detail">Detail</string>
 
+    <!-- Activity Tutorial -->
+    <string name="title_tutorial_pokebank">Transfer quicker</string>
+    <string name="text_done_button">DONE</string>
+    <string name="message_tutorial_pokebank">Press and hold, then swipe and TRANSFER</string>
     <!-- Activity Dashboard -->
     <!-- Strings related to the NavigationDrawer -->
-    <string name="nav_header_user_level">Nivel</string>
-    <string name="nav_header_user_stardust">Polvo estelar:</string>
-    <string name="nav_header_user_pokebank_space">Espacio pokemones:</string>
-    <string name="nav_header_user_bag_space">Espacio objetos:</string>
-    <string name="nav_fragment_transfer">Banco de pokemones</string>
-    <string name="nav_fragment_bag">Objetos</string>
-    <string name="nav_fragment_map">Localizador de pokemones</string>
-    <string name="nav_sing_out">Cerrar sesión</string>
-    <string name="section_contact">Contacto</string>
-    <string name="nav_contact">Dime que opinas</string>
-    <string name="message_connecting_with_pokemon_go">Conectando con los servidores de Pokémon GO...</string>
-    <string name="message_get_user_information">Obteniendo información del usuario...</string>
-    <string name="message_get_account_information">Obteniendo información de la cuenta...</string>
-    <string name="message_update_pokemon">Obteniendo lista de pokemones...</string>
-    <string name="message_update_objects">Obteniendo lista de objetos...</string>
-    <string name="message_favorite_pokemon">agregado a favoritos!</string>
-    <string name="message_unfavorite_pokemon">eliminado de favoritos!</string>
+    <string name="nav_header_user_level">Level</string>
+    <string name="nav_header_user_stardust">Stardust:</string>
+    <string name="nav_header_user_pokebank_space">Space pokemon:</string>
+    <string name="nav_header_user_bag_space">Space objects:</string>
+    <string name="nav_fragment_transfer">Pokemon Bank</string>
+    <string name="nav_fragment_bag">Objects</string>
+    <string name="nav_fragment_map">Pokemon Finder</string>
+    <string name="nav_sing_out">Logout</string>
+    <string name="section_contact">Contact</string>
+    <string name="nav_contact">Tell me what you think</string>
+    <string name="message_connecting_with_pokemon_go">Connecting with the servers of Pokemon GO...</string>
+    <string name="message_get_user_information">Obtaining user information...</string>
+    <string name="message_get_account_information">Obtaining account information...</string>
+    <string name="message_favorite_pokemon">added to favorites!</string>
+    <string name="message_unfavorite_pokemon">deleted from favorites!</string>
 
     <!-- Activity Select Account -->
-    <string name="title_select_account">Inicia sesión con:</string>
+    <string name="title_select_account">Sign in with:</string>
 
     <!-- Navigation Drawer -->
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -40,62 +38,58 @@
 
 
     <!-- Menu actions -->
-    <string name="action_settings">Settings</string>
-    <string name="action_start_service">Ver en segundo plano</string>
-    <string name="action_voice_rec">action voice rec</string>
-    <string name="action_location">Ir a mi ubicación</string>
-    <string name="action_filter">Filtrar </string>
-    <string name="action_aplicar_filtros">APLICAR</string>
-    <string name="action_transferir">TRANSFERIR</string>
+    <string name="action_start_service">View in background</string>
+    <string name="action_location">Go to my location</string>
+    <string name="action_filter">Filter</string>
+    <string name="action_aplicar_filtros">APPLY</string>
+    <string name="action_transferir">TRANSFER</string>
 
     <!-- Snack Bar -->
-    <string name="snack_bar_error_with_pokemon">Ocurrio un error</string>
-    <string name="snack_bar_error_with_pokemon_positive_btn">Reintentar</string>
-    <string name="snack_bar_error_with_pokemon_negative_btn">No ahora</string>
-    <string name="snack_bar_neg_btn">Detener</string>
-    <string name="snack_bar_error_with_internet_acces">Por favor verifica tu conexión a internet</string>
-    <string name="snack_bar_error_with_internet_acces_positive_btn">Ir a Configuraciones</string>
-    <string name="message_snackbar_searching_text">Buscando pokémons...</string>
-    <string name="permission_access_coarse_location">El acceso a tú ubicación es necesario para poder localizarte en el mapa y así poder encontrar pokemones a tu alrededor.</string>
-    <string name="action_snack_permission_access_coarse_location">Aceptar permiso</string>
-    <string name="permission_rationale">El acceso a los contactos es múy útil, si lo aceptas, podremos brindarte sugerencias de tus corres y así no tendrás que escribirlos por completo.</string>
-    <string name="action_snack_intentarlo_ahora">Inténtarlo ahora</string>
+    <string name="snack_bar_error_with_pokemon">An error occurred</string>
+    <string name="snack_bar_error_with_pokemon_positive_btn">Retry</string>
+    <string name="snack_bar_error_with_pokemon_negative_btn">Later</string>
+    <string name="snack_bar_neg_btn">Stop</string>
+    <string name="snack_bar_error_with_internet_acces">Please check your internet connection</string>
+    <string name="snack_bar_error_with_internet_acces_positive_btn">Go to settings</string>
+    <string name="message_snackbar_searching_text">Looking for pokemon...</string>
+    <string name="permission_access_coarse_location">The access to your location is necessary to be able to locate you in the map and thus to be able to find pokemon to your around.</string>
+    <string name="action_snack_permission_access_coarse_location">Accept permission</string>
+    <string name="permission_rationale">The access to the contacts is very useful, if you accept it, we will be able to offer you suggestions of your corres and thus you will not have to write them completely.</string>
+    <string name="action_snack_intentarlo_ahora">Try it now</string>
 
 
     <!-- Strings related to login -->
-    <string name="google_account_secure">CUENTA DE GOOGLE (recomendado)</string>
-    <string name="google_account_credentials">CUENTA DE GOOGLE \n(correo y contraseña)</string>
-    <string name="ptc_account">PTC \n(entrenadores pokémon) </string>
+    <string name="google_account_secure">GOOGLE ACCOUNT\n(recommended)</string>
+    <string name="google_account_credentials">GOOGLE ACCOUNT\n(email and password)</string>
+    <string name="ptc_account">PTC\n(Pokemon trainers)</string>
     <string name="prompt_token">Token (Ej. 4/18dn21...)</string>
-    <string name="prompt_email">Correo</string>
+    <string name="prompt_email">Email</string>
     <string name="prompt_nickname">Nickname PTC</string>
-    <string name="prompt_password">Contraseña</string>
-    <string name="action_sign_in">Iniciar sesión</string>
-    <string name="action_forget_account">¿Has olvidado tu contraseña?</string>
-    <string name="action_cant_login">¿No puedes iniciar sesión?</string>
-    <string name="error_invalid_email">¡Introduce un correo valido!</string>
-    <string name="error_invalid_password">La contraseña es muy corta</string>
-    <string name="error_incorrect_password">¡La contraseña es incorrecta!</string>
-    <string name="error_field_required">Este campo es necesario</string>
-    <string name="error_login">Intentalo de nuevo más tarde</string>
-    <string name="pick_account">Es necesario que selecciones una cuenta</string>
-    <string name="terms">Esta aplicación sólo lee los datos de su cuenta Pokémon Go.
-    \nEl desarrollador no será responsable si algo le sucede a su cuenta.
-    \nNo hay garantía de que esto esté permitido por los términos de servicio de Niantic.</string>
-    <string name="dont_have_token">Si no tienes un "TOKEN"</string>
-    <string name="btn_request_token">Obtener un TOKEN</string>
-    <string name="have_token">De lo contrario, peguelo y presione el botón de enviar</string>
-    <string name="tv_note">Nota: Si el TOKEN es invalido, la aplicación podría fallar, por favor obtenga un nuevo TOKEN desde la consola de Google e intentelo nuevamente.</string>
-    <string name="btn_send_token">ENVIAR</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Log in</string>
+    <string name="action_forget_account">Did you forget your password?</string>
+    <string name="action_cant_login">Can not log in?</string>
+    <string name="error_invalid_email">Enter a valid email!</string>
+    <string name="error_invalid_password">Password is too short</string>
+    <string name="error_incorrect_password">Password is incorrect!</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="error_login">Try again later</string>
+    <string name="pick_account">You must select an account</string>
+    <string name="terms">This application only reads data from your Pokemon Go account.\nThe developer will not be responsible if something happens to your account.\nThere is no guarantee that this will be permitted by Niantics terms of service.</string>
+    <string name="dont_have_token">If you do not have a "TOKEN"</string>
+    <string name="btn_request_token">Get a TOKEN</string>
+    <string name="have_token">Otherwise, paste and press the send button</string>
+    <string name="tv_note">Note: If TOKEN is invalid, the application may fail, please obtain a new TOKEN from the Google console and try again.</string>
+    <string name="btn_send_token">SEND</string>
 
 
     <!-- Strings related to Activity Filter -->
-    <string name="filtro_all_markers">MOSTRAR TODO</string>
-    <string name="filtro_busqueda_markers">Puntos de búsqueda</string>
-    <string name="filtro_pokestops">POKEPARADAS</string>
-    <string name="op_normal_pokestop">Normal poke-stop</string>
-    <string name="op_lured_pokestop">Lured poke-stop</string>
-    <string name="filtro_gyms">GIMNASIOS</string>
+    <string name="filtro_all_markers">SHOW ALL</string>
+    <string name="filtro_busqueda_markers">Search points</string>
+    <string name="filtro_pokestops">POKESTOPS</string>
+    <string name="op_normal_pokestop">Normal PokeStops</string>
+    <string name="op_lured_pokestop">Lured PokeStops</string>
+    <string name="filtro_gyms">GYMS</string>
     <string name="op_blue_gym">Mystics Gyms</string>
     <string name="op_red_gym">Valors Gyms</string>
     <string name="op_yellow_gym">Instincts Gyms</string>
@@ -103,50 +97,52 @@
 
 
     <!-- Strings related to Map Fragment -->
-    <string name="location_alert_title">Error al obtener ubicación</string>
-    <string name="location_alert_message">PokeEasy no pudo obtener tu ubicación, intentalo nuevamente o muevete por el mapa</string>
-    <string name="location_alert_pos_btn">Inténtalo de nuevo</string>
-    <string name="location_alert_neg_btn">Cancelar</string>
-    <string name="location_alert_error">Ah currido un error, por favor intentalo más tarde!</string>
-    <string name="service_not_available">El Servicio no está disponible</string>
-    <string name="invalid_lat_long_used">Latitud y Longitud invalida</string>
-    <string name="no_address_found">No econtramos la dirección</string>
-    <string name="address_found">Address founded</string>
-    <string name="no_geocoder_available">Geocoder is not aviable</string>
-    <string name="resume_alert_title">¿Empezar una nueva búsqueda?</string>
-    <string name="resume_alert_message">Los citerios de búsqueda han cambiado, quieres continuar con tú búsqueda actual o iniciar una nueva? Si inicias una nueva búsqueda todos los marcadores del mapa serán eliminados incluyendo (Pokeparadas, gimnasisos, lugares de búsqueda, pokémones)</string>
-    <string name="resume_alert_pos_btn">Continuar búsqueda</string>
-    <string name="resume_alert_neg_btn">Nueva búsqueda</string>
-    <string name="permission_alert_title">Servicios de ubicación desactivados</string>
-    <string name="permission_alert_message">Para el correcto funcionamiento de la aplicación, es necesario que los servicios de ubicación esten activados, puedes activarlos desde los Settings de la aplicación</string>
-    <string name="open_location_settings">Activar Servicios de Ubicación</string>
-    <string name="message_json_request_succes_1">¡Hemos encontrado</string>
-    <string name="message_json_request_succes_2">pokemones a tu alrededor, atrápalos a todos!</string>
-    <string name="message_json_request_empty">Por ahora no hay ningún pokémon cerca, vuelve a intentarlo más tarde!</string>
-    <string name="message_json_request_error">Ha ocurrido un error, vuelve a intentarlo más tarde!</string>
-    <string name="text_hint_searchbar">Indicar ubicación, ej. Santa Monica Pier,CA...</string>
-    <string name="dialog_title_unaviable_service">¡Servicio NO disponible!</string>
-    <string name="dialog_content_unaviable_service">Por ahora, todas las herramientas de terceros, incluyendo los boots y mapas de localización NO están funcionando. Estamos trabajando para que todo regrese a la normalidad muy pronto. \nSaludos!</string>
-    <string name="dialog_positive_unaviable_service">Entendido</string>
+    <string name="location_alert_title">Failed to get location</string>
+    <string name="location_alert_message">PokeEasy could not get your location, try again or move around the map</string>
+    <string name="location_alert_pos_btn">Try again</string>
+    <string name="location_alert_neg_btn">Cancel</string>
+    <string name="location_alert_error">An error has occurred, please try again later!</string>
+    <string name="service_not_available">Service not available</string>
+    <string name="invalid_lat_long_used">Invalid latitude and longitude</string>
+    <string name="no_address_found">We can not find the address</string>
+    <string name="address_found">Address found</string>
+    <string name="no_geocoder_available">Service not available</string>
+    <string name="resume_alert_title">Start a new search?</string>
+    <string name="resume_alert_message">Search cites have changed, do you want to continue with your current search or start a new one? If you start a new search all map markers will be deleted including (Pokeparadas, gymnastics, search places, pokemon)</string>
+    <string name="resume_alert_pos_btn">Continue search</string>
+    <string name="resume_alert_neg_btn">New search</string>
+    <string name="permission_alert_title">Location services disabled</string>
+    <string name="permission_alert_message">For the correct operation of the application, it is necessary that the location services are activated, you can activate them from the Settings of the application</string>
+    <string name="open_location_settings">Activate</string>
+    <string name="message_json_request_succes_1">We have found</string>
+    <string name="message_json_request_succes_2">pokemon around, catch them all!</string>
+    <string name="message_json_request_empty">For now there are no pokemon nearby, try again later!</string>
+    <string name="message_json_request_error">An error has occurred, try again later!</string>
+    <string name="text_hint_searchbar">Indicate location, eg. Santa Monica Pier, CA...</string>
+    <string name="dialog_title_unaviable_service">Service not available!</string>
+    <string name="dialog_content_unaviable_service">For now, all third-party tools, including bots and location maps, are NOT working. We are working to get everything back to normal very soon. \nGreetings!</string>
+    <string name="dialog_positive_unaviable_service">Done</string>
 
     <!-- Strings related to Pokebank Fragment -->
-    <string name="dialog_title_transfer_pokemons">Transfiriendo pokemones</string>
-    <string name="dialog_content_please_wait">Por favor espera...</string>
-    <string name="title_selected">Seleccionados</string>
-    <string name="message_count_selected">Pokémon para transferir</string>
-    <string name="message_untrasferable_favorite">No puedes transferir un pokémon favorito</string>
-    <string name="message_untrasferable">Ahora no puedes transferir este pokémon, intentalo más tarde</string>
-    <string name="text_btn_show_all">VER TODOS</string>
-    <string name="text_pokemones">Pokemones</string>
-    <string name="text_bar_recents">Recientes</string>
-    <string name="text_bar_name">Nombre</string>
-    <string name="text_bar_number">Número</string>
-    <string name="text_bar_attack">Ataque</string>
-    <string name="text_bar_defense">Defensa</string>
-    <string name="text_bar_stamina">Salud</string>
+    <string name="dialog_title_transfer_pokemons">Transferring pokemon</string>
+    <string name="dialog_content_please_wait">Please wait...</string>
+    <string name="title_selected">Selected</string>
+    <string name="message_count_selected">Pokemon to transfer</string>
+    <string name="message_untrasferable_favorite">You can not transfer a favorite pokemon</string>
+    <string name="message_untrasferable">Now you can not transfer this pokemon, try later</string>
+    <string name="text_btn_show_all">SEE ALL</string>
+    <string name="text_pokemones">Pokemon</string>
+    <string name="text_bar_recents">Recents</string>
+    <string name="text_bar_name">Name</string>
+    <string name="text_bar_number">Number</string>
+    <string name="text_bar_attack">Attack</string>
+    <string name="text_bar_defense">Defense</string>
+    <string name="text_bar_stamina">Health</string>
+    <string name="message_text_transfering">Transferring</string>
+    <string name="message_text_canceling">Canceling...</string>
 
     <!-- Strings related to Compare Fragment -->
-    <string name="text_no_pokemon">Todos los pokemon se han transferido</string>
+    <string name="text_no_pokemon">All pokemon has been transferred</string>
 
     <!-- Strings related to Bag Fragment -->
     <string name="group_pokeballs">POKE BALLS</string>
@@ -157,26 +153,33 @@
     <string name="group_revives">REVIVES</string>
     <string name="group_berries">BERRIES</string>
     <string name="group_incubators">INCUBATORS</string>
-    <string name="dialog_title_delete_items">Borrando Items</string>
-    <string name="dialog_title_select_items_pre">¿Cuántos</string>
-    <string name="dialog_title_select_items_post">quieres tirar?</string>
+    <string name="dialog_title_delete_items">Deleting items</string>
+    <string name="dialog_title_select_items_pre">How many</string>
+    <string name="dialog_title_select_items_post">do you want to throw?</string>
     <string name="dialog_title_select_items_total">Total:</string>
-    <string name="dialog_positive_btn_items">Tirar</string>
-    <string name="message_items_deleted">tirados exitosamente!</string>
+    <string name="dialog_positive_btn_items">Throw</string>
+    <string name="message_items_deleted">thrown successfully!</string>
+    <string name="title_items">Items</string>
 
     <!-- Strings related to Pokemon Detail Activity -->
-    <string name="text_attack">Ataque:</string>
-    <string name="text_defense">Defensa:</string>
-    <string name="text_stamina">Salud:</string>
+    <string name="text_attack">Attack:</string>
+    <string name="text_defense">Defense:</string>
+    <string name="text_stamina">Health:</string>
     <string name="text_cp_max">CP Máx:</string>
-    <string name="text_cp_mult">CP Evol:</string>
-    <string name="text_level">Nivel:</string>
-    <string name="text_candies">Caramelos:</string>
-    <string name="text_powerup">Más poder:</string>
-    <string name="text_evolve">Evolucionar:</string>
-    <string name="text_damage">Daño:</string>
-    <string name="text_dps">Daño/seg:</string>
-    <string name="text_stardust">Polvo Estelar:</string>
+    <string name="text_cp_mult">CP After Evol:</string>
+    <string name="text_level">Level:</string>
+    <string name="text_candies">Candies:</string>
+    <string name="text_powerup">More power:</string>
+    <string name="text_evolve">Evolve:</string>
+    <string name="text_damage">Damage:</string>
+    <string name="text_dps">Damage/seg:</string>
+    <string name="text_stardust">Stardust:</string>
 
+
+    <!-- Strings related to new update -->
+    <string name="text_result_power_up">ha aumentado su poder.</string>
+    <string name="message_un_power_up">Intentalo más tarde</string>
+    <string name="text_result_evolve">ha evolucionado a</string>
+    <string name="message_un_evolve">no puede evolucionar</string>
 
 </resources>

@@ -53,6 +53,10 @@
             </intent-filter>
         </activity>
 
+        <activity android:name="com.javic.pokewhere.app.AppTutorial"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullscreenTheme"/>
+
         <activity
             android:name=".ActivitySelectAccount"
             android:screenOrientation="portrait"

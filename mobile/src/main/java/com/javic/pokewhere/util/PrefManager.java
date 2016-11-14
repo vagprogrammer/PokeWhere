@@ -50,4 +50,15 @@ public class PrefManager {
         return false;
     }
 
+    public void setTutorialComplete(boolean isComplete) {
+        editor.putBoolean(Constants.KEY_PREF_IS_TUTORIAL_COMPLETE, isComplete );
+        editor.commit();
+    }
+
+    public boolean isTutorialComplete() {
+
+        boolean isComplete = pref.getBoolean(Constants.KEY_PREF_IS_TUTORIAL_COMPLETE, false);
+
+        return isComplete;
+    }
 }

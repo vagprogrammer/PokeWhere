@@ -292,7 +292,7 @@ public class FragmentBag extends Fragment implements OnViewItemClickListenner {
                 mRecyclerView.setLayoutManager(mLayoutManager);
                 mRecyclerView.setAdapter(mAdapterChildItem);
 
-                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(String.valueOf(getItemCount()) + "/" + String.valueOf(mUserBagSpace) + " Items");
+                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(String.valueOf(getItemCount()) + "/" + String.valueOf(mUserBagSpace) + " " + getString(R.string.title_items));
 
                 break;
         }

@@ -1,7 +1,6 @@
 package com.javic.pokewhere.fragments;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
@@ -20,7 +19,6 @@ import android.widget.Toast;
 
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerView;
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerViewAdapter;
-import com.javic.pokewhere.ActivityPokemonDetail;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.adapters.AdapterPokemonBank;
 import com.javic.pokewhere.interfaces.OnFragmentListener;
@@ -64,7 +62,7 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     private Menu menu;
 
     //Variables
-    private LocalUserPokemon localUserPokemon;
+    public static LocalUserPokemon localUserPokemon; //Used for ActivityDashboard
 
     public FragmentCompare() {
         // Required empty public constructor
@@ -77,6 +75,7 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
 
         mLocalUserPokemonList = mList;
 
+        localUserPokemon = mLocalUserPokemonList.get(0);
         return fragment;
     }
 
@@ -227,10 +226,12 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
         if (selectedCount > 0) {
             mAdapter.toggleSelected(index);
         } else {
-            ActivityPokemonDetail.mLocalUserPokemonList = mLocalUserPokemonList;
-            Intent i = new Intent(mContext, ActivityPokemonDetail.class);
-            i.putExtra("index", index);
-            startActivityForResult(i, Constants.REQUEST_CODE_ACTIVITY_POKEMON_DETAIL);
+            if (mListener != null) {
+                List<Object> list = new ArrayList();
+                list.add(mLocalUserPokemonList);
+                list.add(index);
+                mListener.onFragmentActionPerform(Constants.ACTION_GO_TO_DETAIL, list);
+            }
         }
     }
 
@@ -322,6 +323,16 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
                 } else {
                     Toast.makeText(mContext, getString(R.string.text_no_pokemon), Toast.LENGTH_SHORT).show();
                     getActivity().onBackPressed();
+                }
+
+                break;
+            default:
+                mLocalUserPokemonList = (List<LocalUserPokemon>) objectList;
+
+                mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " + mLocalUserPokemonList.get(0).getName());
+
+                if (mBottomBar!=null){
+                    orderList(mBottomBar.getCurrentTabId());
                 }
 
                 break;

@@ -10,8 +10,8 @@ android {
         applicationId "com.javic.pokewhere"
         minSdkVersion 16
         targetSdkVersion 24
-        versionCode 2
-        versionName "1.0"
+        versionCode 5
+        versionName "1.1"
 
         // Enabling multidex support.
         multiDexEnabled true
@@ -35,6 +35,8 @@ android {
         maven {
             url "https://jitpack.io"
         }
+
+        mavenCentral()
     }
 }
 
@@ -68,5 +70,6 @@ dependencies {
     compile 'com.afollestad:drag-select-recyclerview:0.3.6'
     compile 'com.afollestad:material-cab:0.1.12'
     compile 'com.ToxicBakery.viewpager.transforms:view-pager-transforms:1.2.32@aar'
+    compile 'com.github.paolorotolo:appintro:4.1.0'
     testCompile 'junit:junit:4.12'
 }

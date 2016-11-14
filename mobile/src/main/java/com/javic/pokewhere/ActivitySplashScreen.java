@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
+import com.javic.pokewhere.app.AppTutorial;
 import com.javic.pokewhere.util.PrefManager;
 
 public class ActivitySplashScreen extends AppCompatActivity {
@@ -25,7 +26,14 @@ public class ActivitySplashScreen extends AppCompatActivity {
         prefmanager = new PrefManager(this);
 
         if (prefmanager.isUserLogedIn()) {
-            startActivity(new Intent(ActivitySplashScreen.this, ActivityDashboard.class));
+
+            if (prefmanager.isTutorialComplete()){
+                startActivity(new Intent(ActivitySplashScreen.this, ActivityDashboard.class));
+            }
+            else {
+                startActivity(new Intent(ActivitySplashScreen.this, AppTutorial.class));
+            }
+
             finish();
         } else {
             setContentView(R.layout.activity_splash_screen);

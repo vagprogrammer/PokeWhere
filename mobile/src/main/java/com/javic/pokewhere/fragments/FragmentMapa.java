@@ -254,7 +254,7 @@ public class FragmentMapa extends Fragment implements
                 @Override
                 public void onClick(View view) {
 
-                    attemptSearch();
+                    //attemptSearch();
                 }
             });
 
@@ -1972,6 +1972,7 @@ public class FragmentMapa extends Fragment implements
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
                         dialog.dismiss();
                         ActivityDashboard.mDrawerLayout.openDrawer(ActivityDashboard.mNavigationView);
+                        //getActivity().onBackPressed();
                     }
                 });
 

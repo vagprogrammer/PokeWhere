@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+android:id="@+id/main"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:layout_weight="10"
+android:background="@color/color_background_nav_header_end_color"
+android:orientation="vertical">
+
+<TextView
+    android:layout_width="wrap_content"
+    android:layout_height="0dp"
+    android:layout_gravity="center"
+    android:layout_weight="2"
+    android:fontFamily="sans-serif-thin"
+    android:gravity="center"
+    android:paddingLeft="32dp"
+    android:paddingRight="32dp"
+    android:text="@string/title_tutorial_pokebank"
+    android:textColor="#ffffff"
+    android:textSize="28sp" />
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    android:layout_weight="5"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <com.javic.pokewhere.util.PlayGifView
+        android:id="@+id/viewGif"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center" />
+</LinearLayout>
+
+<TextView
+    android:layout_width="wrap_content"
+    android:layout_height="0dp"
+    android:layout_gravity="center"
+    android:layout_weight="1"
+    android:gravity="center"
+    android:paddingLeft="30dp"
+    android:paddingRight="30dp"
+    android:text="@string/message_tutorial_pokebank"
+    android:textColor="#ffffff"
+    android:textSize="16sp" />
+
+<View
+    android:layout_width="match_parent"
+    android:layout_height="64dp" />
+</LinearLayout>
