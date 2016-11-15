@@ -26,6 +26,7 @@
     <string name="message_favorite_pokemon">agregado a favoritos!</string>
     <string name="message_unfavorite_pokemon">eliminado de favoritos!</string>
 
+
     <!-- Activity Select Account -->
     <string name="title_select_account">Inicia sesión con:</string>
 
