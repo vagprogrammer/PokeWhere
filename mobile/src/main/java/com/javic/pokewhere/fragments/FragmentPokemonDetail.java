@@ -1,12 +1,9 @@
 package com.javic.pokewhere.fragments;
 
 import android.content.Context;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,23 +13,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.afollestad.materialdialogs.MaterialDialog;
-import com.daimajia.androidanimations.library.Techniques;
-import com.daimajia.androidanimations.library.YoYo;
 import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.models.LocalUserPokemon;
-import com.pokegoapi.api.PokemonGo;
-import com.pokegoapi.api.pokemon.Pokemon;
-import com.pokegoapi.exceptions.LoginFailedException;
-import com.pokegoapi.exceptions.RemoteServerException;
+import com.javic.pokewhere.util.Constants;
 
 
 public class FragmentPokemonDetail extends Fragment implements View.OnClickListener{
 
     private static final String TAG = FragmentPokemonDetail.class.getSimpleName();
     private LocalUserPokemon mPokemon;
-    private PokemonGo mGO;
 
     private OnFragmentInteractionListener mListener;
 
@@ -47,14 +37,6 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
             txtCandiesToEvolve, txtStardust;
     private Button btnPowerUp, btnEvolve, btnTransfer;
     private ImageButton btnEditName;
-
-
-    //Tasks
-    private SetFavoriteTask mSetFavoriteTask;
-
-    //Variables
-    public boolean favoriteTaskWasCanceled = false;
-    public boolean favoriteTaskWasSucces = false;
 
     public FragmentPokemonDetail() {
         // Required empty public constructor
@@ -175,10 +157,14 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.btnPowerUp:
-                showToast();
+                if (mListener!=null){
+                    mListener.onFragmentActionPerform(Constants.ACTION_POWER_UP, mPokemon);
+                }
                 break;
             case R.id.btnEvolve:
-                showToast();
+                if (mListener!=null){
+                    mListener.onFragmentActionPerform(Constants.ACTION_EVOLVE, mPokemon);
+                }
                 break;
             case R.id.btnTransfer:
                 showToast();
@@ -187,138 +173,15 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
                 showToast();
                 break;
             case R.id.imgFavorite:
-                /*if (mSetFavoriteTask == null) {
 
-                    mSetFavoriteTask = new SetFavoriteTask(getUserPokemon(mPokemon.getId()), mPokemon);
+                if (mListener!=null){
+                    mListener.onFragmentActionPerform(Constants.ACTION_SET_FAVORITE_POKEMON, mPokemon);
+                }
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                        mSetFavoriteTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                    } else {
-                        mSetFavoriteTask.execute();
-                    }
-                }*/
-                showToast();
                 break;
 
         }
     }
-
-
-    public class SetFavoriteTask extends AsyncTask<Void, String, Boolean> {
-
-        private Pokemon pokemon;
-        private LocalUserPokemon localUserPokemon;
-
-        private MaterialDialog.Builder builder;
-        private MaterialDialog dialog;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            Log.i(TAG, "SET_FAVORITE_TASK: onPreExecute");
-
-            builder = new MaterialDialog.Builder(mContext)
-                    .content(getString(R.string.dialog_content_please_wait))
-                    .cancelable(false)
-                    .progress(true, 0)
-                    .progressIndeterminateStyle(true);
-            dialog = builder.build();
-            dialog.show();
-        }
-
-        public SetFavoriteTask(Pokemon pokemon, LocalUserPokemon localUserPokemon) {
-            this.pokemon = pokemon;
-            this.localUserPokemon = localUserPokemon;
-            Log.i(TAG, "SET_FAVORITE_TASK: constructor");
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-
-            Log.i(TAG, "SET_FAVORITE_TASK: doInBackground:start");
-            try {
-                try {
-                    pokemon.setFavoritePokemon(!localUserPokemon.getFavorite());
-                    mGO.getInventories().updateInventories(true);
-                    Log.i(TAG, "SET_FAVORITE_TASK: doInBackground: true");
-                    favoriteTaskWasSucces = true;
-                    return true;
-                } catch (LoginFailedException | RemoteServerException e) {
-                    e.printStackTrace();
-                    Log.i(TAG, "SET_FAVORITE_TASK: doInBackground: login or remote server exception");
-                    favoriteTaskWasSucces = false;
-                    return false;
-                }
-
-            } catch (Exception e) {
-                Log.e(TAG, e.toString());
-                Log.i(TAG, "SET_FAVORITE_TASK: doInBackground: exception");
-                favoriteTaskWasSucces = false;
-                return false;
-
-            }
-
-        }
-
-        @Override
-        protected void onPostExecute(Boolean succes) {
-            Log.i(TAG, "SET_FAVORITE_TASK: onPostExecute");
-            mSetFavoriteTask = null;
-            dialog.dismiss();
-
-            if (succes) {
-
-                if (mListener != null) {
-                    mListener.onChangedDetected(true);
-                }
-
-                YoYo.with(Techniques.RotateIn)
-                        .duration(800)
-                        .playOn(imgFavorite);
-
-                if (!localUserPokemon.getFavorite()) {
-                    imgFavorite.setImageResource(R.drawable.ic_bookmarked);
-                } else {
-                    imgFavorite.setImageResource(R.drawable.ic_bookmark);
-                }
-
-                localUserPokemon.setFavorite(!localUserPokemon.getFavorite());
-
-            } else {
-                Toast.makeText(mContext, getString(R.string.snack_bar_error_with_pokemon), Toast.LENGTH_SHORT).show();
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            Log.i(TAG, "SET_FAVORITE_TASK: onCancelled");
-            dialog.dismiss();
-            mSetFavoriteTask = null;
-
-            favoriteTaskWasCanceled =true;
-
-            if (favoriteTaskWasSucces){
-                localUserPokemon.setFavorite(!localUserPokemon.getFavorite());
-
-                if (mListener != null) {
-                    mListener.onChangedDetected(true);
-                }
-            }
-        }
-
-    }
-
-    /*public Pokemon getUserPokemonn(Long idPokemon) {
-
-        for (Pokemon pokemon : FragmentPokemonBank.mUserPokemonList) {
-            Long id = pokemon.getId();
-
-            if (String.valueOf(id).equalsIgnoreCase(String.valueOf(idPokemon))) {
-                return pokemon;
-            }
-        }
-        return null;
-    }*/
 
     /**
      * This interface must be implemented by activities that contain this
@@ -331,8 +194,7 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(Uri uri);
-        void onChangedDetected(boolean isChanged);
+        void onFragmentActionPerform(int action, Object object);
     }
 
     public void showToast(){

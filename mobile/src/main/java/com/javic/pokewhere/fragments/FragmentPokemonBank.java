@@ -1,7 +1,6 @@
 package com.javic.pokewhere.fragments;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
@@ -13,6 +12,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +21,6 @@ import com.afollestad.dragselectrecyclerview.DragSelectRecyclerView;
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerViewAdapter;
 import com.afollestad.materialcab.MaterialCab;
 import com.javic.pokewhere.ActivityDashboard;
-import com.javic.pokewhere.ActivityPokemonDetail;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.adapters.AdapterPokemonBank;
 import com.javic.pokewhere.interfaces.OnFragmentListener;
@@ -81,8 +80,32 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
     }
 
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_pokebank, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_transferir:
+                if (mListener!=null){
+                    mListener.onFragmentActionPerform(Constants.ACTION_UPDATE_USER_POKEMON, null);
+                }
+                break;
+            case R.id.action_refresh:
+                if (mListener!=null){
+                    mListener.onFragmentActionPerform(Constants.ACTION_UPDATE_USER_POKEMON, null);
+                }
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -143,7 +166,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         mBottomBar.setOnTabReselectListener(new OnTabReselectListener() {
             @Override
             public void onTabReSelected(@IdRes int tabId) {
-                mGridLayoutManager.scrollToPositionWithOffset(0,0);
+                mGridLayoutManager.scrollToPositionWithOffset(0, 0);
             }
         });
 
@@ -174,16 +197,31 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     public void onClick(int index) {
         // Single click will select or deselect an item
 
-        final int selectedCount = mAdapter.getSelectedCount();
+        /*final int selectedCount = mAdapter.getSelectedCount();
 
         if (selectedCount > 0) {
             mAdapter.toggleSelected(index);
         } else {
-            ActivityPokemonDetail.mLocalUserPokemonList = mLocalUserPokemonList;
-            Intent i = new Intent(mContext, ActivityPokemonDetail.class);
-            i.putExtra("index", index);
-            startActivityForResult(i, Constants.REQUEST_CODE_ACTIVITY_POKEMON_DETAIL);
+            if (mListener != null) {
+                List<Object> list = new ArrayList();
+                list.add(mLocalUserPokemonList);
+                list.add(index);
+                mListener.onFragmentActionPerform(Constants.ACTION_GO_TO_DETAIL, list);
+            }
+        }*/
+
+
+        if (mAdapter.isSelecting()) {
+            mAdapter.toggleSelected(index);
+        } else {
+            if (mListener != null) {
+                List<Object> list = new ArrayList();
+                list.add(mLocalUserPokemonList);
+                list.add(index);
+                mListener.onFragmentActionPerform(Constants.ACTION_GO_TO_DETAIL, list);
+            }
         }
+
     }
 
     @Override
@@ -211,10 +249,9 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
                                 if (item.getItemId() == R.id.action_transferir) {
 
                                     List<LocalUserPokemon> pokemonTotrasnferList = new ArrayList<>();
-                                    Integer indices[] = mAdapter.getSelectedIndices();
 
-                                    for (Integer indice : indices) {
-                                        pokemonTotrasnferList.add(mLocalUserPokemonList.get(indice));
+                                    for (Integer index : mAdapter.getSelectedIndices()) {
+                                        pokemonTotrasnferList.add(mAdapter.getItem(index));
                                     }
 
                                     if (mListener != null) {
@@ -290,7 +327,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
 
                 mLocalUserPokemonList = (List<LocalUserPokemon>) objectList;
 
-                if (mBottomBar!=null){
+                if (mBottomBar != null) {
                     orderList(mBottomBar.getCurrentTabId());
                 }
 
@@ -316,33 +353,26 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
                 mAdapter.clearSelected();
                 mAdapter.upDateAdapter(mLocalUserPokemonList);
 
-                if (mBottomBar!=null){
+                if (mBottomBar != null) {
                     orderList(mBottomBar.getCurrentTabId());
                 }
 
                 mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + "/" + String.valueOf(mUserPokeBankSpace) + " " + getString(R.string.text_pokemones));
 
                 break;
+            default:
+                mLocalUserPokemonList = (List<LocalUserPokemon>) objectList;
+
+                if (mBottomBar != null) {
+                    orderList(mBottomBar.getCurrentTabId());
+                }
+
+                break;
         }
     }
 
-    private LocalUserPokemon getSpecificPokemon(LocalUserPokemon pokemon) {
-
-        LocalUserPokemon localUserPokemon = null;
-
-        for (LocalUserPokemon specificPokemon : mLocalUserPokemonList) {
-            String specificId = String.valueOf(specificPokemon.getId());
-
-            if (specificId.equals(String.valueOf(pokemon.getId()))) {
-                localUserPokemon = specificPokemon;
-            }
-        }
-
-        return localUserPokemon;
-    }
-
-    private void orderList(@IdRes int tabId){
-        int valueToCompare =0;
+    private void orderList(@IdRes int tabId) {
+        int valueToCompare = 0;
         switch (tabId) {
             case R.id.tab_iv:
                 valueToCompare = Constants.VALUE_IV;

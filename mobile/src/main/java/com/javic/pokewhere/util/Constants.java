@@ -19,6 +19,7 @@ public class Constants {
     public static final int SUCCESS_RESULT = 0;
     public static final int FAILURE_RESULT = 1;
     public static final String PACKAGE_NAME = "com.javic.pokewhere";
+    public static final String PACKAGE_FRAGMENT_NAME = "com.javic.pokewhere.fragments.";
     public static final String RECEIVER = PACKAGE_NAME + ".RECEIVER";
     public static final String RESULT_DATA_KEY = PACKAGE_NAME + ".RESULT_DATA_KEY";
     public static final String LOCATION_DATA_EXTRA = PACKAGE_NAME + ".LOCATION_DATA_EXTRA";
@@ -35,6 +36,10 @@ public class Constants {
     public static final int ACTION_TRANSFER_POKEMON = 4;
     public static final int ACTION_SET_FAVORITE_POKEMON = 5;
     public static final int ACTION_DELETE_ITEMS = 6;
+    public static final int ACTION_GO_TO_DETAIL = 7;
+    public static final int ACTION_POWER_UP = 8;
+    public static final int ACTION_EVOLVE = 9;
+    public static final int ACTION_UPDATE_USER_POKEMON = 10;
 
     //Fragments
     public static final int FRAGMENT_BLANK = -1;
@@ -51,6 +56,7 @@ public class Constants {
     public static final  String KEY_PREF_USER_PASS= "pref_user_pass";
     public static final  String KEY_PREF_GOOGLE= "pref_google";
     public static final String KEY_PREF_IS_FIRST_TIME_LAUNCH = "pref_isfirsttimelaunch";
+    public static final String KEY_PREF_IS_TUTORIAL_COMPLETE = "pref_istutorialcomplete";
 
 
     //FILTROS

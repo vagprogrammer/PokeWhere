@@ -112,7 +112,7 @@ public class FragmentPokemon extends Fragment implements OnCheckChildClickListen
 
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.fragment_transfer, menu);
+        inflater.inflate(R.menu.fragment_pokebank, menu);
     }
 
     @Override

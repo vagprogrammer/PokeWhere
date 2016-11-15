@@ -36,6 +36,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.javic.pokewhere.app.AppTutorial;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.auth.GoogleAutoCredentialProvider;
@@ -398,8 +399,7 @@ public class ActivityLogin extends AppCompatActivity {
                 }
 
                 saveUserData();
-                Intent intent = new Intent(ActivityLogin.this, ActivityDashboard.class);
-                startActivity(intent);
+                startActivity(new Intent(ActivityLogin.this, AppTutorial.class));
 
                 //finish activity to select
                 ActivitySelectAccount.activitySelectAccount.finish();

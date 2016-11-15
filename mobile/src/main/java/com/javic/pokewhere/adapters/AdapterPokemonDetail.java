@@ -2,7 +2,7 @@ package com.javic.pokewhere.adapters;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
 
 import com.javic.pokewhere.fragments.FragmentPokemonDetail;
 import com.javic.pokewhere.models.LocalUserPokemon;
@@ -13,7 +13,7 @@ import java.util.List;
  * Created by vagprogrammer on 29/10/16.
  */
 
-public class AdapterPokemonDetail extends FragmentPagerAdapter {
+public class AdapterPokemonDetail extends FragmentStatePagerAdapter {
 
     private List<LocalUserPokemon> mLocalUserPokemonList;
 
@@ -30,5 +30,13 @@ public class AdapterPokemonDetail extends FragmentPagerAdapter {
     @Override
     public int getCount() {
         return mLocalUserPokemonList.size();
+    }
+
+
+    @Override
+    public int getItemPosition(Object object) {
+        // Causes adapter to reload all Fragments when
+        // notifyDataSetChanged is called
+        return POSITION_NONE;
     }
 }

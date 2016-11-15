@@ -15,11 +15,6 @@
         <include layout="@layout/layout_toolbar" />
         <!-- This could be your fragment container, or something -->
 
-        <ViewStub
-            android:id="@+id/cabStubCompare"
-            android:layout_width="match_parent"
-            android:layout_height="?actionBarSize" />
-
         <com.afollestad.dragselectrecyclerview.DragSelectRecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
@@ -27,8 +22,6 @@
             android:layout_above="@+id/bottomBarCompare"
             android:layout_below="@+id/appbarLayout"
             android:scrollbars="vertical"
-            app:dsrv_autoScrollEnabled="true"
-            app:dsrv_autoScrollHotspotHeight="56dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
         <com.roughike.bottombar.BottomBar

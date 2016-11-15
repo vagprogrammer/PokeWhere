@@ -27,8 +27,6 @@
             android:layout_above="@+id/bottomBar"
             android:layout_below="@+id/appbarLayout"
             android:scrollbars="vertical"
-            app:dsrv_autoScrollEnabled="true"
-            app:dsrv_autoScrollHotspotHeight="56dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
         <com.roughike.bottombar.BottomBar

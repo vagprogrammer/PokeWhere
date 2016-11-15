@@ -41,11 +41,12 @@ public class PokemonComparator implements Comparator<LocalUserPokemon> {
                 Calendar calendar1 = createDate(p1.getCreationTimeMillis());
                 Calendar calendar2 = createDate(p2.getCreationTimeMillis());
 
-                comparator.append(calendar2.get(Calendar.YEAR), calendar1.get(Calendar.YEAR))
+                    comparator.append(calendar2.get(Calendar.YEAR), calendar1.get(Calendar.YEAR))
                     .append(calendar2.get(Calendar.MONTH), calendar1.get(Calendar.MONTH))
                     .append(calendar2.get(Calendar.DAY_OF_MONTH), calendar1.get(Calendar.DAY_OF_MONTH))
                     .append(calendar2.get(Calendar.HOUR), calendar1.get(Calendar.HOUR))
-                    .append(calendar2.get(Calendar.MINUTE), calendar1.get(Calendar.MINUTE));
+                    .append(calendar2.get(Calendar.MINUTE), calendar1.get(Calendar.MINUTE))
+                            .append(calendar2.get(Calendar.SECOND), calendar1.get(Calendar.SECOND));
 
                 break;
             case Constants.VALUE_NAME:
