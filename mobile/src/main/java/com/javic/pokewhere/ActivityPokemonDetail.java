@@ -323,7 +323,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                 isChanged=true;
 
             } else {
-                Toast.makeText(ActivityPokemonDetail.this, getString(R.string.message_untrasferable), Toast.LENGTH_SHORT).show();
+                Toast.makeText(ActivityPokemonDetail.this, getString(R.string.message_un_power_up), Toast.LENGTH_SHORT).show();
             }
 
             //Dismissing the dialog

@@ -53,7 +53,7 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     private GridLayoutManager mGridLayoutManager;
 
     //Adapter
-    private AdapterPokemonBank mAdapter;
+    private AdapterPokemonBank mAdapterCompare;
 
     //Listas
     private static List<LocalUserPokemon> mLocalUserPokemonList;
@@ -88,16 +88,20 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         this.menu = menu;
-        inflater.inflate(R.menu.fragment_transfer, menu);
+        inflater.inflate(R.menu.fragment_compare, menu);
     }
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
 
-        if (mAdapter.getSelectedCount() > 0) {
+        menu.findItem(R.id.action_refresh).setVisible(false);
+
+        if (mAdapterCompare.getSelectedCount() > 0) {
             menu.findItem(R.id.action_transferir).setVisible(true);
+            menu.findItem(R.id.action_refresh_compare).setVisible(false);
         } else {
             menu.findItem(R.id.action_transferir).setVisible(false);
+            menu.findItem(R.id.action_refresh_compare).setVisible(true);
         }
 
         super.onPrepareOptionsMenu(menu);
@@ -136,12 +140,12 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
 
         mGridLayoutManager = new GridLayoutManager(mContext, 3);
 
-        mAdapter = new AdapterPokemonBank(mContext, this, this, mLocalUserPokemonList);
-        mAdapter.setSelectionListener(this);
+        mAdapterCompare = new AdapterPokemonBank(mContext, this, this, mLocalUserPokemonList);
+        mAdapterCompare.setSelectionListener(this);
 
         mRecyclerView = (DragSelectRecyclerView) mView.findViewById(R.id.recyclerView);
         mRecyclerView.setLayoutManager(mGridLayoutManager);
-        mRecyclerView.setAdapter(mAdapter);
+        mRecyclerView.setAdapter(mAdapterCompare);
 
         mBottomBar = (BottomBar) mView.findViewById(R.id.bottomBarCompare);
         mBottomBar.setOnTabSelectListener(new OnTabSelectListener() {
@@ -175,18 +179,21 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
                 if (canFinish()) {
                     getActivity().onBackPressed();
                 }
-
                 break;
             case R.id.action_transferir:
                 List<LocalUserPokemon> pokemonTotrasnferList = new ArrayList<>();
-                Integer indices[] = mAdapter.getSelectedIndices();
 
-                for (Integer indice : indices) {
+                for (Integer indice : mAdapterCompare.getSelectedIndices()) {
                     pokemonTotrasnferList.add(mLocalUserPokemonList.get(indice));
                 }
 
                 if (mListener != null) {
                     mListener.onFragmentActionPerform(Constants.ACTION_TRANSFER_POKEMON, pokemonTotrasnferList);
+                }
+                break;
+            case R.id.action_refresh_compare:
+                if (mListener!=null){
+                    mListener.onFragmentActionPerform(Constants.ACTION_UPDATE_USER_POKEMON, null);
                 }
                 break;
             default:
@@ -203,7 +210,8 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
             mToolbar.setNavigationIcon(R.drawable.ic_close_white_24dp);
             mToolbar.setTitle(String.valueOf(count) + " " + getString(R.string.title_selected));
             menu.findItem(R.id.action_transferir).setVisible(true);
-            mAdapter.changeSelectingState(true);
+            menu.findItem(R.id.action_refresh_compare).setVisible(false);
+            mAdapterCompare.changeSelectingState(true);
             mBottomBar.setVisibility(View.GONE);
         } else {
 
@@ -212,7 +220,8 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
                 mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " + mLocalUserPokemonList.get(0).getName());
             }
             menu.findItem(R.id.action_transferir).setVisible(false);
-            mAdapter.changeSelectingState(false);
+            menu.findItem(R.id.action_refresh_compare).setVisible(true);
+            mAdapterCompare.changeSelectingState(false);
             mBottomBar.setVisibility(View.VISIBLE);
         }
     }
@@ -221,10 +230,10 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     public void onClick(int index) {
         // Single click will select or deselect an item
 
-        final int selectedCount = mAdapter.getSelectedCount();
+        final int selectedCount = mAdapterCompare.getSelectedCount();
 
         if (selectedCount > 0) {
-            mAdapter.toggleSelected(index);
+            mAdapterCompare.toggleSelected(index);
         } else {
             if (mListener != null) {
                 List<Object> list = new ArrayList();
@@ -260,13 +269,14 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     }
 
     public Boolean canFinish() {
-        if (mAdapter.getSelectedCount() > 0) {
+        if (mAdapterCompare.getSelectedCount() > 0) {
 
             mToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
             mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " + mLocalUserPokemonList.get(0).getName());
 
             menu.findItem(R.id.action_transferir).setVisible(false);
-            mAdapter.clearSelected();
+            menu.findItem(R.id.action_refresh_compare).setVisible(true);
+            mAdapterCompare.clearSelected();
             mBottomBar.setVisibility(View.VISIBLE);
             return false;
         } else {
@@ -308,9 +318,10 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
                 mToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
 
                 menu.findItem(R.id.action_transferir).setVisible(false);
-                mAdapter.changeSelectingState(false);
-                mAdapter.clearSelected();
-                mAdapter.upDateAdapter(mLocalUserPokemonList);
+                menu.findItem(R.id.action_refresh_compare).setVisible(true);
+                mAdapterCompare.changeSelectingState(false);
+                mAdapterCompare.clearSelected();
+                mAdapterCompare.upDateAdapter(mLocalUserPokemonList);
 
                 if (mBottomBar != null) {
                     orderList(mBottomBar.getCurrentTabId());
@@ -381,6 +392,6 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
         }
 
         Collections.sort(mLocalUserPokemonList, new PokemonComparator(valueToCompare));
-        mAdapter.upDateAdapter(mLocalUserPokemonList);
+        mAdapterCompare.upDateAdapter(mLocalUserPokemonList);
     }
 }

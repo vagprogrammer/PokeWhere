@@ -12,6 +12,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -79,8 +80,32 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
     }
 
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_pokebank, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_transferir:
+                if (mListener!=null){
+                    mListener.onFragmentActionPerform(Constants.ACTION_UPDATE_USER_POKEMON, null);
+                }
+                break;
+            case R.id.action_refresh:
+                if (mListener!=null){
+                    mListener.onFragmentActionPerform(Constants.ACTION_UPDATE_USER_POKEMON, null);
+                }
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -172,7 +197,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     public void onClick(int index) {
         // Single click will select or deselect an item
 
-        final int selectedCount = mAdapter.getSelectedCount();
+        /*final int selectedCount = mAdapter.getSelectedCount();
 
         if (selectedCount > 0) {
             mAdapter.toggleSelected(index);
@@ -183,7 +208,20 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
                 list.add(index);
                 mListener.onFragmentActionPerform(Constants.ACTION_GO_TO_DETAIL, list);
             }
+        }*/
+
+
+        if (mAdapter.isSelecting()) {
+            mAdapter.toggleSelected(index);
+        } else {
+            if (mListener != null) {
+                List<Object> list = new ArrayList();
+                list.add(mLocalUserPokemonList);
+                list.add(index);
+                mListener.onFragmentActionPerform(Constants.ACTION_GO_TO_DETAIL, list);
+            }
         }
+
     }
 
     @Override
@@ -211,10 +249,9 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
                                 if (item.getItemId() == R.id.action_transferir) {
 
                                     List<LocalUserPokemon> pokemonTotrasnferList = new ArrayList<>();
-                                    Integer indices[] = mAdapter.getSelectedIndices();
 
-                                    for (Integer indice : indices) {
-                                        pokemonTotrasnferList.add(mLocalUserPokemonList.get(indice));
+                                    for (Integer index : mAdapter.getSelectedIndices()) {
+                                        pokemonTotrasnferList.add(mAdapter.getItem(index));
                                     }
 
                                     if (mListener != null) {
@@ -332,21 +369,6 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
 
                 break;
         }
-    }
-
-    private LocalUserPokemon getSpecificPokemon(LocalUserPokemon pokemon) {
-
-        LocalUserPokemon localUserPokemon = null;
-
-        for (LocalUserPokemon specificPokemon : mLocalUserPokemonList) {
-            String specificId = String.valueOf(specificPokemon.getId());
-
-            if (specificId.equals(String.valueOf(pokemon.getId()))) {
-                localUserPokemon = specificPokemon;
-            }
-        }
-
-        return localUserPokemon;
     }
 
     private void orderList(@IdRes int tabId) {

@@ -181,5 +181,6 @@
     <string name="message_un_power_up">Intentalo más tarde</string>
     <string name="text_result_evolve">ha evolucionado a</string>
     <string name="message_un_evolve">no puede evolucionar</string>
+    <string name="action_refresh">Refrescar</string>
 
 </resources>

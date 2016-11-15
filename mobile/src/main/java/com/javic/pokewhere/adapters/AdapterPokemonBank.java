@@ -51,7 +51,8 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
 
     @Override
     public void onBindViewHolder(PokemonBankViewHolder holder, int position) {
-        super.onBindViewHolder(holder, position); // this line is important!
+        super.onBindViewHolder(holder, position);
+
         final LocalUserPokemon pokemon = mLocalUserPokemonList.get(position);
         holder.cp.setText(String.valueOf(pokemon.getCp()));
         holder.iv.setText(String.valueOf(pokemon.getIv())+ "%");
@@ -60,6 +61,7 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
         holder.stamina.setText(String.valueOf(pokemon.getStamina()));
         holder.candies.setText(":"+String.valueOf(pokemon.getCandies()));
         holder.btnCompare.setText(mContext.getString(R.string.text_btn_show_all)+ " ("+ String.valueOf(pokemon.getPokemonCount())+ ")");
+
         if (pokemon.getNickname().equals("")){
             holder.name.setText(pokemon.getName());
         }else {
@@ -103,7 +105,12 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
         }
 
         if (isSelecting){
-            holder.mCheckBox.setVisibility(View.VISIBLE);
+            if (!pokemon.getFavorite()) {
+                holder.mCheckBox.setVisibility(View.VISIBLE);
+            }
+            else{
+                holder.mCheckBox.setVisibility(View.INVISIBLE);
+            }
             holder.imgFavorite.setClickable(false);
             holder.btnCompare.setClickable(false);
         }else{
@@ -128,7 +135,7 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
         // This method is OPTIONAL, returning false will prevent the item at the specified index from being selected.
         // Both initial selection, and drag selection.
 
-        if (index>-1){
+        if (index>=0){
             LocalUserPokemon pokemon = mLocalUserPokemonList.get(index);
 
             if (pokemon.getFavorite()){
@@ -149,6 +156,14 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
     @Override
     public int getItemCount() {
         return mLocalUserPokemonList.size();
+    }
+
+    public LocalUserPokemon getItem(int index) {
+        return mLocalUserPokemonList.get(index);
+    }
+
+    public boolean isSelecting(){
+        return isSelecting;
     }
 
     public class PokemonBankViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener{
@@ -211,12 +226,6 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
         this.notifyDataSetChanged();
     }
 
-    public interface ClickListener {
-        void onClick(int index);
-
-        void onLongClick(int index);
-    }
-
     private void showToast(String message, int millisecons) {
         final Toast toast = Toast.makeText(mContext, message, Toast.LENGTH_SHORT);
         toast.show();
@@ -230,4 +239,11 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
         }, millisecons);
 
     }
+
+    public interface ClickListener {
+        void onClick(int index);
+
+        void onLongClick(int index);
+    }
+
 }
