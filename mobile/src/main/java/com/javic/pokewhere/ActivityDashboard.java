@@ -787,7 +787,6 @@ public class ActivityDashboard extends AppCompatActivity
                 List<LocalUserPokemon> list = (List<LocalUserPokemon>) object;
 
                 if (visibleFragment == Constants.FRAGMENT_COMPARE) {
-
                     mTransferPokemonsTask = new TransferPokemonsTask(list, list.get(0));
                 } else {
                     mTransferPokemonsTask = new TransferPokemonsTask(list, null);
@@ -825,6 +824,15 @@ public class ActivityDashboard extends AppCompatActivity
                 i.putExtra("index", (Integer) (((List<Object>) object).get(1)));
                 startActivityForResult(i, Constants.REQUEST_CODE_ACTIVITY_POKEMON_DETAIL);
 
+                break;
+            case Constants.ACTION_UPDATE_USER_POKEMON:
+                mUpdateUserPokemonTask = new UpdateUserPokemonTask();
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                    mUpdateUserPokemonTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                } else {
+                    mUpdateUserPokemonTask.execute();
+                }
                 break;
 
             default:
@@ -1324,7 +1332,6 @@ public class ActivityDashboard extends AppCompatActivity
             Log.i(TAG, "UPDATE_USER_POKEMON_TASK: doInBackground:start");
             try {
                 try {
-
                     mGO.getInventories().updateInventories(true);
                     mUserPokemonList = mGO.getInventories().getPokebank().getPokemons();
                     Log.i(TAG, "UPDATE_USER_POKEMON_TASK: doInBackground: true");
