@@ -63,6 +63,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
     private boolean taskPowerUpWasCanceled = false;
     private boolean taskEvolveWasCanceled = false;
     private boolean taskTransferPokemonWasCanceled = false;
+    private boolean taskRenameWasCanceled = false;
 
 
     //Task
@@ -70,6 +71,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
     private PowerUpTask mPowerUpTask;
     private EvolveTask mEvolveTask;
     private TransferPokemonsTask mTransferPokemonsTask;
+    private RenameTask mRenameTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,9 +164,12 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
     @Override
     public void onFragmentActionPerform(int action, Object object) {
+
+        final LocalUserPokemon localUserPokemon = (LocalUserPokemon) object;
+
         switch (action){
             case Constants.ACTION_SET_FAVORITE_POKEMON:
-                mSetFavoriteTask = new SetFavoriteTask((LocalUserPokemon) object);
+                mSetFavoriteTask = new SetFavoriteTask(localUserPokemon);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                     mSetFavoriteTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 } else {
@@ -172,7 +177,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                 }
                 break;
             case Constants.ACTION_POWER_UP:
-                mPowerUpTask = new PowerUpTask((LocalUserPokemon) object);
+                mPowerUpTask = new PowerUpTask(localUserPokemon);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                     mPowerUpTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 } else {
@@ -180,12 +185,42 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                 }
                 break;
             case Constants.ACTION_EVOLVE:
-                mEvolveTask = new EvolveTask((LocalUserPokemon) object);
+                mEvolveTask = new EvolveTask(localUserPokemon);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                     mEvolveTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 } else {
                     mEvolveTask.execute();
                 }
+                break;
+            case Constants.ACTION_RENAME_USER_POKEMON:
+                String name = "";
+
+                if (localUserPokemon.getNickname().equals("")){
+                    name = ((LocalUserPokemon) object).getName();
+                }
+                else{
+                    name = localUserPokemon.getNickname();
+                }
+
+                final String actualName = name;
+
+                new MaterialDialog.Builder(this)
+                        .cancelable(false)
+                        .title(R.string.dialog_title_rename)
+                        .negativeText(getString(R.string.location_alert_neg_btn))
+                        .positiveText(getString(R.string.dialog_positive_btn_renames))
+                        .input(getString(R.string.dialog_title_rename), actualName, new MaterialDialog.InputCallback() {
+                            @Override
+                            public void onInput(MaterialDialog dialog, CharSequence input) {
+                                // Do something
+                                mRenameTask= new RenameTask(localUserPokemon, actualName);
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                                    mRenameTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                } else {
+                                    mRenameTask.execute();
+                                }
+                            }
+                        }).show();
                 break;
         }
     }
@@ -261,8 +296,6 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
             super.onPreExecute();
             Log.i(TAG, "SET_FAVORITE_TASK: onPreExecute");
 
-            pokemon = getUserPokemon(localUserPokemon.getId());
-
             builder = new MaterialDialog.Builder(ActivityPokemonDetail.this)
                     .content(getString(R.string.dialog_content_please_wait))
                     .cancelable(false)
@@ -274,6 +307,8 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
         @Override
         protected Boolean doInBackground(Void... params) {
+
+            pokemon = getUserPokemon(localUserPokemon.getId());
 
             Log.i(TAG, "SET_FAVORITE_TASK: doInBackground:start");
             try {
@@ -361,8 +396,6 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
             super.onPreExecute();
             Log.i(TAG, "POWER_UP_TASK: onPreExecute");
 
-            pokemon = getUserPokemon(localUserPokemon.getId());
-
             builder = new MaterialDialog.Builder(ActivityPokemonDetail.this)
                     .content(getString(R.string.dialog_content_please_wait))
                     .cancelable(false)
@@ -374,6 +407,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
         @Override
         protected Boolean doInBackground(Void... params) {
+            pokemon = getUserPokemon(localUserPokemon.getId());
 
             Log.i(TAG, "POWER_UP_TASK: doInBackground:start");
             try {
@@ -463,7 +497,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
     public class EvolveTask extends AsyncTask<Void, String, Boolean> {
 
-        private Pokemon userPokemon;
+        private Pokemon pokemon;
         private LocalUserPokemon localUserPokemon;
         private LocalUserPokemon localPokemon;
 
@@ -480,8 +514,6 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
             super.onPreExecute();
             Log.i(TAG, "EVOLVE_TASK: onPreExecute");
 
-            userPokemon = getUserPokemon(localUserPokemon.getId());
-
             builder = new MaterialDialog.Builder(ActivityPokemonDetail.this)
                     .content(getString(R.string.dialog_content_please_wait))
                     .cancelable(false)
@@ -494,12 +526,14 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
         @Override
         protected Boolean doInBackground(Void... params) {
 
+            pokemon = getUserPokemon(localUserPokemon.getId());
+
             Log.i(TAG, "EVOLVE_TASK: doInBackground:start");
             try {
                 try {
 
-                    if(userPokemon.canEvolve()){
-                        EvolutionResult result = userPokemon.evolve();
+                    if(pokemon.canEvolve()){
+                        EvolutionResult result = pokemon.evolve();
 
                         if (result.isSuccessful())
                         {
@@ -598,7 +632,6 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
         //Object sended to onProgressUpdate method
         private ProgressTransferPokemon progress;
-
 
         private List<LocalUserPokemon> mTransferablePokemonList;
         private LocalUserPokemon localUserPokemon;
@@ -767,6 +800,101 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                 finish();
             }*/
         }
+    }
+
+    public class RenameTask extends AsyncTask<Void, String, Boolean> {
+
+        private Pokemon pokemon;
+        private LocalUserPokemon localUserPokemon;
+        private String newName;
+
+        private MaterialDialog.Builder builder;
+        private MaterialDialog dialog;
+
+        public RenameTask(LocalUserPokemon localUserPokemon, String newName) {
+            this.localUserPokemon = localUserPokemon;
+            this.newName = newName;
+
+            Log.i(TAG, "SET_NAME_TASK: constructor");
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            Log.i(TAG, "SET_NAME_TASK: onPreExecute");
+
+            builder = new MaterialDialog.Builder(ActivityPokemonDetail.this)
+                    .content(getString(R.string.dialog_content_please_wait))
+                    .cancelable(false)
+                    .progress(true, 0)
+                    .progressIndeterminateStyle(true);
+            dialog = builder.build();
+            dialog.show();
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+            pokemon = getUserPokemon(localUserPokemon.getId());
+
+            Log.i(TAG, "SET_NAME_TASK: doInBackground:start");
+            try {
+                try {
+                    pokemon.renamePokemon(newName);
+                    mGO.getInventories().updateInventories(true);
+
+                    Log.i(TAG, "SET_NAME_TASK: doInBackground: true");
+                    return true;
+                } catch (LoginFailedException | RemoteServerException e) {
+                    e.printStackTrace();
+                    Log.i(TAG, "SET_NAME_TASK: doInBackground: login or remote server exception");
+                    return false;
+                }
+
+            } catch (Exception e) {
+                Log.e(TAG, e.toString());
+                Log.i(TAG, "SET_NAME_TASK: doInBackground: exception");
+                return false;
+
+            }
+
+        }
+
+        @Override
+        protected void onPostExecute(Boolean succes) {
+            Log.i(TAG, "SET_NAME_TASK: onPostExecute");
+            mRenameTask = null;
+
+            if (succes) {
+
+                int index= mLocalUserPokemonList.indexOf(localUserPokemon);
+
+                Toast.makeText(ActivityPokemonDetail.this, "¡" + getString(R.string.text_done_button) + "!", Toast.LENGTH_SHORT).show();
+                localUserPokemon.setNickname(newName);
+
+                mLocalUserPokemonList.set(index, localUserPokemon);
+
+                mAdapter.notifyDataSetChanged();
+
+                isChanged=true;
+
+            } else {
+                Toast.makeText(ActivityPokemonDetail.this, getString(R.string.message_un_power_up), Toast.LENGTH_SHORT).show();
+            }
+
+            //Dismissing the dialog
+            dialog.dismiss();
+        }
+
+        @Override
+        protected void onCancelled() {
+            Log.i(TAG, "SET_NAME_TASK: onCancelled");
+            mRenameTask = null;
+            taskRenameWasCanceled = true;
+            dialog.dismiss();
+
+        }
+
     }
 
 }
