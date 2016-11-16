@@ -40,6 +40,7 @@ public class Constants {
     public static final int ACTION_POWER_UP = 8;
     public static final int ACTION_EVOLVE = 9;
     public static final int ACTION_UPDATE_USER_POKEMON = 10;
+    public static final int ACTION_RENAME_USER_POKEMON = 11;
 
     //Fragments
     public static final int FRAGMENT_BLANK = -1;

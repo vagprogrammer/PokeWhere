@@ -29,7 +29,7 @@ public class PokemonComparator implements Comparator<LocalUserPokemon> {
 
         CompareToBuilder comparator = new CompareToBuilder();
 
-        switch (valueToCompare){
+        switch (valueToCompare) {
             case Constants.VALUE_IV:
                 comparator.append(p2.getIv(), p1.getIv());
                 break;
@@ -41,12 +41,13 @@ public class PokemonComparator implements Comparator<LocalUserPokemon> {
                 Calendar calendar1 = createDate(p1.getCreationTimeMillis());
                 Calendar calendar2 = createDate(p2.getCreationTimeMillis());
 
-                    comparator.append(calendar2.get(Calendar.YEAR), calendar1.get(Calendar.YEAR))
-                    .append(calendar2.get(Calendar.MONTH), calendar1.get(Calendar.MONTH))
-                    .append(calendar2.get(Calendar.DAY_OF_MONTH), calendar1.get(Calendar.DAY_OF_MONTH))
-                    .append(calendar2.get(Calendar.HOUR), calendar1.get(Calendar.HOUR))
-                    .append(calendar2.get(Calendar.MINUTE), calendar1.get(Calendar.MINUTE))
-                            .append(calendar2.get(Calendar.SECOND), calendar1.get(Calendar.SECOND));
+                comparator.append(calendar2.get(Calendar.YEAR), calendar1.get(Calendar.YEAR))
+                        .append(calendar2.get(Calendar.MONTH), calendar1.get(Calendar.MONTH))
+                        .append(calendar2.get(Calendar.DAY_OF_MONTH), calendar1.get(Calendar.DAY_OF_MONTH))
+                        .append(calendar2.get(Calendar.HOUR), calendar1.get(Calendar.HOUR))
+                        .append(calendar2.get(Calendar.MINUTE), calendar1.get(Calendar.MINUTE))
+                        .append(calendar2.get(Calendar.SECOND), calendar1.get(Calendar.SECOND))
+                        .append(p2.getIv(), p1.getIv());
 
                 break;
             case Constants.VALUE_NAME:

@@ -184,4 +184,8 @@
     <string name="text_result_evolve">ha evolucionado a</string>
     <string name="message_un_evolve">no puede evolucionar</string>
     <string name="action_refresh">Refrescar</string>
+
+    <string name="dialog_title_rename">¡Ponle un nombre!</string>
+    <string name="dialog_positive_btn_renames">Cambiar</string>
+
 </resources>

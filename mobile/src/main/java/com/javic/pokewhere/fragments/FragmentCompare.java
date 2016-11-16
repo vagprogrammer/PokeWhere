@@ -86,15 +86,16 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     }
 
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
+        menu.clear();
         this.menu = menu;
-        inflater.inflate(R.menu.fragment_compare, menu);
+        inflater.inflate(R.menu.fragment_compare, this.menu);
+        super.onCreateOptionsMenu(this.menu, inflater);
     }
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
 
-        menu.findItem(R.id.action_refresh).setVisible(false);
+        //menu.findItem(R.id.action_refresh).setVisible(false);
 
         if (mAdapterCompare.getSelectedCount() > 0) {
             menu.findItem(R.id.action_transferir).setVisible(true);
@@ -171,6 +172,17 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
         mListener.showProgress(false);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        getTargetFragment().setMenuVisibility(false);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        getTargetFragment().setMenuVisibility(true);
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

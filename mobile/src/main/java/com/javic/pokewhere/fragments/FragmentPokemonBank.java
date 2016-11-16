@@ -84,8 +84,9 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     }
 
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
+        menu.clear();
         inflater.inflate(R.menu.fragment_pokebank, menu);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override

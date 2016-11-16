@@ -170,7 +170,9 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
                 showToast();
                 break;
             case R.id.btnEditName:
-                showToast();
+                if (mListener!=null){
+                    mListener.onFragmentActionPerform(Constants.ACTION_RENAME_USER_POKEMON, mPokemon);
+                }
                 break;
             case R.id.imgFavorite:
 

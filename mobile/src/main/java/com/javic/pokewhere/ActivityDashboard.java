@@ -352,6 +352,7 @@ public class ActivityDashboard extends AppCompatActivity
 
             case Constants.FRAGMENT_COMPARE:
                 mFragmentCompare = FragmentCompare.newInstance(getLocalSpecificPokemonList(((LocalUserPokemon) object).getName()));
+                mFragmentCompare.setTargetFragment(mFragmentPokemonBank, Constants.FRAGMENT_POKEBANK);
                 replaceFragment(mFragmentCompare);
                 break;
             case Constants.FRAGMENT_BAG:
@@ -800,7 +801,9 @@ public class ActivityDashboard extends AppCompatActivity
                 break;
 
             case Constants.ACTION_VER_TODOS:
+
                 setFragment(Constants.FRAGMENT_COMPARE, object);
+
                 break;
             case Constants.ACTION_DELETE_ITEMS:
 
@@ -1288,7 +1291,7 @@ public class ActivityDashboard extends AppCompatActivity
 
 
             } else {
-                Toast.makeText(ActivityDashboard.this, getString(R.string.message_untrasferable), Toast.LENGTH_SHORT).show();
+                Toast.makeText(ActivityDashboard.this, getString(R.string.message_un_power_up), Toast.LENGTH_SHORT).show();
             }
 
             //Dismissing the dialog
