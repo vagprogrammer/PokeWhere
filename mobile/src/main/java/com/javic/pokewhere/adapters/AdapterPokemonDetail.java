@@ -16,15 +16,17 @@ import java.util.List;
 public class AdapterPokemonDetail extends FragmentStatePagerAdapter {
 
     private List<LocalUserPokemon> mLocalUserPokemonList;
+    public long mUserStardust;
 
-    public AdapterPokemonDetail(FragmentManager fm, List<LocalUserPokemon> mLocalUserPokemonList) {
+    public AdapterPokemonDetail(FragmentManager fm, List<LocalUserPokemon> mLocalUserPokemonList, long mUserStardust) {
         super(fm);
         this.mLocalUserPokemonList = mLocalUserPokemonList;
+        this.mUserStardust = mUserStardust;
     }
 
     @Override
     public Fragment getItem(int position) {
-        return FragmentPokemonDetail.newInstance(mLocalUserPokemonList.get(position));
+        return FragmentPokemonDetail.newInstance(mLocalUserPokemonList.get(position), mUserStardust);
     }
 
     @Override

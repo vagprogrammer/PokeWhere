@@ -78,9 +78,28 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     }
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mContext = context;
+
+        if (context instanceof OnFragmentListener) {
+            mListener = (OnFragmentListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
     }
 
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -106,24 +125,6 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
                 break;
         }
         return super.onOptionsItemSelected(item);
-    }
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        mContext = context;
-
-        if (context instanceof OnFragmentListener) {
-            mListener = (OnFragmentListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
     }
 
     @Override

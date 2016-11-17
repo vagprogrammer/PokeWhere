@@ -80,16 +80,51 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     }
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        String conte = "Context: " + context.getClass().getSimpleName();
+        mContext = context;
+
+        Log.i(TAG, conte);
+
+        if (context instanceof OnFragmentListener) {
+            mListener = (OnFragmentListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        getTargetFragment().setMenuVisibility(false);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        getTargetFragment().setMenuVisibility(true);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
         this.menu = menu;
-        inflater.inflate(R.menu.fragment_compare, this.menu);
-        super.onCreateOptionsMenu(this.menu, inflater);
+        inflater.inflate(R.menu.fragment_compare, menu);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
@@ -109,20 +144,33 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                if (canFinish()) {
+                    getActivity().onBackPressed();
+                }
+                break;
+            case R.id.action_transferir:
+                List<LocalUserPokemon> pokemonTotrasnferList = new ArrayList<>();
 
-        String conte = "Context: " + context.getClass().getSimpleName();
-        mContext = context;
+                for (Integer indice : mAdapterCompare.getSelectedIndices()) {
+                    pokemonTotrasnferList.add(mLocalUserPokemonList.get(indice));
+                }
 
-        Log.i(TAG, conte);
-
-        if (context instanceof OnFragmentListener) {
-            mListener = (OnFragmentListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
+                if (mListener != null) {
+                    mListener.onFragmentActionPerform(Constants.ACTION_TRANSFER_POKEMON, pokemonTotrasnferList);
+                }
+                break;
+            case R.id.action_refresh_compare:
+                if (mListener!=null){
+                    mListener.onFragmentActionPerform(Constants.ACTION_UPDATE_USER_POKEMON, null);
+                }
+                break;
+            default:
+                break;
         }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -170,48 +218,6 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
         super.onViewCreated(view, savedInstanceState);
         mListener.onFragmentCreatedViewStatus(Constants.FRAGMENT_COMPARE);
         mListener.showProgress(false);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        getTargetFragment().setMenuVisibility(false);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        getTargetFragment().setMenuVisibility(true);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                if (canFinish()) {
-                    getActivity().onBackPressed();
-                }
-                break;
-            case R.id.action_transferir:
-                List<LocalUserPokemon> pokemonTotrasnferList = new ArrayList<>();
-
-                for (Integer indice : mAdapterCompare.getSelectedIndices()) {
-                    pokemonTotrasnferList.add(mLocalUserPokemonList.get(indice));
-                }
-
-                if (mListener != null) {
-                    mListener.onFragmentActionPerform(Constants.ACTION_TRANSFER_POKEMON, pokemonTotrasnferList);
-                }
-                break;
-            case R.id.action_refresh_compare:
-                if (mListener!=null){
-                    mListener.onFragmentActionPerform(Constants.ACTION_UPDATE_USER_POKEMON, null);
-                }
-                break;
-            default:
-                break;
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -350,12 +356,17 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
 
                 break;
             default:
-                mLocalUserPokemonList = (List<LocalUserPokemon>) objectList;
+                if (mLocalUserPokemonList.size() > 0) {
+                    mLocalUserPokemonList = (List<LocalUserPokemon>) objectList;
 
-                mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " + mLocalUserPokemonList.get(0).getName());
+                    mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " + mLocalUserPokemonList.get(0).getName());
 
-                if (mBottomBar!=null){
-                    orderList(mBottomBar.getCurrentTabId());
+                    if (mBottomBar!=null){
+                        orderList(mBottomBar.getCurrentTabId());
+                    }
+                } else {
+                    Toast.makeText(mContext, getString(R.string.text_no_pokemon), Toast.LENGTH_SHORT).show();
+                    getActivity().onBackPressed();
                 }
 
                 break;

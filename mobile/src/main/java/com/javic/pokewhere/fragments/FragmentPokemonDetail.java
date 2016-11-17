@@ -22,8 +22,8 @@ import com.javic.pokewhere.util.Constants;
 public class FragmentPokemonDetail extends Fragment implements View.OnClickListener{
 
     private static final String TAG = FragmentPokemonDetail.class.getSimpleName();
-    private LocalUserPokemon mPokemon;
 
+    //Callbacks
     private OnFragmentInteractionListener mListener;
 
     //Context
@@ -37,6 +37,11 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
             txtCandiesToEvolve, txtStardust;
     private Button btnPowerUp, btnEvolve, btnTransfer;
     private ImageButton btnEditName;
+
+
+    //variables
+    private LocalUserPokemon mPokemon;
+    private long mUserStardust;
 
     public FragmentPokemonDetail() {
         // Required empty public constructor
@@ -61,11 +66,12 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
         mListener = null;
     }
 
-    public static FragmentPokemonDetail newInstance(LocalUserPokemon pokemon) {
+    public static FragmentPokemonDetail newInstance(LocalUserPokemon pokemon, long mUserStardust) {
         FragmentPokemonDetail fragment = new FragmentPokemonDetail();
 
         Bundle args = new Bundle();
         args.putParcelable("pokemon", pokemon);
+        args.putLong("stardust", mUserStardust);
         fragment.setArguments(args);
         return fragment;
     }
@@ -75,8 +81,18 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mPokemon = getArguments().getParcelable("pokemon");
+            mUserStardust = getArguments().getLong("stardust");
         }
     }
+
+    /*@Override
+    public void onResume() {
+        super.onResume();
+
+        if (txtStardust!=null){
+            txtStardust.setText(String.valueOf(mUserStardust));
+        }
+    }*/
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -136,7 +152,8 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
         txtStardustToPowerup.setText(String.valueOf(mPokemon.getPowerUpStardust()));
         txtCandiesToPowerUp.setText(String.valueOf(mPokemon.getPoweUpCandies()));
         txtCandiesToEvolve.setText(String.valueOf(mPokemon.getEvolveCandies()));
-        txtStardust.setText(String.valueOf(ActivityDashboard.mUserStardust));
+        txtStardust.setText(String.valueOf(mUserStardust));
+
 
         if (mPokemon.getFavorite()){
             imgFavorite.setImageResource(R.drawable.ic_bookmarked);

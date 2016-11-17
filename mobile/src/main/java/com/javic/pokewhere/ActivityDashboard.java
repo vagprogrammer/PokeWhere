@@ -108,11 +108,10 @@ public class ActivityDashboard extends AppCompatActivity
     private int mUserLevel = 0;
     private long mUserExperience = 0;
     private long mUserNextLevelXP = 0;
-    public static long mUserStardust = 0;
+    private long mUserStardust = 0;
     private int mUserBagSpace = 0;
     private int mUserPokeBankSpace = 0;
     private long mCreationTime = 0;
-    private int mItemCount = 0;
 
     private Map<String, String> mRewardsMap = new HashMap<String, String>();
     private PrefManager prefmanager;
@@ -305,15 +304,15 @@ public class ActivityDashboard extends AppCompatActivity
         switch (id) {
             case R.id.nav_fragment_pokebank:
                 // Handle the camera action
-                setFragment(Constants.FRAGMENT_POKEBANK, null);
+                    setFragment(Constants.FRAGMENT_POKEBANK, null);
                 break;
 
             case R.id.nav_fragment_bag:
-                setFragment(Constants.FRAGMENT_BAG, null);
+                    setFragment(Constants.FRAGMENT_BAG, null);
                 break;
 
             case R.id.nav_fragment_map:
-                setFragment(Constants.FRAGMENT_MAPA, null);
+                    setFragment(Constants.FRAGMENT_MAPA, null);
                 break;
 
             case R.id.nav_sing_out:
@@ -360,7 +359,15 @@ public class ActivityDashboard extends AppCompatActivity
                 if (mFragmentBag == null) {
                     mFragmentBag = FragmentBag.newInstance(getLocalItems(), mUserBagSpace);
                 }
+
                 if (visibleFragment != Constants.FRAGMENT_BAG) {
+
+                    if (visibleFragment== Constants.FRAGMENT_POKEBANK){
+                        mFragmentBag.setTargetFragment(mFragmentPokemonBank, Constants.FRAGMENT_POKEBANK);
+                    }
+                    else if (visibleFragment == Constants.FRAGMENT_COMPARE){
+                        mFragmentBag.setTargetFragment(mFragmentCompare, Constants.FRAGMENT_COMPARE);
+                    }
                     replaceFragment(mFragmentBag);
                 }
                 break;
@@ -467,6 +474,11 @@ public class ActivityDashboard extends AppCompatActivity
 
                         break;
                 }*/
+                mUserLevel = data.getExtras().getInt("level");
+                mUserExperience = data.getExtras().getLong("expirience");
+                mUserNextLevelXP = data.getExtras().getLong("nextLevelXp");
+                mUserStardust = data.getExtras().getLong("stardust");
+                setUpHeaderNavigationView();
 
                 mUpdateUserPokemonTask = new UpdateUserPokemonTask();
 
@@ -837,6 +849,17 @@ public class ActivityDashboard extends AppCompatActivity
                     mUpdateUserPokemonTask.execute();
                 }
                 break;
+            case Constants.ACTION_UPDATE_USER_BAG:
+                /*mUpdateUserPokemonTask = new UpdateUserPokemonTask();
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                    mUpdateUserPokemonTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                } else {
+                    mUpdateUserPokemonTask.execute();
+                }*/
+                Toast.makeText(this, "TRABAJANDO EN ELLO", Toast.LENGTH_SHORT).show();
+
+                break;
 
             default:
                 break;
@@ -945,33 +968,7 @@ public class ActivityDashboard extends AppCompatActivity
 
             if (succes) {
 
-                mNavHeaderUserName.setText(mUserName);
-                mNavHeaderUserAntiquity.setText(getDate(mCreationTime));
-                mNavHeaderUserLevel.setText(getString(R.string.nav_header_user_level) + " " + String.valueOf(mUserLevel));
-                mNavHeaderUserXP.setText(String.valueOf(Long.valueOf(mRewardsMap.get(String.valueOf(mUserLevel))) - (mUserNextLevelXP - mUserExperience)) + " / " + mRewardsMap.get(String.valueOf(mUserLevel)));
-
-                mNavHeaderXpBar.setMax(Integer.parseInt(mRewardsMap.get(String.valueOf(mUserLevel))));
-                mNavHeaderXpBar.setProgress(Integer.parseInt(mRewardsMap.get(String.valueOf(mUserLevel))) - Long.valueOf(mUserNextLevelXP - mUserExperience).intValue());
-
-                mNavHeaderUserStardust.setText(getString(R.string.nav_header_user_stardust) + " " + String.valueOf(mUserStardust));
-
-                mNavHeaderUserBagSpace.setText(getString(R.string.nav_header_user_bag_space) + " " + String.valueOf(mUserBagSpace));
-                mNavHeaderUserPokeBankSpace.setText(getString(R.string.nav_header_user_pokebank_space) + " " + String.valueOf(mUserPokeBankSpace));
-
-                switch (mUserTeam) {
-                    case 1:
-                        mNavHeaderImage.setImageResource(R.drawable.ic_team_blue);
-                        break;
-                    case 2:
-                        mNavHeaderImage.setImageResource(R.drawable.ic_team_red);
-                        break;
-                    case 3:
-                        mNavHeaderImage.setImageResource(R.drawable.ic_team_yellow);
-                        break;
-                    default:
-                        mNavHeaderImage.setImageResource(R.drawable.ic_gym_team_white);
-                        break;
-                }
+                setUpHeaderNavigationView();
 
                 switch (visibleFragment) {
                     case Constants.FRAGMENT_BLANK:
@@ -1027,6 +1024,37 @@ public class ActivityDashboard extends AppCompatActivity
             Log.i(TAG, "CONNECT_WITH_POKEMON_TASK: onCancelled");
             mConnectTask = null;
             taskConnectWithPGoWasCancelled = true;
+        }
+    }
+
+    private void setUpHeaderNavigationView(){
+        mNavHeaderUserName.setText(mUserName);
+        mNavHeaderUserAntiquity.setText(getDate(mCreationTime));
+
+        mNavHeaderUserLevel.setText(getString(R.string.nav_header_user_level) + " " + String.valueOf(mUserLevel));
+        mNavHeaderUserXP.setText(String.valueOf(Long.valueOf(mRewardsMap.get(String.valueOf(mUserLevel))) - (mUserNextLevelXP - mUserExperience)) + " / " + mRewardsMap.get(String.valueOf(mUserLevel)));
+
+        mNavHeaderXpBar.setMax(Integer.parseInt(mRewardsMap.get(String.valueOf(mUserLevel))));
+        mNavHeaderXpBar.setProgress(Integer.parseInt(mRewardsMap.get(String.valueOf(mUserLevel))) - Long.valueOf(mUserNextLevelXP - mUserExperience).intValue());
+
+        mNavHeaderUserStardust.setText(getString(R.string.nav_header_user_stardust) + " " + String.valueOf(mUserStardust));
+
+        mNavHeaderUserBagSpace.setText(getString(R.string.nav_header_user_bag_space) + " " + String.valueOf(mUserBagSpace));
+        mNavHeaderUserPokeBankSpace.setText(getString(R.string.nav_header_user_pokebank_space) + " " + String.valueOf(mUserPokeBankSpace));
+
+        switch (mUserTeam) {
+            case 1:
+                mNavHeaderImage.setImageResource(R.drawable.ic_team_blue);
+                break;
+            case 2:
+                mNavHeaderImage.setImageResource(R.drawable.ic_team_red);
+                break;
+            case 3:
+                mNavHeaderImage.setImageResource(R.drawable.ic_team_yellow);
+                break;
+            default:
+                mNavHeaderImage.setImageResource(R.drawable.ic_gym_team_white);
+                break;
         }
     }
 
@@ -1337,6 +1365,12 @@ public class ActivityDashboard extends AppCompatActivity
                 try {
                     mGO.getInventories().updateInventories(true);
                     mUserPokemonList = mGO.getInventories().getPokebank().getPokemons();
+
+                    final Stats stats = mGO.getPlayerProfile().getStats();
+                    mUserLevel = stats.getLevel();
+                    mUserExperience = stats.getExperience();
+                    mUserNextLevelXP = stats.getNextLevelXp();
+
                     Log.i(TAG, "UPDATE_USER_POKEMON_TASK: doInBackground: true");
                     return true;
                 } catch (LoginFailedException | RemoteServerException e) {
@@ -1371,9 +1405,10 @@ public class ActivityDashboard extends AppCompatActivity
                         if (mFragmentPokemonBank != null) {
                             mFragmentPokemonBank.onTaskFinish(-1, null, getLocalUserpokemonList());
                         }
-
                         break;
                 }
+
+                setUpHeaderNavigationView();
 
             } else {
 

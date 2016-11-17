@@ -29,7 +29,9 @@ import com.javic.pokewhere.models.ProgressTransferPokemon;
 import com.javic.pokewhere.util.Constants;
 import com.nineoldandroids.animation.Animator;
 import com.pokegoapi.api.PokemonGo;
+import com.pokegoapi.api.inventory.Stats;
 import com.pokegoapi.api.map.pokemon.EvolutionResult;
+import com.pokegoapi.api.player.PlayerProfile;
 import com.pokegoapi.api.pokemon.Pokemon;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
@@ -59,12 +61,16 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
     private int mIndex;
     private boolean isChanged = false;
     private Intent intentFrom;
+    private int mUserLevel = 0;
+    private long mUserExperience = 0;
+    private long mUserNextLevelXP = 0;
+    private long mUserStardust = 0;
+
     private boolean taskSetFavoritePokemonWasCanceled = false;
     private boolean taskPowerUpWasCanceled = false;
     private boolean taskEvolveWasCanceled = false;
     private boolean taskTransferPokemonWasCanceled = false;
     private boolean taskRenameWasCanceled = false;
-
 
     //Task
     private SetFavoriteTask mSetFavoriteTask;
@@ -94,16 +100,25 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
             mIndex = 0;
         }
 
+        if (mGO!=null){
+            final Stats stats = mGO.getPlayerProfile().getStats();
+
+            mUserStardust = mGO.getPlayerProfile().getCurrency(PlayerProfile.Currency.STARDUST);
+
+            mUserLevel = stats.getLevel();
+            mUserExperience = stats.getExperience();
+            mUserNextLevelXP = stats.getNextLevelXp();
+        }
+
         leftArrow = (ImageView) findViewById(R.id.leftArrow);
         rightArrow = (ImageView) findViewById(R.id.rightArrow);
 
         mViewPager = (ViewPager) findViewById(R.id.vp_slider);
         mViewPager.setClipToPadding(false);
-        mAdapter = new AdapterPokemonDetail(this.getSupportFragmentManager(),mLocalUserPokemonList);
+        mAdapter = new AdapterPokemonDetail(this.getSupportFragmentManager(),mLocalUserPokemonList, mUserStardust);
         mViewPager.setAdapter(mAdapter);
         mViewPager.setPageTransformer(true, new BackgroundToForegroundTransformer());
         mViewPager.setCurrentItem(mIndex);
-
 
         if (mIndex>0){
             YoYo.with(Techniques.Flash)
@@ -135,6 +150,10 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                     if (intentFrom!=null){
                         intentFrom.putExtra("resultado",true);
                         intentFrom.putExtra("pokemon",mLocalUserPokemonList.get(mViewPager.getCurrentItem()));
+                        intentFrom.putExtra("stardust", mUserStardust);
+                        intentFrom.putExtra("level", mUserLevel);
+                        intentFrom.putExtra("expirience", mUserExperience);
+                        intentFrom.putExtra("nextLevelXp", mUserNextLevelXP);
                         setResult(RESULT_OK, intentFrom);
                         finish();
                     }
@@ -155,6 +174,10 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
             if (intentFrom!=null){
                 intentFrom.putExtra("resultado",true);
                 intentFrom.putExtra("pokemon",mLocalUserPokemonList.get(mViewPager.getCurrentItem()));
+                intentFrom.putExtra("stardust", mUserStardust);
+                intentFrom.putExtra("level", mUserLevel);
+                intentFrom.putExtra("expirience", mUserExperience);
+                intentFrom.putExtra("nextLevelXp", mUserNextLevelXP);
                 setResult(RESULT_OK, intentFrom);
                 finish();
             }
@@ -209,11 +232,12 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                         .title(R.string.dialog_title_rename)
                         .negativeText(getString(R.string.location_alert_neg_btn))
                         .positiveText(getString(R.string.dialog_positive_btn_renames))
+                        .inputRange(1, 12)
                         .input(getString(R.string.dialog_title_rename), actualName, new MaterialDialog.InputCallback() {
                             @Override
                             public void onInput(MaterialDialog dialog, CharSequence input) {
                                 // Do something
-                                mRenameTask= new RenameTask(localUserPokemon, actualName);
+                                mRenameTask= new RenameTask(localUserPokemon, input.toString());
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                                     mRenameTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                 } else {
@@ -381,7 +405,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
         private Pokemon pokemon;
         private LocalUserPokemon localUserPokemon;
 
-        private LocalUserPokemon localPkemon;
+        private LocalUserPokemon localPokemon;
 
         private MaterialDialog.Builder builder;
         private MaterialDialog dialog;
@@ -417,28 +441,32 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                         pokemon.powerUp();
                         mGO.getInventories().updateInventories(true);
 
-                        localPkemon = new LocalUserPokemon();
-                        localPkemon.setId(pokemon.getId());
-                        localPkemon.setName(pokemon.getPokemonId().name());
-                        localPkemon.setNickname(pokemon.getNickname());
-                        localPkemon.setBitmap(getBitmapFromAssets(pokemon.getPokemonId().getNumber()));
-                        localPkemon.setNumber(pokemon.getPokemonId().getNumber());
-                        localPkemon.setFavorite(pokemon.isFavorite());
-                        localPkemon.setDead(pokemon.isInjured());
-                        localPkemon.setCp(pokemon.getCp());
-                        localPkemon.setIv(((int) (pokemon.getIvRatio() * 100)));
-                        localPkemon.setAttack(pokemon.getIndividualAttack());
-                        localPkemon.setDefense(pokemon.getIndividualDefense());
-                        localPkemon.setStamina(pokemon.getIndividualStamina());
-                        localPkemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer());
-                        localPkemon.setEvolveCP(pokemon.getCpAfterEvolve());
-                        localPkemon.setLevel(pokemon.getLevel());
-                        localPkemon.setCandies(pokemon.getCandy());
-                        localPkemon.setPowerUpStardust(pokemon.getStardustCostsForPowerup());
-                        localPkemon.setPoweUpCandies(pokemon.getCandyCostsForPowerup());
-                        localPkemon.setEvolveCandies(pokemon.getCandiesToEvolve());
-                        localPkemon.setCreationTimeMillis(pokemon.getCreationTimeMs());
-                        localPkemon.setPokemonCount(mGO.getInventories().getPokebank().getPokemonByPokemonId(pokemon.getPokemonId()).size());
+                        //mUserStardust = mGO.getPlayerProfile().getCurrency(PlayerProfile.Currency.STARDUST);
+
+                        mUserStardust = mUserStardust-localUserPokemon.getPowerUpStardust();
+
+                        localPokemon = new LocalUserPokemon();
+                        localPokemon.setId(pokemon.getId());
+                        localPokemon.setName(pokemon.getPokemonId().name());
+                        localPokemon.setNickname(pokemon.getNickname());
+                        localPokemon.setBitmap(getBitmapFromAssets(pokemon.getPokemonId().getNumber()));
+                        localPokemon.setNumber(pokemon.getPokemonId().getNumber());
+                        localPokemon.setFavorite(pokemon.isFavorite());
+                        localPokemon.setDead(pokemon.isInjured());
+                        localPokemon.setCp(pokemon.getCp());
+                        localPokemon.setIv(((int) (pokemon.getIvRatio() * 100)));
+                        localPokemon.setAttack(pokemon.getIndividualAttack());
+                        localPokemon.setDefense(pokemon.getIndividualDefense());
+                        localPokemon.setStamina(pokemon.getIndividualStamina());
+                        localPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer());
+                        localPokemon.setEvolveCP(pokemon.getCpAfterEvolve());
+                        localPokemon.setLevel(pokemon.getLevel());
+                        localPokemon.setCandies(pokemon.getCandy());
+                        localPokemon.setPowerUpStardust(pokemon.getStardustCostsForPowerup());
+                        localPokemon.setPoweUpCandies(pokemon.getCandyCostsForPowerup());
+                        localPokemon.setEvolveCandies(pokemon.getCandiesToEvolve());
+                        localPokemon.setCreationTimeMillis(pokemon.getCreationTimeMs());
+                        localPokemon.setPokemonCount(mGO.getInventories().getPokebank().getPokemonByPokemonId(pokemon.getPokemonId()).size());
                     }
 
 
@@ -470,7 +498,9 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
                 Toast.makeText(ActivityPokemonDetail.this, "¡" + localUserPokemon.getName() + " " + getString(R.string.text_result_power_up), Toast.LENGTH_SHORT).show();
 
-                mLocalUserPokemonList.set(index, localPkemon);
+                mLocalUserPokemonList.set(index, localPokemon);
+
+                mAdapter.mUserStardust = mUserStardust;
 
                 mAdapter.notifyDataSetChanged();
 
@@ -537,9 +567,13 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
                         if (result.isSuccessful())
                         {
+                            Pokemon pokemon= result.getEvolvedPokemon();
                             mGO.getInventories().updateInventories(true);
 
-                            Pokemon pokemon= result.getEvolvedPokemon();
+                            final Stats stats = mGO.getPlayerProfile().getStats();
+                            mUserLevel = stats.getLevel();
+                            mUserExperience = stats.getExperience();
+                            mUserNextLevelXP = stats.getNextLevelXp();
 
                             localPokemon = new LocalUserPokemon();
                             localPokemon.setId(pokemon.getId());
