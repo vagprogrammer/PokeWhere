@@ -103,7 +103,6 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     }
 
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        menu.clear();
         inflater.inflate(R.menu.fragment_pokebank, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -112,13 +111,14 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_transferir:
-                if (mListener!=null){
-                    mListener.onFragmentActionPerform(Constants.ACTION_UPDATE_USER_POKEMON, null);
+                List<LocalUserPokemon> pokemonTotrasnferList = new ArrayList<>();
+
+                for (Integer indice : mAdapter.getSelectedIndices()) {
+                    pokemonTotrasnferList.add(mLocalUserPokemonList.get(indice));
                 }
-                break;
-            case R.id.action_refresh:
+
                 if (mListener!=null){
-                    mListener.onFragmentActionPerform(Constants.ACTION_UPDATE_USER_POKEMON, null);
+                    mListener.onFragmentActionPerform(Constants.ACTION_TRANSFER_POKEMON, pokemonTotrasnferList);
                 }
                 break;
             default:

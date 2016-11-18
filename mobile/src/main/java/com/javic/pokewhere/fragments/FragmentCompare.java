@@ -103,25 +103,12 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        getTargetFragment().setMenuVisibility(false);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        getTargetFragment().setMenuVisibility(true);
-    }
-
-    @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
     }
 
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        menu.clear();
         this.menu = menu;
         inflater.inflate(R.menu.fragment_compare, menu);
         super.onCreateOptionsMenu(menu, inflater);
@@ -130,15 +117,13 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
 
-        //menu.findItem(R.id.action_refresh).setVisible(false);
-
         if (mAdapterCompare.getSelectedCount() > 0) {
-            menu.findItem(R.id.action_transferir).setVisible(true);
-            menu.findItem(R.id.action_refresh_compare).setVisible(false);
+            menu.findItem(R.id.action_transferir_compare).setVisible(true);
         } else {
-            menu.findItem(R.id.action_transferir).setVisible(false);
-            menu.findItem(R.id.action_refresh_compare).setVisible(true);
+            menu.findItem(R.id.action_transferir_compare).setVisible(false);
         }
+
+
 
         super.onPrepareOptionsMenu(menu);
     }
@@ -151,7 +136,7 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
                     getActivity().onBackPressed();
                 }
                 break;
-            case R.id.action_transferir:
+            case R.id.action_transferir_compare:
                 List<LocalUserPokemon> pokemonTotrasnferList = new ArrayList<>();
 
                 for (Integer indice : mAdapterCompare.getSelectedIndices()) {
@@ -161,13 +146,6 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
                 if (mListener != null) {
                     mListener.onFragmentActionPerform(Constants.ACTION_TRANSFER_POKEMON, pokemonTotrasnferList);
                 }
-                break;
-            case R.id.action_refresh_compare:
-                if (mListener!=null){
-                    mListener.onFragmentActionPerform(Constants.ACTION_UPDATE_USER_POKEMON, null);
-                }
-                break;
-            default:
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -227,8 +205,9 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
 
             mToolbar.setNavigationIcon(R.drawable.ic_close_white_24dp);
             mToolbar.setTitle(String.valueOf(count) + " " + getString(R.string.title_selected));
-            menu.findItem(R.id.action_transferir).setVisible(true);
-            menu.findItem(R.id.action_refresh_compare).setVisible(false);
+            menu.findItem(R.id.action_transferir_compare).setVisible(true);
+            //menu.findItem(R.id.action_refresh_compare).setVisible(false);
+            getTargetFragment().setMenuVisibility(false);
             mAdapterCompare.changeSelectingState(true);
             mBottomBar.setVisibility(View.GONE);
         } else {
@@ -237,8 +216,9 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
             if (mLocalUserPokemonList.size() > 0) {
                 mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " + mLocalUserPokemonList.get(0).getName());
             }
-            menu.findItem(R.id.action_transferir).setVisible(false);
-            menu.findItem(R.id.action_refresh_compare).setVisible(true);
+            menu.findItem(R.id.action_transferir_compare).setVisible(false);
+            //menu.findItem(R.id.action_refresh_compare).setVisible(true);
+            getTargetFragment().setMenuVisibility(true);
             mAdapterCompare.changeSelectingState(false);
             mBottomBar.setVisibility(View.VISIBLE);
         }
@@ -292,8 +272,9 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
             mToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
             mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + " " + mLocalUserPokemonList.get(0).getName());
 
-            menu.findItem(R.id.action_transferir).setVisible(false);
-            menu.findItem(R.id.action_refresh_compare).setVisible(true);
+            menu.findItem(R.id.action_transferir_compare).setVisible(false);
+            //menu.findItem(R.id.action_refresh_compare).setVisible(true);
+            getTargetFragment().setMenuVisibility(true);
             mAdapterCompare.clearSelected();
             mBottomBar.setVisibility(View.VISIBLE);
             return false;
@@ -335,8 +316,9 @@ public class FragmentCompare extends Fragment implements AdapterPokemonBank.Clic
 
                 mToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
 
-                menu.findItem(R.id.action_transferir).setVisible(false);
-                menu.findItem(R.id.action_refresh_compare).setVisible(true);
+                menu.findItem(R.id.action_transferir_compare).setVisible(false);
+                //menu.findItem(R.id.action_refresh_compare).setVisible(true);
+                getTargetFragment().setMenuVisibility(true);
                 mAdapterCompare.changeSelectingState(false);
                 mAdapterCompare.clearSelected();
                 mAdapterCompare.upDateAdapter(mLocalUserPokemonList);

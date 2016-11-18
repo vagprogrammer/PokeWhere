@@ -231,6 +231,25 @@ public class ActivityDashboard extends AppCompatActivity
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.action_refresh:
+               /* mUpdateUserPokemonTask = new UpdateUserPokemonTask();
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                    mUpdateUserPokemonTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                } else {
+                    mUpdateUserPokemonTask.execute();
+                }*/
+
+                Toast.makeText(this, "VISIBLE_FRAGMENT: " + String.valueOf(visibleFragment), Toast.LENGTH_SHORT).show();
+
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
 
@@ -345,7 +364,7 @@ public class ActivityDashboard extends AppCompatActivity
                     mFragmentPokemonBank = FragmentPokemonBank.newInstance(getLocalUserpokemonList(), mUserPokeBankSpace);
                 }
 
-                if (visibleFragment != Constants.FRAGMENT_POKEBANK || visibleFragment != Constants.FRAGMENT_COMPARE) {
+                if (visibleFragment != Constants.FRAGMENT_POKEBANK) {
                     replaceFragment(mFragmentPokemonBank);
                 }
 
@@ -585,7 +604,7 @@ public class ActivityDashboard extends AppCompatActivity
                                     }
 
                                     break;
-                                case Constants.ACTION_UPDATE_USER_POKEMON:
+                                case Constants.ACTION_REFRESH_USER_DATA:
                                     mUpdateUserPokemonTask = new UpdateUserPokemonTask();
 
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -838,7 +857,7 @@ public class ActivityDashboard extends AppCompatActivity
                 startActivityForResult(i, Constants.REQUEST_CODE_ACTIVITY_POKEMON_DETAIL);
 
                 break;
-            case Constants.ACTION_UPDATE_USER_POKEMON:
+            case Constants.ACTION_REFRESH_USER_DATA:
                 mUpdateUserPokemonTask = new UpdateUserPokemonTask();
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -846,20 +865,6 @@ public class ActivityDashboard extends AppCompatActivity
                 } else {
                     mUpdateUserPokemonTask.execute();
                 }
-                break;
-            case Constants.ACTION_UPDATE_USER_BAG:
-                /*mUpdateUserPokemonTask = new UpdateUserPokemonTask();
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                    mUpdateUserPokemonTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                } else {
-                    mUpdateUserPokemonTask.execute();
-                }*/
-                Toast.makeText(this, "TRABAJANDO EN ELLO", Toast.LENGTH_SHORT).show();
-
-                break;
-
-            default:
                 break;
         }
     }
@@ -1410,7 +1415,7 @@ public class ActivityDashboard extends AppCompatActivity
 
             } else {
 
-                showSnackBar(getString(R.string.snack_bar_error_with_pokemon), getString(R.string.snack_bar_error_with_pokemon_positive_btn), Constants.ACTION_UPDATE_USER_POKEMON, null);
+                showSnackBar(getString(R.string.snack_bar_error_with_pokemon), getString(R.string.snack_bar_error_with_pokemon_positive_btn), Constants.ACTION_REFRESH_USER_DATA, null);
             }
 
             //Dismissing the dialog
