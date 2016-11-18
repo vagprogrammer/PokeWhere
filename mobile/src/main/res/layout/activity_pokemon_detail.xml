@@ -19,7 +19,7 @@
             app:popupTheme="@style/AppTheme.PopupOverlay" />
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_pokemon"
+    <include layout="@layout/layout_content_pokemon"
         android:id="@+id/include" />
 
     <ImageView

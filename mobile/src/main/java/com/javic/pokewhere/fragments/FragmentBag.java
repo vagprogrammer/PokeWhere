@@ -92,18 +92,6 @@ public class FragmentBag extends Fragment implements OnViewItemClickListenner {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        getTargetFragment().setMenuVisibility(false);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        getTargetFragment().setMenuVisibility(true);
-    }
-
-    @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;

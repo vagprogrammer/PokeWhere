@@ -304,15 +304,15 @@ public class ActivityDashboard extends AppCompatActivity
         switch (id) {
             case R.id.nav_fragment_pokebank:
                 // Handle the camera action
-                    setFragment(Constants.FRAGMENT_POKEBANK, null);
+                setFragment(Constants.FRAGMENT_POKEBANK, null);
                 break;
 
             case R.id.nav_fragment_bag:
-                    setFragment(Constants.FRAGMENT_BAG, null);
+                setFragment(Constants.FRAGMENT_BAG, null);
                 break;
 
             case R.id.nav_fragment_map:
-                    setFragment(Constants.FRAGMENT_MAPA, null);
+                setFragment(Constants.FRAGMENT_MAPA, null);
                 break;
 
             case R.id.nav_sing_out:
@@ -344,9 +344,11 @@ public class ActivityDashboard extends AppCompatActivity
                     //mFragmentPokemon = mFragmentPokemon.newInstance(mGO);
                     mFragmentPokemonBank = FragmentPokemonBank.newInstance(getLocalUserpokemonList(), mUserPokeBankSpace);
                 }
-                if (visibleFragment != Constants.FRAGMENT_POKEBANK) {
+
+                if (visibleFragment != Constants.FRAGMENT_POKEBANK || visibleFragment != Constants.FRAGMENT_COMPARE) {
                     replaceFragment(mFragmentPokemonBank);
                 }
+
                 break;
 
             case Constants.FRAGMENT_COMPARE:
@@ -354,6 +356,7 @@ public class ActivityDashboard extends AppCompatActivity
                 mFragmentCompare.setTargetFragment(mFragmentPokemonBank, Constants.FRAGMENT_POKEBANK);
                 replaceFragment(mFragmentCompare);
                 break;
+
             case Constants.FRAGMENT_BAG:
 
                 if (mFragmentBag == null) {
@@ -361,16 +364,11 @@ public class ActivityDashboard extends AppCompatActivity
                 }
 
                 if (visibleFragment != Constants.FRAGMENT_BAG) {
-
-                    if (visibleFragment== Constants.FRAGMENT_POKEBANK){
-                        mFragmentBag.setTargetFragment(mFragmentPokemonBank, Constants.FRAGMENT_POKEBANK);
-                    }
-                    else if (visibleFragment == Constants.FRAGMENT_COMPARE){
-                        mFragmentBag.setTargetFragment(mFragmentCompare, Constants.FRAGMENT_COMPARE);
-                    }
                     replaceFragment(mFragmentBag);
                 }
+
                 break;
+
             case Constants.FRAGMENT_MAPA:
                 if (mFragmentMapa == null) {
                     mFragmentMapa = FragmentMapa.newInstance(mGO);
@@ -1027,7 +1025,7 @@ public class ActivityDashboard extends AppCompatActivity
         }
     }
 
-    private void setUpHeaderNavigationView(){
+    private void setUpHeaderNavigationView() {
         mNavHeaderUserName.setText(mUserName);
         mNavHeaderUserAntiquity.setText(getDate(mCreationTime));
 
@@ -1394,7 +1392,7 @@ public class ActivityDashboard extends AppCompatActivity
             mUpdateUserPokemonTask = null;
 
             if (succes) {
-                switch (visibleFragment){
+                switch (visibleFragment) {
                     case Constants.FRAGMENT_POKEBANK:
                         mFragmentPokemonBank.onTaskFinish(-1, null, getLocalUserpokemonList());
                         break;

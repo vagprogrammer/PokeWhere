@@ -230,6 +230,57 @@ public class FragmentMapa extends Fragment implements
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        //First we need to check if the GoogleMap was not created in OnCreate
+        if (mGoogleMap == null) {
+
+            // We need to check availability of play services
+            if (checkPlayServices()) {
+
+                if (mGoogleApiClient == null) {
+                    // Building the GoogleApi client
+                    buildGoogleApiClient();
+                }
+                //Biulding the GoogleMap
+                if (mapView != null) {
+                    // Initialise the MapView
+                    mapView.onCreate(null);
+                    mapView.onResume();
+
+                    // Set the map ready callback to receive the GoogleMap object
+                    mapView.getMapAsync(this);
+                }
+            }
+        }
+
+        //GoogleMap exist
+        else {
+            /*
+            if (!mayRequestLocation()) {
+                return;
+            }*/
+        }
+
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        //OnlyCnacel
+        cancelTask(true);
+
+        if (mGoogleMap != null) {
+
+            if (ContextCompat.checkSelfPermission(mContext, ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                mGoogleMap.setMyLocationEnabled(false);
+            }
+        }
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -295,59 +346,6 @@ public class FragmentMapa extends Fragment implements
     public void onDetach() {
         super.onDetach();
         mListener = null;
-    }
-
-    @Override
-    public void onResume() {
-        // TODO Auto-generated method stub
-        super.onResume();
-
-        //First we need to check if the GoogleMap was not created in OnCreate
-        if (mGoogleMap == null) {
-
-            // We need to check availability of play services
-            if (checkPlayServices()) {
-
-                if (mGoogleApiClient == null) {
-                    // Building the GoogleApi client
-                    buildGoogleApiClient();
-                }
-                //Biulding the GoogleMap
-                if (mapView != null) {
-                    // Initialise the MapView
-                    mapView.onCreate(null);
-                    mapView.onResume();
-
-                    // Set the map ready callback to receive the GoogleMap object
-                    mapView.getMapAsync(this);
-                }
-            }
-        }
-
-        //GoogleMap exist
-        else {
-            /*
-            if (!mayRequestLocation()) {
-                return;
-            }*/
-        }
-
-
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        //OnlyCnacel
-        cancelTask(true);
-
-        if (mGoogleMap != null) {
-
-            if (ContextCompat.checkSelfPermission(mContext, ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                mGoogleMap.setMyLocationEnabled(false);
-            }
-        }
     }
 
 

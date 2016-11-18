@@ -51,38 +51,43 @@
             <Button
                 android:id="@+id/google_sign_in_button_secure"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="22dp"
-                android:background="@color/colorPrimaryDark"
-                android:text="@string/google_account_secure"
+                android:layout_height="45dp"
+                android:layout_marginTop="22dp"
+                android:background="@drawable/buttonshape"
+                android:shadowColor="@color/color_background_stroke_user_profile"
                 android:textAllCaps="false"
                 android:textStyle="bold"
+                android:text="@string/google_account_secure"
                 android:textColor="@color/color_blanco"
-                android:textSize="18sp" />
+                android:textSize="15sp" />
 
             <Button
                 android:id="@+id/google_sign_in_button"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="22dp"
-                android:background="@color/colorPrimaryDark"
-                android:text="@string/google_account_credentials"
+                android:layout_height="45dp"
+                android:layout_marginTop="22dp"
+                android:background="@drawable/buttonshape"
+                android:shadowColor="@color/color_background_stroke_user_profile"
                 android:textAllCaps="false"
                 android:textStyle="bold"
+                android:text="@string/google_account_credentials"
                 android:textColor="@color/color_blanco"
-                android:textSize="18sp" />
+                android:textSize="15sp" />
 
             <Button
                 android:id="@+id/ptc_sign_in_button"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="22dp"
-                android:background="@color/colorPrimaryDark"
-                android:text="@string/ptc_account"
+                android:layout_height="45dp"
+                android:layout_marginTop="22dp"
+                android:background="@drawable/buttonshape"
+                android:shadowColor="@color/color_background_stroke_user_profile"
                 android:textAllCaps="false"
                 android:textStyle="bold"
+                android:text="@string/ptc_account"
                 android:textColor="@color/color_blanco"
-                android:textSize="18sp" />
+                android:textSize="15sp"
+                android:layout_marginBottom="22dp"/>
+
         </LinearLayout>
 
     </RelativeLayout>
@@ -96,7 +101,7 @@
         android:textSize="@dimen/size_tv_terms"
         android:textColor="@color/color_background_user_profile"
         android:textStyle="bold"
-        android:visibility="gone"/>
+        android:visibility="visible"/>
 
 </FrameLayout>
 

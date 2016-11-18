@@ -384,11 +384,16 @@
 
                         <Button
                             android:id="@+id/btnPowerUp"
-                            android:layout_width="fill_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_width="match_parent"
+                            android:layout_height="35dp"
                             android:layout_weight="1.0"
                             android:text="@string/text_powerup"
-                            android:textColor="@android:color/white" />
+                            android:textColor="@android:color/white"
+                            android:background="@drawable/buttonshape"
+                            android:shadowColor="@color/color_background_stroke_user_profile"
+                            android:textAllCaps="false"
+                            android:textStyle="bold"
+                            android:textSize="15sp"/>
 
                         <LinearLayout
                             android:layout_width="fill_parent"
@@ -438,15 +443,21 @@
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1.0"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:layout_marginTop="10dp">
 
                         <Button
                             android:id="@+id/btnEvolve"
-                            android:layout_width="fill_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_width="match_parent"
+                            android:layout_height="35dp"
                             android:layout_weight="1.0"
                             android:text="@string/text_evolve"
-                            android:textColor="@android:color/white" />
+                            android:textColor="@android:color/white"
+                            android:background="@drawable/buttonshape"
+                            android:shadowColor="@color/color_background_stroke_user_profile"
+                            android:textAllCaps="false"
+                            android:textStyle="bold"
+                            android:textSize="15sp"/>
 
                         <LinearLayout
                             android:layout_width="fill_parent"
@@ -586,10 +597,16 @@
                     <Button
                         android:id="@+id/btnTransfer"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="35dp"
                         android:layout_weight="1.0"
                         android:text="@string/action_transferir"
-                        android:textColor="@android:color/white" />
+                        android:textColor="@android:color/white"
+                        android:background="@drawable/buttonshape"
+                        android:shadowColor="@color/color_background_stroke_user_profile"
+                        android:textAllCaps="false"
+                        android:textStyle="bold"
+                        android:textSize="15sp"/>
+
                 </LinearLayout>
             </LinearLayout>
         </ScrollView>

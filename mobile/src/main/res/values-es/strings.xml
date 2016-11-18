@@ -60,7 +60,7 @@
 
 
     <!-- Strings related to login -->
-    <string name="google_account_secure">CUENTA DE GOOGLE (recomendado)</string>
+    <string name="google_account_secure">CUENTA DE GOOGLE \n(recomendado)</string>
     <string name="google_account_credentials">CUENTA DE GOOGLE \n(correo y contraseña)</string>
     <string name="ptc_account">PTC \n(entrenadores pokémon) </string>
     <string name="prompt_token">Token (Ej. 4/18dn21...)</string>
@@ -78,7 +78,7 @@
     <string name="pick_account">Es necesario que selecciones una cuenta</string>
     <string name="terms">Esta aplicación sólo lee los datos de su cuenta Pokémon Go.\nEl desarrollador no será responsable si algo le sucede a su cuenta.\nNo hay garantía de que esto esté permitido por los términos de servicio de Niantic.</string>
     <string name="dont_have_token">Si no tienes un "TOKEN"</string>
-    <string name="btn_request_token">Obtener un TOKEN</string>
+    <string name="btn_request_token">Obtener un \nTOKEN</string>
     <string name="have_token">De lo contrario, peguelo y presione el botón de enviar</string>
     <string name="tv_note">Nota: Si el TOKEN es invalido, la aplicación podría fallar, por favor obtenga un nuevo TOKEN desde la consola de Google e intentelo nuevamente.</string>
     <string name="btn_send_token">ENVIAR</string>

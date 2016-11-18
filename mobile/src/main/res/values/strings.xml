@@ -78,7 +78,7 @@
     <string name="pick_account">You must select an account</string>
     <string name="terms">This application only reads data from your Pokemon Go account.\nThe developer will not be responsible if something happens to your account.\nThere is no guarantee that this will be permitted by Niantics terms of service.</string>
     <string name="dont_have_token">If you do not have a "TOKEN"</string>
-    <string name="btn_request_token">Get a TOKEN</string>
+    <string name="btn_request_token">Get a \nTOKEN</string>
     <string name="have_token">Otherwise, paste and press the send button</string>
     <string name="tv_note">Note: If TOKEN is invalid, the application may fail, please obtain a new TOKEN from the Google console and try again.</string>
     <string name="btn_send_token">SEND</string>
