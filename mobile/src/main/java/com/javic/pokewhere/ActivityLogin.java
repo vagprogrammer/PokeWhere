@@ -36,6 +36,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.GravityEnum;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.javic.pokewhere.app.AppTutorial;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
@@ -79,6 +81,7 @@ public class ActivityLogin extends AppCompatActivity {
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
+    private TextView mHelpView;
     private View mProgressView;
     private View mLoginFormView;
     private View mContentView;
@@ -409,7 +412,14 @@ public class ActivityLogin extends AppCompatActivity {
                 //mPasswordView.setError(getString(R.string.error_incorrect_password));
                 //mPasswordView.requestFocus();
 
-                Toast.makeText(ActivityLogin.this, getString(R.string.snack_bar_error_with_pokemon), Toast.LENGTH_SHORT).show();
+                if (isLoginWithCredentials) {
+                    Toast.makeText(ActivityLogin.this, getString(R.string.message_incorrect_password), Toast.LENGTH_SHORT).show();
+                }
+                else{
+                    Toast.makeText(ActivityLogin.this, getString(R.string.snack_bar_error_with_pokemon), Toast.LENGTH_SHORT).show();
+                }
+
+
             }
         }
 
@@ -509,18 +519,22 @@ public class ActivityLogin extends AppCompatActivity {
         }
     }
 
-    public void setUpView() {
+    private void setUpView() {
+
+        final TextView mTVTitle = (TextView) findViewById(R.id.tv_login_title);
 
         // Set up the login form.
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
-        final TextView mTVTitle = (TextView) findViewById(R.id.tv_login_title);
 
         if (isLoginWithCredentials) {
             mContentView = findViewById(R.id.content_login_form_with_credentials);
             mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
             mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
+            mHelpView = (TextView) findViewById(R.id.tv_help);
+
         } else {
+            mHelpView = (TextView) findViewById(R.id.tv_help_token);
             mContentView = findViewById(R.id.content_login_form_with_token);
             mEmailView = (AutoCompleteTextView) findViewById(R.id.token);
             mEmailSignInButton = (Button) findViewById(R.id.btn_SendToken);
@@ -545,6 +559,13 @@ public class ActivityLogin extends AppCompatActivity {
             mTVTitle.setText(getString(R.string.ptc_account));
             mEmailView.setHint(getString(R.string.prompt_nickname));
         }
+
+        mHelpView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showHelp();
+            }
+        });
 
         mEmailView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -631,7 +652,7 @@ public class ActivityLogin extends AppCompatActivity {
     }
 
 
-    public void saveUserCredentials(String userEmail, String userPass) {
+    private void saveUserCredentials(String userEmail, String userPass) {
 
         SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs_user.edit();
@@ -643,7 +664,7 @@ public class ActivityLogin extends AppCompatActivity {
 
     }
 
-    public void saveRefreshToken(String refreshToken) {
+    private void saveRefreshToken(String refreshToken) {
 
         SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs_user.edit();
@@ -654,7 +675,7 @@ public class ActivityLogin extends AppCompatActivity {
 
     }
 
-    public void saveUserData() {
+    private void saveUserData() {
 
         SharedPreferences prefs_user = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs_user.edit();
@@ -672,6 +693,27 @@ public class ActivityLogin extends AppCompatActivity {
 
         editor.commit();
 
+    }
+
+
+    private void showHelp(){
+
+        new MaterialDialog.Builder(this)
+                .title(R.string.dialog_title_help)
+                .titleGravity(GravityEnum.CENTER)
+                .items(R.array.help_items)
+                .show();
+
+        /*new MaterialDialog.Builder(this)
+                .title(R.string.socialNetworks)
+                .items(R.array.socialNetworks_longItems)
+                .itemsCallback(new MaterialDialog.ListCallback() {
+                    @Override
+                    public void onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
+                        showToast(which + ": " + text);
+                    }
+                })
+                .show();*/
     }
 
 

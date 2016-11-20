@@ -393,7 +393,9 @@
                             android:shadowColor="@color/color_background_stroke_user_profile"
                             android:textAllCaps="false"
                             android:textStyle="bold"
-                            android:textSize="15sp"/>
+                            android:textSize="15sp"
+                            android:layout_marginTop="@dimen/padding_10"
+                            android:layout_marginBottom="@dimen/padding_10"/>
 
                         <LinearLayout
                             android:layout_width="fill_parent"
@@ -443,8 +445,7 @@
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1.0"
-                        android:orientation="horizontal"
-                        android:layout_marginTop="10dp">
+                        android:orientation="horizontal">
 
                         <Button
                             android:id="@+id/btnEvolve"
@@ -457,7 +458,9 @@
                             android:shadowColor="@color/color_background_stroke_user_profile"
                             android:textAllCaps="false"
                             android:textStyle="bold"
-                            android:textSize="15sp"/>
+                            android:textSize="15sp"
+                            android:layout_marginTop="@dimen/padding_10"
+                            android:layout_marginBottom="@dimen/padding_10"/>
 
                         <LinearLayout
                             android:layout_width="fill_parent"
@@ -591,7 +594,7 @@
                     android:id="@+id/layoutButtons"
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent"
-                    android:gravity="bottom"
+                    android:gravity="center"
                     android:orientation="horizontal">
 
                     <Button
@@ -605,7 +608,9 @@
                         android:shadowColor="@color/color_background_stroke_user_profile"
                         android:textAllCaps="false"
                         android:textStyle="bold"
-                        android:textSize="15sp"/>
+                        android:textSize="15sp"
+                        android:layout_marginTop="@dimen/padding_10"
+                        android:layout_marginBottom="@dimen/padding_10"/>
 
                 </LinearLayout>
             </LinearLayout>

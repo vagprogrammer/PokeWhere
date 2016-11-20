@@ -100,7 +100,7 @@ public class FragmentBag extends Fragment implements OnViewItemClickListenner {
         mToolbar = (Toolbar) mView.findViewById(R.id.appbar);
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
         ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(String.valueOf(getItemCount()) + "/" + String.valueOf(mUserBagSpace) + " Items");
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(String.valueOf(getItemCount()) + "/" + String.valueOf(mUserBagSpace) + " " + getString(R.string.title_items));
 
 
         mDrawerToggle = new ActionBarDrawerToggle(getActivity(), ActivityDashboard.mDrawerLayout, mToolbar, R.string.open_location_settings, R.string.open_location_settings);
@@ -289,6 +289,18 @@ public class FragmentBag extends Fragment implements OnViewItemClickListenner {
 
                 ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(String.valueOf(getItemCount()) + "/" + String.valueOf(mUserBagSpace) + " " + getString(R.string.title_items));
 
+                break;
+            case Constants.ACTION_REFRESH_USER_DATA:
+                mGroupItemList = (List<GroupItem>) objectList;
+
+                //mAdapterChildItem.upDateAdapter(mGroupItemList);
+
+                //instantiate your adapter with the list of bands
+                mAdapterChildItem = new AdapterChildItem(mGroupItemList, mContext, FragmentBag.this);
+                mRecyclerView.setLayoutManager(mLayoutManager);
+                mRecyclerView.setAdapter(mAdapterChildItem);
+
+                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(String.valueOf(getItemCount()) + "/" + String.valueOf(mUserBagSpace) + " " + getString(R.string.title_items));
                 break;
         }
     }

@@ -7,7 +7,7 @@
     android:gravity="center"
     android:padding="@dimen/padding_30"
     tools:showIn="@layout/activity_login"
-    android:visibility="visible">
+    android:visibility="gone">
 
     <RelativeLayout
         android:id="@+id/layout_container"
@@ -41,11 +41,13 @@
 
 
             <TextView
+                android:id="@+id/tv_help_token"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:paddingTop="@dimen/padding_image_back"
-                android:text="@string/action_cant_login" />
+                android:text="@string/action_cant_login"
+                android:clickable="true"/>
 
 
             <LinearLayout
@@ -57,7 +59,7 @@
                 <Button
                     android:id="@+id/btn_getToken"
                     android:layout_width="wrap_content"
-                    android:layout_height="45dp"
+                    android:layout_height="40dp"
                     android:layout_marginRight="@dimen/padding_5"
                     android:layout_marginEnd="@dimen/padding_5"
                     android:layout_weight="1"
@@ -74,7 +76,7 @@
                 <Button
                     android:id="@+id/btn_SendToken"
                     android:layout_width="wrap_content"
-                    android:layout_height="45dp"
+                    android:layout_height="40dp"
                     android:layout_marginLeft="@dimen/padding_5"
                     android:layout_marginStart="@dimen/padding_5"
                     android:layout_weight="1"

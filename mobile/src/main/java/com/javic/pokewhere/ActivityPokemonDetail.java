@@ -42,7 +42,7 @@ import java.util.List;
 
 import POGOProtos.Networking.Responses.ReleasePokemonResponseOuterClass;
 
-public class ActivityPokemonDetail extends AppCompatActivity implements FragmentPokemonDetail.OnFragmentInteractionListener,Animator.AnimatorListener{
+public class ActivityPokemonDetail extends AppCompatActivity implements FragmentPokemonDetail.OnFragmentInteractionListener, Animator.AnimatorListener {
 
     private static final String TAG = "ActivityDetail";
 
@@ -93,14 +93,13 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
         Bundle args = getIntent().getExtras();
 
-        if (args!=null){
+        if (args != null) {
             mIndex = args.getInt("index");
-        }
-        else{
+        } else {
             mIndex = 0;
         }
 
-        if (mGO!=null){
+        if (mGO != null) {
             final Stats stats = mGO.getPlayerProfile().getStats();
 
             mUserStardust = mGO.getPlayerProfile().getCurrency(PlayerProfile.Currency.STARDUST);
@@ -115,28 +114,26 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
         mViewPager = (ViewPager) findViewById(R.id.vp_slider);
         mViewPager.setClipToPadding(false);
-        mAdapter = new AdapterPokemonDetail(this.getSupportFragmentManager(),mLocalUserPokemonList, mUserStardust);
+        mAdapter = new AdapterPokemonDetail(this.getSupportFragmentManager(), mLocalUserPokemonList, mUserStardust);
         mViewPager.setAdapter(mAdapter);
         mViewPager.setPageTransformer(true, new BackgroundToForegroundTransformer());
         mViewPager.setCurrentItem(mIndex);
 
-        if (mIndex>0){
+        if (mIndex > 0) {
             YoYo.with(Techniques.Flash)
                     .withListener(this)
                     .duration(1000)
                     .playOn(leftArrow);
-        }
-        else{
+        } else {
             leftArrow.setVisibility(View.GONE);
         }
 
-        if ((mLocalUserPokemonList.size()-1)>mIndex){
+        if ((mLocalUserPokemonList.size() - 1) > mIndex) {
             YoYo.with(Techniques.Flash)
                     .withListener(this)
                     .duration(1000)
                     .playOn(rightArrow);
-        }
-        else{
+        } else {
             rightArrow.setVisibility(View.GONE);
         }
 
@@ -146,10 +143,12 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                if (isChanged){
-                    if (intentFrom!=null){
-                        intentFrom.putExtra("resultado",true);
-                        intentFrom.putExtra("pokemon",mLocalUserPokemonList.get(mViewPager.getCurrentItem()));
+                if (isChanged) {
+                    if (intentFrom != null) {
+                        intentFrom.putExtra("resultado", true);
+                        if (mLocalUserPokemonList.size()>0){
+                            intentFrom.putExtra("pokemon", mLocalUserPokemonList.get(mViewPager.getCurrentItem()));
+                        }
                         intentFrom.putExtra("stardust", mUserStardust);
                         intentFrom.putExtra("level", mUserLevel);
                         intentFrom.putExtra("expirience", mUserExperience);
@@ -169,11 +168,13 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
     @Override
     public void onBackPressed() {
 
-        if (isChanged){
+        if (isChanged) {
 
-            if (intentFrom!=null){
-                intentFrom.putExtra("resultado",true);
-                intentFrom.putExtra("pokemon",mLocalUserPokemonList.get(mViewPager.getCurrentItem()));
+            if (intentFrom != null) {
+                intentFrom.putExtra("resultado", true);
+                if (mLocalUserPokemonList.size()>0){
+                    intentFrom.putExtra("pokemon", mLocalUserPokemonList.get(mViewPager.getCurrentItem()));
+                }
                 intentFrom.putExtra("stardust", mUserStardust);
                 intentFrom.putExtra("level", mUserLevel);
                 intentFrom.putExtra("expirience", mUserExperience);
@@ -190,7 +191,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
         final LocalUserPokemon localUserPokemon = (LocalUserPokemon) object;
 
-        switch (action){
+        switch (action) {
             case Constants.ACTION_SET_FAVORITE_POKEMON:
                 mSetFavoriteTask = new SetFavoriteTask(localUserPokemon);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -199,36 +200,19 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                     mSetFavoriteTask.execute();
                 }
                 break;
-            case Constants.ACTION_POWER_UP:
-                mPowerUpTask = new PowerUpTask(localUserPokemon);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                    mPowerUpTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                } else {
-                    mPowerUpTask.execute();
-                }
-                break;
-            case Constants.ACTION_EVOLVE:
-                mEvolveTask = new EvolveTask(localUserPokemon);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                    mEvolveTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                } else {
-                    mEvolveTask.execute();
-                }
-                break;
+
             case Constants.ACTION_RENAME_USER_POKEMON:
                 String name = "";
 
-                if (localUserPokemon.getNickname().equals("")){
+                if (localUserPokemon.getNickname().equals("")) {
                     name = ((LocalUserPokemon) object).getName();
-                }
-                else{
+                } else {
                     name = localUserPokemon.getNickname();
                 }
 
                 final String actualName = name;
 
                 new MaterialDialog.Builder(this)
-                        .cancelable(false)
                         .title(R.string.dialog_title_rename)
                         .negativeText(getString(R.string.location_alert_neg_btn))
                         .positiveText(getString(R.string.dialog_positive_btn_renames))
@@ -237,7 +221,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                             @Override
                             public void onInput(MaterialDialog dialog, CharSequence input) {
                                 // Do something
-                                mRenameTask= new RenameTask(localUserPokemon, input.toString());
+                                mRenameTask = new RenameTask(localUserPokemon, input.toString());
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                                     mRenameTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                 } else {
@@ -246,11 +230,70 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                             }
                         }).show();
                 break;
+            case Constants.ACTION_POWER_UP:
+                new MaterialDialog.Builder(this)
+                        .title(getString(R.string.dialog_title_powerup) + " " + localUserPokemon.getName() + "?")
+                        .content(getString(R.string.dialog_content_powerup_1) + " " + String.valueOf(localUserPokemon.getCp()) + getString(R.string.dialog_content_powerup_2)+ " " + String.valueOf(getUserPokemon(localUserPokemon.getId()).getCpAfterPowerup()))
+                        .positiveText(R.string.dialog_positive_btn_powerup)
+                        .negativeText(R.string.dialog_negative_btn_powerup)
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                mPowerUpTask = new PowerUpTask(localUserPokemon);
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                                    mPowerUpTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                } else {
+                                    mPowerUpTask.execute();
+                                }
+                            }
+                        })
+                        .show();
+                break;
+            case Constants.ACTION_EVOLVE:
+                new MaterialDialog.Builder(this)
+                        .title(getString(R.string.dialog_title_evolve_1)+ " " + localUserPokemon.getName() + " " + getString(R.string.dialog_title_evolve_2))
+                        .content(getString(R.string.dialog_content_evolve_1) + " " + String.valueOf(localUserPokemon.getCp()) + getString(R.string.dialog_content_evolve_2)+ " " + String.valueOf(localUserPokemon.getEvolveCP()))
+                        .positiveText(R.string.dialog_positive_btn_powerup)
+                        .negativeText(R.string.dialog_negative_btn_powerup)
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                mEvolveTask = new EvolveTask(localUserPokemon);
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                                    mEvolveTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                } else {
+                                    mEvolveTask.execute();
+                                }
+                            }
+                        })
+                        .show();
+                break;
+            case Constants.ACTION_TRANSFER_POKEMON:
+
+                new MaterialDialog.Builder(this)
+                        .title(getString(R.string.dialog_title_transfer) + " " + localUserPokemon.getName() +"?")
+                        .content(getString(R.string.dialog_content_transfer_1) + getString(R.string.dialog_content_transfer_2) + " " + localUserPokemon.getName()  + " " + getString(R.string.dialog_content_transfer_3) + String.valueOf(localUserPokemon.getCandies() + 1))
+                        .positiveText(R.string.dialog_positive_btn_powerup)
+                        .negativeText(R.string.dialog_negative_btn_powerup)
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                mTransferPokemonsTask = new TransferPokemonsTask(localUserPokemon);
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                                    mTransferPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                } else {
+                                    mTransferPokemonsTask.execute();
+                                }
+                            }
+                        })
+                        .show();
+                break;
         }
     }
 
     @Override
-    public void onAnimationStart(Animator animation) {}
+    public void onAnimationStart(Animator animation) {
+    }
 
     @Override
     public void onAnimationEnd(Animator animation) {
@@ -259,7 +302,8 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
     }
 
     @Override
-    public void onAnimationCancel(Animator animation) {}
+    public void onAnimationCancel(Animator animation) {
+    }
 
     @Override
     public void onAnimationRepeat(Animator animation) {
@@ -364,7 +408,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
             if (succes) {
 
-               int index= mLocalUserPokemonList.indexOf(localUserPokemon);
+                int index = mLocalUserPokemonList.indexOf(localUserPokemon);
 
                 if (!localUserPokemon.getFavorite()) {
                     Toast.makeText(ActivityPokemonDetail.this, "¡" + localUserPokemon.getName() + " " + getString(R.string.message_favorite_pokemon), Toast.LENGTH_SHORT).show();
@@ -379,7 +423,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
                 mAdapter.notifyDataSetChanged();
 
-                isChanged=true;
+                isChanged = true;
 
             } else {
                 Toast.makeText(ActivityPokemonDetail.this, getString(R.string.message_un_power_up), Toast.LENGTH_SHORT).show();
@@ -437,13 +481,13 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
             try {
                 try {
 
-                    if(pokemon.canPowerUp(true)){
+                    if (pokemon.canPowerUp(true)) {
                         pokemon.powerUp();
                         mGO.getInventories().updateInventories(true);
 
                         //mUserStardust = mGO.getPlayerProfile().getCurrency(PlayerProfile.Currency.STARDUST);
 
-                        mUserStardust = mUserStardust-localUserPokemon.getPowerUpStardust();
+                        mUserStardust = mUserStardust - localUserPokemon.getPowerUpStardust();
 
                         localPokemon = new LocalUserPokemon();
                         localPokemon.setId(pokemon.getId());
@@ -467,11 +511,14 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                         localPokemon.setEvolveCandies(pokemon.getCandiesToEvolve());
                         localPokemon.setCreationTimeMillis(pokemon.getCreationTimeMs());
                         localPokemon.setPokemonCount(mGO.getInventories().getPokebank().getPokemonByPokemonId(pokemon.getPokemonId()).size());
+
+                        Log.i(TAG, "POWER_UP_TASK: doInBackground: true");
+                        return true;
                     }
 
 
-                    Log.i(TAG, "POWER_UP_TASK: doInBackground: true");
-                    return true;
+                    Log.i(TAG, "POWER_UP_TASK: doInBackground: false");
+                    return false;
                 } catch (LoginFailedException | RemoteServerException e) {
                     e.printStackTrace();
                     Log.i(TAG, "POWER_UP_TASK: doInBackground: login or remote server exception");
@@ -494,7 +541,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
             if (succes) {
 
-                int index= mLocalUserPokemonList.indexOf(localUserPokemon);
+                int index = mLocalUserPokemonList.indexOf(localUserPokemon);
 
                 Toast.makeText(ActivityPokemonDetail.this, "¡" + localUserPokemon.getName() + " " + getString(R.string.text_result_power_up), Toast.LENGTH_SHORT).show();
 
@@ -504,10 +551,10 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
                 mAdapter.notifyDataSetChanged();
 
-                isChanged=true;
+                isChanged = true;
 
             } else {
-                Toast.makeText(ActivityPokemonDetail.this, getString(R.string.message_un_power_up), Toast.LENGTH_SHORT).show();
+                Toast.makeText(ActivityPokemonDetail.this, "¡" + localUserPokemon.getName() + " " + getString(R.string.message_un_powerup), Toast.LENGTH_SHORT).show();
             }
 
             //Dismissing the dialog
@@ -562,12 +609,11 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
             try {
                 try {
 
-                    if(pokemon.canEvolve()){
+                    if (pokemon.canEvolve()) {
                         EvolutionResult result = pokemon.evolve();
 
-                        if (result.isSuccessful())
-                        {
-                            Pokemon pokemon= result.getEvolvedPokemon();
+                        if (result.isSuccessful()) {
+                            Pokemon pokemon = result.getEvolvedPokemon();
                             mGO.getInventories().updateInventories(true);
 
                             final Stats stats = mGO.getPlayerProfile().getStats();
@@ -601,8 +647,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
                         Log.i(TAG, "EVOLVE_TASK: doInBackground: true");
                         return true;
-                    }
-                    else{
+                    } else {
                         Log.i(TAG, "EVOLVE_TASK: doInBackground: false");
                         return false;
                     }
@@ -631,16 +676,16 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
                 Toast.makeText(ActivityPokemonDetail.this, "¡" + localUserPokemon.getName() + " " + getString(R.string.text_result_evolve) + " " + localPokemon.getName(), Toast.LENGTH_SHORT).show();
 
-                int index= mLocalUserPokemonList.indexOf(localUserPokemon);
+                int index = mLocalUserPokemonList.indexOf(localUserPokemon);
 
                 mLocalUserPokemonList.set(index, localPokemon);
 
                 mAdapter.notifyDataSetChanged();
 
-                isChanged=true;
+                isChanged = true;
 
             } else {
-                Toast.makeText(ActivityPokemonDetail.this, localUserPokemon.getName() + " " +getString(R.string.message_un_evolve), Toast.LENGTH_SHORT).show();
+                Toast.makeText(ActivityPokemonDetail.this, localUserPokemon.getName() + " " + getString(R.string.message_un_evolve), Toast.LENGTH_SHORT).show();
             }
 
             //Dismissing the dialog
@@ -667,11 +712,9 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
         //Object sended to onProgressUpdate method
         private ProgressTransferPokemon progress;
 
-        private List<LocalUserPokemon> mTransferablePokemonList;
         private LocalUserPokemon localUserPokemon;
 
-        public TransferPokemonsTask(List<LocalUserPokemon> mTransferablePokemonList, LocalUserPokemon localUserPokemon) {
-            this.mTransferablePokemonList = mTransferablePokemonList;
+        public TransferPokemonsTask(LocalUserPokemon localUserPokemon) {
             this.localUserPokemon = localUserPokemon;
         }
 
@@ -687,7 +730,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                     .content(getString(R.string.dialog_content_please_wait))
                     .cancelable(false)
                     .negativeText(getString(R.string.location_alert_neg_btn))
-                    .progress(false, mTransferablePokemonList.size(), true)
+                    .progress(false, 1, true)
                     .onNegative(new MaterialDialog.SingleButtonCallback() {
                         @Override
                         public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
@@ -703,44 +746,28 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
         @Override
         protected Boolean doInBackground(Void... params) {
-
             Log.i(TAG, "TRANSFER_POKEMON_TASK: doInBackground");
-
             try {
                 try {
 
-                    for (LocalUserPokemon transferablePokemon : mTransferablePokemonList) {
+                    Pokemon pokemonToTransfer = getUserPokemon(localUserPokemon.getId());
 
-                        if (!isCancelled()) {
-
-                            Pokemon pokemonToTransfer = getUserPokemon(transferablePokemon.getId());
-
-                            if (pokemonToTransfer != null) {
-                                progress.setProgressMessage(getString(R.string.message_text_transfering) + " "+ pokemonToTransfer.getPokemonId().toString());
-                                progress.setUpdateProgress(false);
-                                publishProgress(progress);
-                                //pokemonToTransfer.debug();
-                                ReleasePokemonResponseOuterClass.ReleasePokemonResponse.Result result = pokemonToTransfer.transferPokemon();
-                                progress.setProgressMessage(result.toString());
-                                progress.setUpdateProgress(true);
-                                publishProgress(progress);
-                                mGO.getInventories().updateInventories(true);
-                            }
-                        } else {
-                            Log.i(TAG, "TRANSFER_POKEMON_TASK: doInBackground: task is cancelled");
-                            progress.setProgressMessage(getString(R.string.message_text_canceling));
-                            progress.setUpdateProgress(false);
-                            publishProgress(progress);
-                            mGO.getInventories().updateInventories(true);
-                            return false;
-                        }
-
+                    if (pokemonToTransfer != null) {
+                        progress.setProgressMessage(getString(R.string.message_text_transfering) + " " + pokemonToTransfer.getPokemonId().toString());
+                        progress.setUpdateProgress(false);
+                        publishProgress(progress);
+                        //pokemonToTransfer.debug();
+                        ReleasePokemonResponseOuterClass.ReleasePokemonResponse.Result result = pokemonToTransfer.transferPokemon();
+                        progress.setProgressMessage(result.toString());
+                        progress.setUpdateProgress(true);
+                        publishProgress(progress);
+                        mGO.getInventories().updateInventories(true);
                     }
+
 
                     mUserPokemonList = mGO.getInventories().getPokebank().getPokemons();
                     Log.i(TAG, "TRANSFER_POKEMON_TASK: doInBackground: true");
                     return true;
-
 
                 } catch (LoginFailedException | RemoteServerException e) {
                     e.printStackTrace();
@@ -776,26 +803,35 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
             Log.i(TAG, "TRANSFER_POKEMON_TASK: onProgressUpdate: " + succes.toString());
             mTransferPokemonsTask = null;
 
-            /*if (succes) {
+            if (succes) {
 
-                if (visibleFragment == Constants.FRAGMENT_POKEBANK) {
-                    mFragmentPokemonBank.onTaskFinish(Constants.ACTION_TRANSFER_POKEMON, null, getLocalUserpokemonList());
-                } else if (visibleFragment == Constants.FRAGMENT_COMPARE) {
-                    mFragmentCompare.onTaskFinish(Constants.ACTION_TRANSFER_POKEMON, null, getLocalSpecificPokemonList(localUserPokemon.getName()));
+                Toast.makeText(ActivityPokemonDetail.this, getString(R.string.message_succes_transfer) + " "+ localUserPokemon.getName() + "!", Toast.LENGTH_SHORT).show();
 
-                    if (mFragmentPokemonBank != null) {
-                        mFragmentPokemonBank.onTaskFinish(Constants.ACTION_TRANSFER_POKEMON, null, getLocalUserpokemonList());
+                mLocalUserPokemonList.remove(localUserPokemon);
+
+                isChanged = true;
+
+                if (mLocalUserPokemonList.size()==0){
+                    if (intentFrom != null) {
+                        intentFrom.putExtra("resultado", true);
+                        if (mLocalUserPokemonList.size()>0){
+                            intentFrom.putExtra("pokemon", mLocalUserPokemonList.get(mViewPager.getCurrentItem()));
+                        }
+                        intentFrom.putExtra("stardust", mUserStardust);
+                        intentFrom.putExtra("level", mUserLevel);
+                        intentFrom.putExtra("expirience", mUserExperience);
+                        intentFrom.putExtra("nextLevelXp", mUserNextLevelXP);
+                        setResult(RESULT_OK, intentFrom);
+                        finish();
                     }
                 }
-            } else {
-
-                if (isDeviceOnline()) {
-                    showSnackBar(getString(R.string.snack_bar_error_with_pokemon), getString(R.string.snack_bar_error_with_pokemon_positive_btn), Constants.ACTION_TRANSFER_POKEMON, mTransferablePokemonList);
-                } else {
-                    showSnackBar(getString(R.string.snack_bar_error_with_internet_acces), getString(R.string.snack_bar_error_with_internet_acces_positive_btn), Constants.ACTION_TRANSFER_POKEMON, mTransferablePokemonList);
+                else {
+                    mAdapter.notifyDataSetChanged();
                 }
 
-            }*/
+            } else {
+                Toast.makeText(ActivityPokemonDetail.this, getString(R.string.message_un_power_up), Toast.LENGTH_SHORT).show();
+            }
 
             //Dismissing the dialog
             dialog.dismiss();
@@ -807,32 +843,6 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
             Log.i(TAG, "TRANSFER_POKEMON_TASK: onCancelled");
             mTransferPokemonsTask = null;
             taskTransferPokemonWasCanceled = true;
-
-            /*try {
-                mGO.getInventories().updateInventories(true);
-            } catch (LoginFailedException e) {
-                e.printStackTrace();
-            } catch (RemoteServerException e) {
-                e.printStackTrace();
-            }
-            mUserPokemonList = mGO.getInventories().getPokebank().getPokemons();
-
-            if (mUserPokemonList.size()!=0){
-                if (visibleFragment == Constants.FRAGMENT_POKEBANK) {
-                    mFragmentPokemonBank.onTaskFinish(Constants.ACTION_TRANSFER_POKEMON, null, getLocalUserpokemonList());
-                } else if (visibleFragment == Constants.FRAGMENT_COMPARE) {
-                    mFragmentCompare.onTaskFinish(Constants.ACTION_TRANSFER_POKEMON, null, getLocalSpecificPokemonList(localUserPokemon.getName()));
-
-                    if (mFragmentPokemonBank != null) {
-                        mFragmentPokemonBank.onTaskFinish(Constants.ACTION_TRANSFER_POKEMON, null, getLocalUserpokemonList());
-                    }
-                }
-                dialog.dismiss();
-            }
-            else{
-                dialog.dismiss();
-                finish();
-            }*/
         }
     }
 
@@ -901,7 +911,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
             if (succes) {
 
-                int index= mLocalUserPokemonList.indexOf(localUserPokemon);
+                int index = mLocalUserPokemonList.indexOf(localUserPokemon);
 
                 Toast.makeText(ActivityPokemonDetail.this, "¡" + getString(R.string.text_done_button) + "!", Toast.LENGTH_SHORT).show();
                 localUserPokemon.setNickname(newName);
@@ -910,7 +920,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
                 mAdapter.notifyDataSetChanged();
 
-                isChanged=true;
+                isChanged = true;
 
             } else {
                 Toast.makeText(ActivityPokemonDetail.this, getString(R.string.message_un_power_up), Toast.LENGTH_SHORT).show();

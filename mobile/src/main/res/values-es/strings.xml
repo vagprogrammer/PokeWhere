@@ -46,7 +46,7 @@
     <string name="action_transferir">TRANSFERIR</string>
 
     <!-- Snack Bar -->
-    <string name="snack_bar_error_with_pokemon">Ocurrio un error</string>
+    <string name="snack_bar_error_with_pokemon">Ocurrió un error</string>
     <string name="snack_bar_error_with_pokemon_positive_btn">Reintentar</string>
     <string name="snack_bar_error_with_pokemon_negative_btn">No ahora</string>
     <string name="snack_bar_neg_btn">Detener</string>
@@ -177,15 +177,46 @@
     <string name="text_stardust">Polvo Estelar:</string>
 
 
-
     <!-- Strings related to new update -->
-    <string name="text_result_power_up">ha aumentado su poder.</string>
+    <string name="text_result_power_up">ha aumentado su poder!</string>
+    <string name="message_un_powerup">no puede aumentar su poder!</string>
     <string name="message_un_power_up">Intentalo más tarde</string>
     <string name="text_result_evolve">ha evolucionado a</string>
-    <string name="message_un_evolve">no puede evolucionar</string>
+    <string name="message_un_evolve">NO puede evolucionar!</string>
     <string name="action_refresh">Refrescar</string>
 
     <string name="dialog_title_rename">¡Ponle un nombre!</string>
     <string name="dialog_positive_btn_renames">Cambiar</string>
+
+
+    <string name="dialog_title_powerup">¿Quieres darle más poder a</string>
+    <string name="dialog_content_powerup_1">CP actual:</string>
+    <string name="dialog_content_powerup_2">\nCP después de dar poder:</string>
+    <string name="dialog_positive_btn_powerup">SÍ</string>
+    <string name="dialog_negative_btn_powerup">NO</string>
+
+
+    <string name="dialog_title_evolve_1">¿Quieres que</string>
+    <string name="dialog_title_evolve_2">evolucione?</string>
+    <string name="dialog_content_evolve_1">CP actual:</string>
+    <string name="dialog_content_evolve_2">\nCP después de evolucionar:</string>
+
+    <string name="message_incorrect_password">Contraseña incorrecta</string>
+
+    <string name="dialog_title_transfer">¿Quieres transferir a</string>
+    <string name="dialog_content_transfer_1">¡No podrás recuperarlo después de transferirlo!</string>
+    <string name="dialog_content_transfer_2">\n\nCaramelos</string>
+    <string name="dialog_content_transfer_3">después de la transferencia:</string>
+    <string name="message_succes_transfer">¡Has obtenido 1 caramelo</string>
+
+
+    <string name="dialog_title_multiple_transfer">¿Quieres transferir</string>
+    <string name="dialog_content_multiple_transfer_1">¡No podrás recuperar ningún pokémon después de transferirlo!</string>
+
+    <string name="dialog_title_help">AYUDA</string>
+    <string-array name="help_items">
+        <item><font fgcolor="red">¡Uso verificación en dos pasos!</font> \n\nSi usas la verificación en dos pasos y ves un error de \"Contraseña incorrecta\" cuando intentas acceder con tu cuenta de Google, es posible que necesites una \"Contraseña de la aplicación\". La Contraseña de la aplicación es una contraseña de dieciséis dígitos que da permiso a una app o a un dispositivo para acceder a tu cuenta de Google, desde otras aplicaciones.</item>
+        <item><font fgcolor="red">¡Ocurrió un error!</font>\n\nSi ves un error de \"Ocurrió un error\", puedes intentar lo siguiente: \n\n*Si utlizas un Token de Google, por favor generá uno diferente, copialo, pegalo e intenta iniciar sesión nuevamente.\n\n*Si utilizas tu cuenta de PTC, por favor verifica tus datos e intenta iniciar sesión nuevamente. \n\nNormalmente reintentar el proceso de inicio de sesión puede solucionar los errores generados por la aplicación.</item>
+    </string-array>
 
 </resources>

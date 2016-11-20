@@ -13,7 +13,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.models.LocalUserPokemon;
 import com.javic.pokewhere.util.Constants;
@@ -130,8 +129,6 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        //mGO = ActivityDashboard.mGO;
-
         imgPokemon.setImageBitmap(mPokemon.getBitmap());
         txtCP.setText(String.valueOf(mPokemon.getCp()));
 
@@ -184,7 +181,9 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
                 }
                 break;
             case R.id.btnTransfer:
-                showToast();
+                if (mListener!=null){
+                    mListener.onFragmentActionPerform(Constants.ACTION_TRANSFER_POKEMON, mPokemon);
+                }
                 break;
             case R.id.btnEditName:
                 if (mListener!=null){

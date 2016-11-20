@@ -82,6 +82,7 @@ import okhttp3.OkHttpClient;
 
 import static android.os.Build.VERSION_CODES.M;
 import static com.javic.pokewhere.fragments.FragmentCompare.localUserPokemon;
+import static com.javic.pokewhere.util.Constants.ACTION_REFRESH_USER_DATA;
 
 public class ActivityDashboard extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnFragmentListener {
@@ -140,7 +141,7 @@ public class ActivityDashboard extends AppCompatActivity
     private TransferPokemonsTask mTransferPokemonsTask;
     private SetFavoriteTask mSetFavoriteTask;
     private DeleteItemsTask mDeleteItemsTask;
-    private UpdateUserPokemonTask mUpdateUserPokemonTask;
+    private RefreshUserDataTask mRefreshUserDataTask;
 
 
     //Listas
@@ -234,15 +235,15 @@ public class ActivityDashboard extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.action_refresh:
-               /* mUpdateUserPokemonTask = new UpdateUserPokemonTask();
+                mRefreshUserDataTask = new RefreshUserDataTask();
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                    mUpdateUserPokemonTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    mRefreshUserDataTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 } else {
-                    mUpdateUserPokemonTask.execute();
-                }*/
+                    mRefreshUserDataTask.execute();
+                }
 
-                Toast.makeText(this, "VISIBLE_FRAGMENT: " + String.valueOf(visibleFragment), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this, "VISIBLE_FRAGMENT: " + String.valueOf(visibleFragment), Toast.LENGTH_SHORT).show();
 
                 break;
         }
@@ -363,11 +364,9 @@ public class ActivityDashboard extends AppCompatActivity
                     //mFragmentPokemon = mFragmentPokemon.newInstance(mGO);
                     mFragmentPokemonBank = FragmentPokemonBank.newInstance(getLocalUserpokemonList(), mUserPokeBankSpace);
                 }
-
                 if (visibleFragment != Constants.FRAGMENT_POKEBANK) {
                     replaceFragment(mFragmentPokemonBank);
                 }
-
                 break;
 
             case Constants.FRAGMENT_COMPARE:
@@ -497,12 +496,12 @@ public class ActivityDashboard extends AppCompatActivity
                 mUserStardust = data.getExtras().getLong("stardust");
                 setUpHeaderNavigationView();
 
-                mUpdateUserPokemonTask = new UpdateUserPokemonTask();
+                mRefreshUserDataTask = new RefreshUserDataTask();
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                    mUpdateUserPokemonTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    mRefreshUserDataTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 } else {
-                    mUpdateUserPokemonTask.execute();
+                    mRefreshUserDataTask.execute();
                 }
 
             }
@@ -587,7 +586,30 @@ public class ActivityDashboard extends AppCompatActivity
                                     break;
                                 case Constants.ACTION_TRANSFER_POKEMON:
 
-                                    List<LocalUserPokemon> list = (List<LocalUserPokemon>) obj;
+                                    final List<LocalUserPokemon> list = (List<LocalUserPokemon>) obj;
+
+                                    new MaterialDialog.Builder(ActivityDashboard.this)
+                                            .title(getString(R.string.dialog_title_multiple_transfer) + " " +  String.valueOf(list.size()) +" " + getString(R.string.text_pokemones) +"?")
+                                            .content(getString(R.string.dialog_content_multiple_transfer_1))
+                                            .positiveText(R.string.dialog_positive_btn_powerup)
+                                            .negativeText(R.string.dialog_negative_btn_powerup)
+                                            .onPositive(new MaterialDialog.SingleButtonCallback() {
+                                                @Override
+                                                public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                                    if (visibleFragment == Constants.FRAGMENT_COMPARE) {
+                                                        mTransferPokemonsTask = new TransferPokemonsTask(list, list.get(0));
+                                                    } else {
+                                                        mTransferPokemonsTask = new TransferPokemonsTask(list, null);
+                                                    }
+
+                                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                                                        mTransferPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                                    } else {
+                                                        mTransferPokemonsTask.execute();
+                                                    }
+                                                }
+                                            })
+                                            .show();
 
                                     if (visibleFragment == Constants.FRAGMENT_COMPARE) {
 
@@ -604,13 +626,13 @@ public class ActivityDashboard extends AppCompatActivity
                                     }
 
                                     break;
-                                case Constants.ACTION_REFRESH_USER_DATA:
-                                    mUpdateUserPokemonTask = new UpdateUserPokemonTask();
+                                case ACTION_REFRESH_USER_DATA:
+                                    mRefreshUserDataTask = new RefreshUserDataTask();
 
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                                        mUpdateUserPokemonTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                        mRefreshUserDataTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                     } else {
-                                        mUpdateUserPokemonTask.execute();
+                                        mRefreshUserDataTask.execute();
                                     }
                                     break;
                                 case Constants.ACTION_DELETE_ITEMS:
@@ -814,19 +836,32 @@ public class ActivityDashboard extends AppCompatActivity
                 break;
 
             case Constants.ACTION_TRANSFER_POKEMON:
-                List<LocalUserPokemon> list = (List<LocalUserPokemon>) object;
+                final List<LocalUserPokemon> list = (List<LocalUserPokemon>) object;
 
-                if (visibleFragment == Constants.FRAGMENT_COMPARE) {
-                    mTransferPokemonsTask = new TransferPokemonsTask(list, list.get(0));
-                } else {
-                    mTransferPokemonsTask = new TransferPokemonsTask(list, null);
-                }
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                    mTransferPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                } else {
-                    mTransferPokemonsTask.execute();
-                }
+                new MaterialDialog.Builder(ActivityDashboard.this)
+                        .title(getString(R.string.dialog_title_multiple_transfer) + " " +  String.valueOf(list.size()) +" " + getString(R.string.text_pokemones) +"?")
+                        .content(getString(R.string.dialog_content_multiple_transfer_1))
+                        .positiveText(R.string.dialog_positive_btn_powerup)
+                        .negativeText(R.string.dialog_negative_btn_powerup)
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                if (visibleFragment == Constants.FRAGMENT_COMPARE) {
+                                    mTransferPokemonsTask = new TransferPokemonsTask(list, list.get(0));
+                                } else {
+                                    mTransferPokemonsTask = new TransferPokemonsTask(list, null);
+                                }
+
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                                    mTransferPokemonsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                } else {
+                                    mTransferPokemonsTask.execute();
+                                }
+                            }
+                        })
+                        .show();
+
                 break;
 
             case Constants.ACTION_VER_TODOS:
@@ -857,13 +892,13 @@ public class ActivityDashboard extends AppCompatActivity
                 startActivityForResult(i, Constants.REQUEST_CODE_ACTIVITY_POKEMON_DETAIL);
 
                 break;
-            case Constants.ACTION_REFRESH_USER_DATA:
-                mUpdateUserPokemonTask = new UpdateUserPokemonTask();
+            case ACTION_REFRESH_USER_DATA:
+                mRefreshUserDataTask = new RefreshUserDataTask();
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                    mUpdateUserPokemonTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    mRefreshUserDataTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 } else {
-                    mUpdateUserPokemonTask.execute();
+                    mRefreshUserDataTask.execute();
                 }
                 break;
         }
@@ -979,25 +1014,41 @@ public class ActivityDashboard extends AppCompatActivity
                         mNavigationView.getMenu().getItem(Constants.FRAGMENT_POKEBANK).setChecked(true);
                         break;
                     case Constants.FRAGMENT_POKEBANK:
-                        mFragmentPokemonBank.onTaskFinish(Constants.ACTION_CONNECT_WITH_PG, null, getLocalUserpokemonList());
+
+                        if (mFragmentPokemonBank!=null){
+                            mFragmentPokemonBank.onTaskFinish(Constants.ACTION_CONNECT_WITH_PG, null, getLocalUserpokemonList());
+                        }
+                        else{
+                            setFragment(Constants.FRAGMENT_POKEBANK, mUserPokemonList);
+                            mNavigationView.getMenu().getItem(Constants.FRAGMENT_POKEBANK).setChecked(true);
+                        }
                         break;
                     case Constants.FRAGMENT_COMPARE:
-                        mFragmentCompare.onTaskFinish(Constants.ACTION_CONNECT_WITH_PG, null, getLocalSpecificPokemonList(localUserPokemon.getName()));
 
                         if (mFragmentPokemonBank != null) {
                             mFragmentPokemonBank.onTaskFinish(Constants.ACTION_CONNECT_WITH_PG, null, getLocalUserpokemonList());
                         }
+
+                        if (mFragmentCompare!=null){
+                            mFragmentCompare.onTaskFinish(Constants.ACTION_CONNECT_WITH_PG, null, getLocalSpecificPokemonList(localUserPokemon.getName()));
+                        }
+                        else{
+                            setFragment(Constants.FRAGMENT_POKEBANK, mUserPokemonList);
+                            mNavigationView.getMenu().getItem(Constants.FRAGMENT_POKEBANK).setChecked(true);
+                        }
+
                         break;
                     case Constants.FRAGMENT_BAG:
-                        mFragmentBag.onTaskFinish(Constants.ACTION_DELETE_ITEMS, null, getLocalItems());
+                        if (mFragmentBag!=null){
+                            mFragmentBag.onTaskFinish(Constants.ACTION_DELETE_ITEMS, null, getLocalItems());
+                        }
+                        else{
+                            setFragment(Constants.FRAGMENT_BAG, mUserBagItemList);
+                            mNavigationView.getMenu().getItem(Constants.FRAGMENT_BAG).setChecked(true);
+                        }
                         break;
 
                 }
-
-                /*if (visibleFragment == Constants.FRAGMENT_BLANK){
-                    setFragment(Constants.FRAGMENT_POKEBANK, mUserPokemonList);
-                    mNavigationView.getMenu().getItem(Constants.FRAGMENT_POKEBANK).setChecked(true);
-                }*/
 
                 if (prefmanager.isFirstTimeLaunch()) {
                     mDrawerLayout.openDrawer(mNavigationView);
@@ -1341,7 +1392,7 @@ public class ActivityDashboard extends AppCompatActivity
 
     }
 
-    public class UpdateUserPokemonTask extends AsyncTask<Void, String, Boolean> {
+    public class RefreshUserDataTask extends AsyncTask<Void, String, Boolean> {
 
         private MaterialDialog.Builder builder;
         private MaterialDialog dialog;
@@ -1368,6 +1419,7 @@ public class ActivityDashboard extends AppCompatActivity
                 try {
                     mGO.getInventories().updateInventories(true);
                     mUserPokemonList = mGO.getInventories().getPokebank().getPokemons();
+                    mUserBagItemList = new ArrayList<>(mGO.getInventories().getItemBag().getItems());
 
                     final Stats stats = mGO.getPlayerProfile().getStats();
                     mUserLevel = stats.getLevel();
@@ -1394,20 +1446,26 @@ public class ActivityDashboard extends AppCompatActivity
         @Override
         protected void onPostExecute(Boolean succes) {
             Log.i(TAG, "UPDATE_USER_POKEMON_TASK: onPostExecute");
-            mUpdateUserPokemonTask = null;
+            mRefreshUserDataTask = null;
 
             if (succes) {
                 switch (visibleFragment) {
                     case Constants.FRAGMENT_POKEBANK:
-                        mFragmentPokemonBank.onTaskFinish(-1, null, getLocalUserpokemonList());
+                        mFragmentPokemonBank.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalUserpokemonList());
                         break;
                     case Constants.FRAGMENT_COMPARE:
 
-                        mFragmentCompare.onTaskFinish(-1, null, getLocalSpecificPokemonList(mFragmentCompare.localUserPokemon.getName()));
+                        mFragmentCompare.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalSpecificPokemonList(mFragmentCompare.localUserPokemon.getName()));
 
                         if (mFragmentPokemonBank != null) {
-                            mFragmentPokemonBank.onTaskFinish(-1, null, getLocalUserpokemonList());
+                            mFragmentPokemonBank.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalUserpokemonList());
                         }
+
+                        break;
+                    case Constants.FRAGMENT_BAG:
+
+                        mFragmentBag.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalItems());
+
                         break;
                 }
 
@@ -1415,7 +1473,7 @@ public class ActivityDashboard extends AppCompatActivity
 
             } else {
 
-                showSnackBar(getString(R.string.snack_bar_error_with_pokemon), getString(R.string.snack_bar_error_with_pokemon_positive_btn), Constants.ACTION_REFRESH_USER_DATA, null);
+                showSnackBar(getString(R.string.snack_bar_error_with_pokemon), getString(R.string.snack_bar_error_with_pokemon_positive_btn), ACTION_REFRESH_USER_DATA, null);
             }
 
             //Dismissing the dialog
@@ -1425,7 +1483,7 @@ public class ActivityDashboard extends AppCompatActivity
         @Override
         protected void onCancelled() {
             Log.i(TAG, "UPDATE_USER_POKEMON_TASK: onCancelled");
-            mUpdateUserPokemonTask = null;
+            mRefreshUserDataTask = null;
             taskUpdateUserPokemonWasCanceled = true;
 
             dialog.dismiss();

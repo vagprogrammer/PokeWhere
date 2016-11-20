@@ -362,7 +362,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
                 mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + "/" + String.valueOf(mUserPokeBankSpace) + " " + getString(R.string.text_pokemones));
 
                 break;
-            default:
+            case Constants.ACTION_REFRESH_USER_DATA:
                 mLocalUserPokemonList = (List<LocalUserPokemon>) objectList;
 
                 if (mBottomBar != null) {

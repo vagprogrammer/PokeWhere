@@ -3,6 +3,7 @@ package com.javic.pokewhere.adapters;
 import android.content.Context;
 import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,7 +25,7 @@ import java.util.List;
  * Created by franciscojimenezjimenez on 26/10/16.
  */
 
-public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPokemonBank.PokemonBankViewHolder>{
+public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPokemonBank.PokemonBankViewHolder> {
 
     private OnViewItemClickListenner mListener;
 
@@ -39,7 +40,7 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
         super();
         this.mContext = mContext;
         this.mCallback = mCallback;
-        this.mLocalUserPokemonList= mLocalUserPokemonList;
+        this.mLocalUserPokemonList = mLocalUserPokemonList;
         this.mListener = mListener;
     }
 
@@ -53,80 +54,83 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
     public void onBindViewHolder(PokemonBankViewHolder holder, int position) {
         super.onBindViewHolder(holder, position);
 
-        final LocalUserPokemon pokemon = mLocalUserPokemonList.get(position);
-        holder.cp.setText(String.valueOf(pokemon.getCp()));
-        holder.iv.setText(String.valueOf(pokemon.getIv())+ "%");
-        holder.attack.setText(String.valueOf(pokemon.getAttack()));
-        holder.defense.setText(String.valueOf(pokemon.getDefense()));
-        holder.stamina.setText(String.valueOf(pokemon.getStamina()));
-        holder.candies.setText(":"+String.valueOf(pokemon.getCandies()));
-        holder.btnCompare.setText(mContext.getString(R.string.text_btn_show_all)+ " ("+ String.valueOf(pokemon.getPokemonCount())+ ")");
+        if (position >= 0) {
 
-        if (pokemon.getNickname().equals("")){
-            holder.name.setText(pokemon.getName());
-        }else {
-            holder.name.setText(pokemon.getNickname());
-        }
 
-        if (pokemon.getBitmap()!=null){
-            holder.imgPokemon.setImageBitmap(pokemon.getBitmap());
-        }
+            final LocalUserPokemon pokemon = mLocalUserPokemonList.get(position);
+            holder.cp.setText(String.valueOf(pokemon.getCp()));
+            holder.iv.setText(String.valueOf(pokemon.getIv()) + "%");
+            holder.attack.setText(String.valueOf(pokemon.getAttack()));
+            holder.defense.setText(String.valueOf(pokemon.getDefense()));
+            holder.stamina.setText(String.valueOf(pokemon.getStamina()));
+            holder.candies.setText(":" + String.valueOf(pokemon.getCandies()));
+            holder.btnCompare.setText(mContext.getString(R.string.text_btn_show_all) + " (" + String.valueOf(pokemon.getPokemonCount()) + ")");
 
-        if (pokemon.getFavorite()){
-            holder.imgFavorite.setImageResource(R.drawable.ic_bookmarked);
-        }
-        else{
-            holder.imgFavorite.setImageResource(R.drawable.ic_bookmark);
-        }
-
-        holder.imgFavorite.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mListener!=null){
-                    mListener.OnViewItemClick(pokemon, view);
-                }
-
+            if (pokemon.getNickname().equals("")) {
+                holder.name.setText(pokemon.getName());
+            } else {
+                holder.name.setText(pokemon.getNickname());
             }
-        });
 
-        if (mCallback instanceof FragmentCompare){
+            if (pokemon.getBitmap() != null) {
+                holder.imgPokemon.setImageBitmap(pokemon.getBitmap());
+            }
 
-            holder.btnCompare.setVisibility(View.GONE);
+            if (pokemon.getFavorite()) {
+                holder.imgFavorite.setImageResource(R.drawable.ic_bookmarked);
+            } else {
+                holder.imgFavorite.setImageResource(R.drawable.ic_bookmark);
+            }
 
-        }else{
-            holder.btnCompare.setOnClickListener(new View.OnClickListener() {
+            holder.imgFavorite.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (mListener!=null){
+                    if (mListener != null) {
                         mListener.OnViewItemClick(pokemon, view);
                     }
+
                 }
             });
-        }
 
-        if (isSelecting){
-            if (!pokemon.getFavorite()) {
-                holder.mCheckBox.setVisibility(View.VISIBLE);
+            if (mCallback instanceof FragmentCompare) {
+
+                holder.btnCompare.setVisibility(View.GONE);
+
+            } else {
+                holder.btnCompare.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (mListener != null) {
+                            mListener.OnViewItemClick(pokemon, view);
+                        }
+                    }
+                });
             }
-            else{
+
+            if (isSelecting) {
+                if (!pokemon.getFavorite()) {
+                    holder.mCheckBox.setVisibility(View.VISIBLE);
+                } else {
+                    holder.mCheckBox.setVisibility(View.INVISIBLE);
+                }
+                holder.imgFavorite.setClickable(false);
+                holder.btnCompare.setClickable(false);
+            } else {
                 holder.mCheckBox.setVisibility(View.INVISIBLE);
+                holder.imgFavorite.setClickable(true);
+                holder.btnCompare.setClickable(true);
             }
-            holder.imgFavorite.setClickable(false);
-            holder.btnCompare.setClickable(false);
-        }else{
-            holder.mCheckBox.setVisibility(View.INVISIBLE);
-            holder.imgFavorite.setClickable(true);
-            holder.btnCompare.setClickable(true);
-        }
 
-        if (isIndexSelected(position)) {
-            // Item is selected, change it somehow
-            holder.mContainer.setVisibility(View.VISIBLE);
-            holder.mCheckBox.setChecked(true);
-        } else {
-            // Item is not selected, reset it to a non-selected state
-            holder.mContainer.setVisibility(View.GONE);
-            holder.mCheckBox.setChecked(false);
+            if (isIndexSelected(position)) {
+                // Item is selected, change it somehow
+                holder.mContainer.setVisibility(View.VISIBLE);
+                holder.mCheckBox.setChecked(true);
+            } else {
+                // Item is not selected, reset it to a non-selected state
+                holder.mContainer.setVisibility(View.GONE);
+                holder.mCheckBox.setChecked(false);
+            }
+
         }
     }
 
@@ -134,23 +138,22 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
     protected boolean isIndexSelectable(int index) {
         // This method is OPTIONAL, returning false will prevent the item at the specified index from being selected.
         // Both initial selection, and drag selection.
+        boolean isFavorite = false;
 
-        if (index>=0){
+        if (index >= 0) {
             LocalUserPokemon pokemon = mLocalUserPokemonList.get(index);
 
-            if (pokemon.getFavorite()){
-
+            if (!pokemon.getFavorite()) {
+                Log.i("LOG_TAG", "is not favorite");
+                isFavorite = true;
+            } else {
+                Log.i("LOG_TAG", "is favorite");
                 showToast(mContext.getString(R.string.message_untrasferable_favorite), 500);
-
-                return false;
-            }
-            else{
-                return true;
+                isFavorite = false;
             }
         }
 
-       return true;
-
+        return isFavorite;
     }
 
     @Override
@@ -162,15 +165,15 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
         return mLocalUserPokemonList.get(index);
     }
 
-    public boolean isSelecting(){
+    public boolean isSelecting() {
         return isSelecting;
     }
 
-    public class PokemonBankViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener{
+    public class PokemonBankViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 
         private final View mContainer;
         private final CheckBox mCheckBox;
-        private final TextView name, cp,iv,attack,defense,stamina, candies;
+        private final TextView name, cp, iv, attack, defense, stamina, candies;
         private final ImageView imgPokemon;
         public final ImageView imgFavorite;
         private final Button btnCompare;
@@ -197,8 +200,7 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
         @Override
         public void onClick(View v) {
             // Forwards to the adapter's constructor callback
-            if (mCallback != null)
-            {
+            if (mCallback != null) {
                 mCallback.onClick(getAdapterPosition());
             }
         }
@@ -206,24 +208,23 @@ public class AdapterPokemonBank extends DragSelectRecyclerViewAdapter<AdapterPok
         @Override
         public boolean onLongClick(View v) {
             // Forwards to the adapter's constructor callback
-            if (mCallback != null)
-            {
+            if (mCallback != null) {
                 mCallback.onLongClick(getAdapterPosition());
             }
             return true;
         }
     }
 
-    public void upDateAdapter(List<LocalUserPokemon> mLocalUserPokemonList){
+    public void upDateAdapter(List<LocalUserPokemon> mLocalUserPokemonList) {
         //this.mLocalUserPokemonList.clear();
         //this.mLocalUserPokemonList.addAll(mLocalUserPokemonList);
         this.mLocalUserPokemonList = mLocalUserPokemonList;
         this.notifyDataSetChanged();
     }
 
-    public void changeSelectingState(boolean isSelecting){
+    public void changeSelectingState(boolean isSelecting) {
         this.isSelecting = isSelecting;
-        this.notifyDataSetChanged();
+        //this.notifyDataSetChanged();
     }
 
     private void showToast(String message, int millisecons) {
