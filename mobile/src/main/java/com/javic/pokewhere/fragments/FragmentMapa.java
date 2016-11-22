@@ -305,9 +305,9 @@ public class FragmentMapa extends Fragment implements
                 @Override
                 public void onClick(View view) {
 
-                    //attemptSearch();
+                    attemptSearch();
 
-                    showCustomDialog();
+                    //showCustomDialog();
                 }
             });
 
@@ -497,7 +497,7 @@ public class FragmentMapa extends Fragment implements
         if (requestCode == Constants.REQUEST_PERMISSION_ACCESS_COARSE_LOCATION) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 mSnackBarPermisions = null;
-                //getUserLocation();
+                getUserLocation();
             }
         } else {
             if (mSnackBarPermisions == null) {
@@ -697,7 +697,7 @@ public class FragmentMapa extends Fragment implements
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         // Once connected with google api, get the location
-        //getUserLocation();
+        getUserLocation();
         //showCustomDialog();
     }
 
@@ -727,7 +727,7 @@ public class FragmentMapa extends Fragment implements
             }
         }
 
-        if (mPokeStopsTask == null) {
+        /*if (mPokeStopsTask == null) {
             mPokeStopsTask = new PokeStopsTask(true);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -735,7 +735,7 @@ public class FragmentMapa extends Fragment implements
             } else {
                 mPokeStopsTask.execute();
             }
-        }
+        }*/
 
         /*if (mGymsTask == null) {
             mGymsTask = new GymsTask(true);
@@ -832,16 +832,29 @@ public class FragmentMapa extends Fragment implements
                                             options.maxRazzberries(0);
                                         }
 
-                                        if (options.getMaxPokeballs()>0){
-                                            options.useBestBall(true);
+                                        if (pokeballs!=0){
+                                            options.usePokeball(Pokeball.POKEBALL);
                                             options.noMasterBall(true);
+
+                                            CatchResult result = cachablePokemon.catchPokemon(options);
+
+                                            Log.i(TAG, "Attempt to catch: " + cachablePokemon.getPokemonId() + " " + result.getStatus());
+
+                                            showToast(cachablePokemon.getPokemonId() + " " + result.getStatus());
+
                                         }
+                                        else if (greatBalls!=0){
+                                            options.usePokeball(Pokeball.GREATBALL);
+                                            options.noMasterBall(true);
 
-                                        CatchResult result = cachablePokemon.catchPokemon(options);
+                                            CatchResult result = cachablePokemon.catchPokemon(options);
 
-                                        Log.i(TAG, "Attempt to catch: " + cachablePokemon.getPokemonId() + " " + result.getStatus());
+                                            Log.i(TAG, "Attempt to catch: " + cachablePokemon.getPokemonId() + " " + result.getStatus());
 
-                                        showToast(cachablePokemon.getPokemonId() + " " + result.getStatus());
+                                            showToast(cachablePokemon.getPokemonId() + " " + result.getStatus());
+                                        }else{
+                                            mPokemonTask.cancel(true);
+                                        }
 
                                     }
 
@@ -1357,20 +1370,6 @@ public class FragmentMapa extends Fragment implements
             }
         });
 
-        //use this listener to listen to menu clicks when app:floatingSearch_leftAction="showHamburger"
-       /* mSearchView.setOnLeftMenuClickListener(new FloatingSearchView.OnLeftMenuClickListener() {
-            @Override
-            public void onMenuOpened() {
-
-                Log.i(TAG, "onMenuOpened()");
-            }
-
-            @Override
-            public void onMenuClosed() {
-
-                Log.i(TAG, "onMenuClosed()");
-            }
-        });*/
 
         mSearchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
             @Override

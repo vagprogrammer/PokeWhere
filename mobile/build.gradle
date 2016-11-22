@@ -45,7 +45,7 @@ dependencies {
     //wearApp project(':wear')
 
     compile 'org.apache.commons:commons-lang3:3.4'
-    compile 'com.pokegoapi:PokeGOAPI-library:0.4.1'
+    //compile 'com.pokegoapi:PokeGOAPI-library:0.4.1'
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.google.android.gms:play-services:9.8.0'
     compile 'com.android.support:design:24.2.1'

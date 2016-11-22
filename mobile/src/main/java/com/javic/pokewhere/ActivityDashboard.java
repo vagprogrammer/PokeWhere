@@ -208,7 +208,7 @@ public class ActivityDashboard extends AppCompatActivity
             @Override
             public void onDrawerClosed(View drawerView) {
                 if (visibleFragment == Constants.FRAGMENT_MAPA) {
-                    mFragmentMapa.showCustomDialog();
+                    //mFragmentMapa.showCustomDialog();
                 }
             }
         });
@@ -1452,6 +1452,10 @@ public class ActivityDashboard extends AppCompatActivity
                 switch (visibleFragment) {
                     case Constants.FRAGMENT_POKEBANK:
                         mFragmentPokemonBank.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalUserpokemonList());
+
+                        if (mFragmentBag!=null){
+                            mFragmentBag.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalItems());
+                        }
                         break;
                     case Constants.FRAGMENT_COMPARE:
 
@@ -1461,10 +1465,22 @@ public class ActivityDashboard extends AppCompatActivity
                             mFragmentPokemonBank.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalUserpokemonList());
                         }
 
+                        if (mFragmentBag!=null){
+                            mFragmentBag.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalItems());
+                        }
+
                         break;
                     case Constants.FRAGMENT_BAG:
 
                         mFragmentBag.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalItems());
+
+                        if (mFragmentPokemonBank != null) {
+                            mFragmentPokemonBank.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalUserpokemonList());
+                        }
+
+                        if (mFragmentCompare!=null){
+                            mFragmentCompare.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalSpecificPokemonList(mFragmentCompare.localUserPokemon.getName()));
+                        }
 
                         break;
                 }

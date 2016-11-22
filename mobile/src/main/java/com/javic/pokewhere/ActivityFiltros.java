@@ -34,11 +34,17 @@ public class ActivityFiltros extends AppCompatActivity implements OnCheckChildCl
     private Boolean mAllMarkers;
     private SharedPreferences mPrefsUser;
     private SharedPreferences.Editor mEditor;
+    private Intent intentFrom;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_filtros);
+
+
+        intentFrom = getIntent();
+
+
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(" ");
 
@@ -147,8 +153,7 @@ public class ActivityFiltros extends AppCompatActivity implements OnCheckChildCl
                 break;
             case R.id.action_aplicar:
                 mEditor.commit();
-                Intent intent = new Intent();
-                setResult(RESULT_OK, intent);
+                setResult(RESULT_OK, intentFrom);
                 finish();
               break;
         }
