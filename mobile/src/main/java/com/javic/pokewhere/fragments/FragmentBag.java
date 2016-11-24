@@ -100,7 +100,8 @@ public class FragmentBag extends Fragment implements OnViewItemClickListenner {
         mToolbar = (Toolbar) mView.findViewById(R.id.appbar);
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
         ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(String.valueOf(getItemCount()) + "/" + String.valueOf(mUserBagSpace) + " " + getString(R.string.title_items));
+        //((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(String.valueOf(getItemCount()) + "/" + String.valueOf(mUserBagSpace) + " " + getString(R.string.title_items));
+        mToolbar.setTitle(String.valueOf(getItemCount()) + "/" + String.valueOf(mUserBagSpace) + " " + mContext.getString(R.string.title_items));
 
 
         mDrawerToggle = new ActionBarDrawerToggle(getActivity(), ActivityDashboard.mDrawerLayout, mToolbar, R.string.open_location_settings, R.string.open_location_settings);
@@ -287,7 +288,10 @@ public class FragmentBag extends Fragment implements OnViewItemClickListenner {
                 mRecyclerView.setLayoutManager(mLayoutManager);
                 mRecyclerView.setAdapter(mAdapterChildItem);
 
-                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(String.valueOf(getItemCount()) + "/" + String.valueOf(mUserBagSpace) + " " + getString(R.string.title_items));
+                //((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(String.valueOf(getItemCount()) + "/" + String.valueOf(mUserBagSpace) + " " + getString(R.string.title_items));
+
+                mToolbar.setTitle(String.valueOf(getItemCount()) + "/" + String.valueOf(mUserBagSpace) + " " + mContext.getString(R.string.title_items));
+
 
                 break;
             case Constants.ACTION_REFRESH_USER_DATA:
@@ -300,7 +304,9 @@ public class FragmentBag extends Fragment implements OnViewItemClickListenner {
                 mRecyclerView.setLayoutManager(mLayoutManager);
                 mRecyclerView.setAdapter(mAdapterChildItem);
 
-                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(String.valueOf(getItemCount()) + "/" + String.valueOf(mUserBagSpace) + " " + getString(R.string.title_items));
+                //((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(String.valueOf(getItemCount()) + "/" + String.valueOf(mUserBagSpace) + " " + getString(R.string.title_items));
+                mToolbar.setTitle(String.valueOf(getItemCount()) + "/" + String.valueOf(mUserBagSpace) + " " + mContext.getString(R.string.title_items));
+
                 break;
         }
     }

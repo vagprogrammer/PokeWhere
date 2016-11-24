@@ -1451,35 +1451,35 @@ public class ActivityDashboard extends AppCompatActivity
             if (succes) {
                 switch (visibleFragment) {
                     case Constants.FRAGMENT_POKEBANK:
-                        mFragmentPokemonBank.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalUserpokemonList());
+                        mFragmentPokemonBank.onTaskFinish(ACTION_REFRESH_USER_DATA, visibleFragment, getLocalUserpokemonList());
 
                         if (mFragmentBag!=null){
-                            mFragmentBag.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalItems());
+                            mFragmentBag.onTaskFinish(ACTION_REFRESH_USER_DATA, visibleFragment, getLocalItems());
                         }
                         break;
                     case Constants.FRAGMENT_COMPARE:
 
-                        mFragmentCompare.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalSpecificPokemonList(mFragmentCompare.localUserPokemon.getName()));
+                        mFragmentCompare.onTaskFinish(ACTION_REFRESH_USER_DATA, visibleFragment, getLocalSpecificPokemonList(mFragmentCompare.localUserPokemon.getName()));
 
                         if (mFragmentPokemonBank != null) {
-                            mFragmentPokemonBank.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalUserpokemonList());
+                            mFragmentPokemonBank.onTaskFinish(ACTION_REFRESH_USER_DATA, visibleFragment, getLocalUserpokemonList());
                         }
 
                         if (mFragmentBag!=null){
-                            mFragmentBag.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalItems());
+                            mFragmentBag.onTaskFinish(ACTION_REFRESH_USER_DATA, visibleFragment, getLocalItems());
                         }
 
                         break;
                     case Constants.FRAGMENT_BAG:
 
-                        mFragmentBag.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalItems());
+                        mFragmentBag.onTaskFinish(ACTION_REFRESH_USER_DATA, visibleFragment, getLocalItems());
 
                         if (mFragmentPokemonBank != null) {
-                            mFragmentPokemonBank.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalUserpokemonList());
+                            mFragmentPokemonBank.onTaskFinish(ACTION_REFRESH_USER_DATA, visibleFragment, getLocalUserpokemonList());
                         }
 
                         if (mFragmentCompare!=null){
-                            mFragmentCompare.onTaskFinish(ACTION_REFRESH_USER_DATA, null, getLocalSpecificPokemonList(mFragmentCompare.localUserPokemon.getName()));
+                            mFragmentCompare.onTaskFinish(ACTION_REFRESH_USER_DATA, visibleFragment, getLocalSpecificPokemonList(mFragmentCompare.localUserPokemon.getName()));
                         }
 
                         break;

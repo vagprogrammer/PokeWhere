@@ -16,6 +16,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerView;
 import com.afollestad.dragselectrecyclerview.DragSelectRecyclerViewAdapter;
@@ -137,7 +138,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
 
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
         ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + "/" + String.valueOf(mUserPokeBankSpace) + " " + getString(R.string.text_pokemones));
+        mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + "/" + String.valueOf(mUserPokeBankSpace) + " " + mContext.getString(R.string.text_pokemones));
 
         mDrawerToggle = new ActionBarDrawerToggle(getActivity(), ActivityDashboard.mDrawerLayout, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         mDrawerToggle.setDrawerIndicatorEnabled(true);
@@ -198,21 +199,6 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     @Override
     public void onClick(int index) {
         // Single click will select or deselect an item
-
-        /*final int selectedCount = mAdapter.getSelectedCount();
-
-        if (selectedCount > 0) {
-            mAdapter.toggleSelected(index);
-        } else {
-            if (mListener != null) {
-                List<Object> list = new ArrayList();
-                list.add(mLocalUserPokemonList);
-                list.add(index);
-                mListener.onFragmentActionPerform(Constants.ACTION_GO_TO_DETAIL, list);
-            }
-        }*/
-
-
         if (mAdapter.isSelecting()) {
             mAdapter.toggleSelected(index);
         } else {
@@ -265,6 +251,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
 
                             @Override
                             public boolean onCabFinished(MaterialCab cab) {
+                                mAdapter.changeSelectingState(false);
                                 mAdapter.clearSelected();
                                 return true;
                             }
@@ -278,6 +265,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
             mCab.reset().finish();
             mCab = null;
             mAdapter.changeSelectingState(false);
+            mAdapter.clearSelected();
             mBottomBar.setVisibility(View.VISIBLE);
         }
     }
@@ -314,6 +302,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
 
     public boolean canFinish() {
         if (mAdapter.getSelectedCount() > 0) {
+            mAdapter.changeSelectingState(false);
             mAdapter.clearSelected();
             return false;
         } else {
@@ -351,22 +340,44 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
                 break;
 
             case Constants.ACTION_TRANSFER_POKEMON:
-                mLocalUserPokemonList = (List<LocalUserPokemon>) objectList;
+                mAdapter.changeSelectingState(false);
                 mAdapter.clearSelected();
-                mAdapter.upDateAdapter(mLocalUserPokemonList);
+
+                mLocalUserPokemonList = (List<LocalUserPokemon>) objectList;
+
+                if (mBottomBar != null) {
+                    orderList(mBottomBar.getCurrentTabId());
+                    mBottomBar.setVisibility(View.VISIBLE);
+                }
+
+                if (mLocalUserPokemonList.size()>0){
+                    mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + "/" + String.valueOf(mUserPokeBankSpace) + " " + mContext.getString(R.string.text_pokemones));
+
+                }else{
+                    Toast.makeText(mContext, mContext.getString(R.string.text_no_pokemon), Toast.LENGTH_SHORT).show();
+
+                }
+
+
+                break;
+            case Constants.ACTION_REFRESH_USER_DATA:
+
+                mAdapter.changeSelectingState(false);
+                mAdapter.clearSelected();
+
+                mLocalUserPokemonList = (List<LocalUserPokemon>) objectList;
 
                 if (mBottomBar != null) {
                     orderList(mBottomBar.getCurrentTabId());
                 }
 
-                mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + "/" + String.valueOf(mUserPokeBankSpace) + " " + getString(R.string.text_pokemones));
+                if (mLocalUserPokemonList.size()>0){
+                    mToolbar.setTitle(String.valueOf(mLocalUserPokemonList.size()) + "/" + String.valueOf(mUserPokeBankSpace) + " " + mContext.getString(R.string.text_pokemones));
+                }else{
 
-                break;
-            case Constants.ACTION_REFRESH_USER_DATA:
-                mLocalUserPokemonList = (List<LocalUserPokemon>) objectList;
-
-                if (mBottomBar != null) {
-                    orderList(mBottomBar.getCurrentTabId());
+                    if (((Integer)object==Constants.FRAGMENT_POKEBANK)) {
+                        Toast.makeText(mContext, mContext.getString(R.string.text_no_pokemon), Toast.LENGTH_SHORT).show();
+                    }
                 }
 
                 break;

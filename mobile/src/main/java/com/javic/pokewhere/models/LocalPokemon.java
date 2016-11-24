@@ -5,17 +5,15 @@ package com.javic.pokewhere.models;
  */
 public class LocalPokemon {
 
-
     private long id;
     private String data;
     private long expiration_time;
-    private long pokemonId;
-    private String pokemonName;
+    private int number;
+    private String name;
     private double latitude;
     private double longitude;
     private String uid;
     private Boolean is_alive;
-
 
     public LocalPokemon() {
 
@@ -45,20 +43,21 @@ public class LocalPokemon {
         this.expiration_time = expiration_time;
     }
 
-    public long getPokemonId() {
-        return pokemonId;
+    public int getNumber() {
+        return number;
     }
 
-    public void setPokemonId(long pokemonId) {
-        this.pokemonId = pokemonId;
+    public void setNumber(int number) {
+        this.number = number;
     }
 
-    public String getPokemonName() {
-        return pokemonName;
+
+    public String getName() {
+        return name;
     }
 
-    public void setPokemonName(String pokemonName) {
-        this.pokemonName = pokemonName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public double getLatitude() {
