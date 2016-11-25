@@ -24,11 +24,13 @@ import android.os.Message;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
 import android.util.Log;
@@ -37,6 +39,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -67,10 +70,11 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.ActivityFiltros;
 import com.javic.pokewhere.R;
+import com.javic.pokewhere.adapters.AdapterCatchablePokemon;
 import com.javic.pokewhere.interfaces.OnFragmentListener;
 import com.javic.pokewhere.models.LocalGym;
 import com.javic.pokewhere.models.LocalPokeStop;
-import com.javic.pokewhere.models.LocalPokemon;
+import com.javic.pokewhere.models.LocalUserPokemon;
 import com.javic.pokewhere.models.PlaceSuggestion;
 import com.javic.pokewhere.util.ConnectivityCheck;
 import com.javic.pokewhere.util.Constants;
@@ -93,6 +97,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
+import POGOProtos.Enums.PokemonIdOuterClass;
 import POGOProtos.Inventory.Item.ItemIdOuterClass;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
@@ -118,12 +123,17 @@ public class FragmentMapa extends Fragment implements
     private Snackbar mSnackBar;
     private Snackbar mSnackBarPermisions;
 
+    private LinearLayout mBottomSheet;
+    private AdapterCatchablePokemon mAdapter;
+    private ViewPager mViewPager;
+
+
     // API PokemonGO
     private static PokemonGo mPokemonGo;
     private PokemonsTask mPokemonTask;
 
     //Marcadores y listas
-    private List<LocalPokemon> mLocalPokemons = new ArrayList<>();
+    private List<LocalUserPokemon> mLocalPokemons = new ArrayList<>();
     private List<Marker> mMarkers = new ArrayList();
     private ArrayList<PlaceSuggestion> mPlaceSuggestionList = new ArrayList<>();
 
@@ -135,7 +145,6 @@ public class FragmentMapa extends Fragment implements
     private Context mContext;
     private LatLng ltn = null;
     private String mLastQuery = "";
-    private ConnectivityCheck mConnectivityCheck;
 
     //Class and interface
     private CounterToRemoveMarkers mCounterToRemoveMarkers;
@@ -147,6 +156,41 @@ public class FragmentMapa extends Fragment implements
 
     public FragmentMapa() {
         // Required empty public constructor
+    }
+
+    /**
+     * @param
+     * @return A new instance of fragment FragmentMapa.
+     */
+    public static FragmentMapa newInstance(PokemonGo pokemonGo) {
+        FragmentMapa fragment = new FragmentMapa();
+        mPokemonGo = pokemonGo;
+        return fragment;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mContext = context;
+
+        if (context instanceof OnFragmentListener) {
+            mListener = (OnFragmentListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        MapsInitializer.initialize(mContext);
 
         if (mThreadHandler == null) {
             // Initialize and start the HandlerThread
@@ -177,45 +221,9 @@ public class FragmentMapa extends Fragment implements
                 }
             };
         }
-    }
 
-    /**
-     * @param
-     * @return A new instance of fragment FragmentMapa.
-     */
-    public static FragmentMapa newInstance(PokemonGo pokemonGo) {
-        FragmentMapa fragment = new FragmentMapa();
-
-        mPokemonGo = pokemonGo;
-
-        return fragment;
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        mContext = context;
-
-        mConnectivityCheck = new ConnectivityCheck(mContext);
-
-        if (context instanceof OnFragmentListener) {
-            mListener = (OnFragmentListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        MapsInitializer.initialize(mContext);
+        //Instantiate Counter
+        mCounterToRemoveMarkers = new CounterToRemoveMarkers(60000, 10000);
     }
 
     @Override
@@ -291,6 +299,13 @@ public class FragmentMapa extends Fragment implements
             mUserMarker = (ImageView) mView.findViewById(R.id.user_marker);
             mGetPokemonsButton = (FloatingActionButton) mView.findViewById(R.id.fab);
 
+            mBottomSheet = (LinearLayout) mView.findViewById(R.id.bottomSheet);
+            mViewPager = (ViewPager) mView.findViewById(R.id.pager);
+
+            final BottomSheetBehavior bsb = BottomSheetBehavior.from(mBottomSheet);
+
+            bsb.setState(BottomSheetBehavior.STATE_EXPANDED);
+
             mGetPokemonsButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -315,6 +330,7 @@ public class FragmentMapa extends Fragment implements
                     mapView.getMapAsync(this);
                 }
             }
+
             getFiltros();
         }
 
@@ -485,7 +501,7 @@ public class FragmentMapa extends Fragment implements
 
     }
 
-    public void drawPokemon(LocalPokemon localPokemon) {
+    public void drawPokemon(LocalUserPokemon localPokemon) {
 
         AssetManager assetManager = mContext.getAssets();
 
@@ -514,7 +530,7 @@ public class FragmentMapa extends Fragment implements
                     .position(new LatLng(localPokemon.getLatitude(), localPokemon.getLongitude()))
                     .title(localPokemon.getName())
                     .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
-                    .snippet(createDate(localPokemon.getExpiration_time()))
+                    .snippet(createDate(localPokemon.getExpirationTimeMs()))
             );
 
             mMarker.setTag(localPokemon);
@@ -577,11 +593,8 @@ public class FragmentMapa extends Fragment implements
         }
 
         if (mCounterToRemoveMarkers == null) {
-
-            mCounterToRemoveMarkers = new CounterToRemoveMarkers(60000, 10000);
             mCounterToRemoveMarkers.start();
         }
-
 
         mGetPokemonsButton.setVisibility(View.GONE);
 
@@ -604,7 +617,7 @@ public class FragmentMapa extends Fragment implements
      * Represents an asynchronous get pokemons
      * with a location.
      */
-    public class PokemonsTask extends AsyncTask<Void, LocalPokemon, Boolean> {
+    public class PokemonsTask extends AsyncTask<Void, LocalUserPokemon, Boolean> {
 
         @Override
         protected void onPreExecute() {
@@ -627,32 +640,39 @@ public class FragmentMapa extends Fragment implements
                     try {
                         List<CatchablePokemon> catchablePokemonList = mPokemonGo.getMap().getCatchablePokemon();
 
-                        //int pokeballs = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_POKE_BALL).getCount();
-                        //int greatBalls = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_GREAT_BALL).getCount();
-                        //int ultraBalls = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_ULTRA_BALL).getCount();
-                        //Log.i(TAG, "POKEBALL:" + String.valueOf(pokeballs) + " GREAT_BALL: " + String.valueOf(greatBalls) + " ULTRA_BALL: " + String.valueOf(ultraBalls));
+                        int pokeballs = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_POKE_BALL).getCount();
+                        int greatBalls = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_GREAT_BALL).getCount();
+                        int ultraBalls = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_ULTRA_BALL).getCount();
+
+                        Log.i(TAG, "POKEBALL:" + String.valueOf(pokeballs) + " GREAT_BALL: " + String.valueOf(greatBalls) + " ULTRA_BALL: " + String.valueOf(ultraBalls));
 
                         if (catchablePokemonList != null) {
 
                             for (CatchablePokemon catchablePokemon : catchablePokemonList) {
 
                                 if (Constants.DEBUG_MODE) {
-                                    catchPokemon(catchablePokemon, mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_POKE_BALL).getCount(), mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_GREAT_BALL).getCount());
+
+                                    //catchPokemon(catchablePokemon);
                                 }
 
-                                LocalPokemon localPokemon = new LocalPokemon();
-                                localPokemon.setId(catchablePokemon.getEncounterId());
-                                localPokemon.setExpiration_time(catchablePokemon.getExpirationTimestampMs());
-                                localPokemon.setNumber(catchablePokemon.getPokemonId().getNumber());
-                                localPokemon.setName(catchablePokemon.getPokemonId().name());
-                                localPokemon.setLatitude(catchablePokemon.getLatitude());
-                                localPokemon.setLongitude(catchablePokemon.getLongitude());
+                                LocalUserPokemon localUserPokemon = new LocalUserPokemon();
 
-                                Boolean isEncountered = containsEncounteredId(localPokemon, String.valueOf(localPokemon.getId()));
+                                localUserPokemon.setId(catchablePokemon.getEncounterId());
+                                localUserPokemon.setExpirationTimeMs(catchablePokemon.getExpirationTimestampMs());
+                                localUserPokemon.setNumber(catchablePokemon.getPokemonId().getNumber());
+                                localUserPokemon.setName(catchablePokemon.getPokemonId().name());
+                                localUserPokemon.setLatitude(catchablePokemon.getLatitude());
+                                localUserPokemon.setLongitude(catchablePokemon.getLongitude());
+
+
+                                Boolean isEncountered = containsEncounteredId(localUserPokemon, String.valueOf(localUserPokemon.getId()));
 
                                 if (!isEncountered) {
-                                    mLocalPokemons.add(localPokemon);
-                                    publishProgress(localPokemon);
+
+                                    Log.i(TAG, catchablePokemon.getPokemonId().name()+  " SpawnPointId: " +catchablePokemon.getSpawnPointId() + " ExpirationTime: " + String.valueOf(catchablePokemon.getExpirationTimestampMs()));
+
+                                    mLocalPokemons.add(localUserPokemon);
+                                    publishProgress(localUserPokemon);
                                 }
 
                             }
@@ -673,7 +693,7 @@ public class FragmentMapa extends Fragment implements
         }
 
         @Override
-        protected void onProgressUpdate(LocalPokemon... localPokemon) {
+        protected void onProgressUpdate(LocalUserPokemon... localPokemon) {
 
             super.onProgressUpdate(localPokemon);
             drawPokemon(localPokemon[0]);
@@ -705,7 +725,6 @@ public class FragmentMapa extends Fragment implements
 
         if (mCounterToRemoveMarkers != null) {
             mCounterToRemoveMarkers.cancel();
-            mCounterToRemoveMarkers = null;
         }
 
         if (onlyCancel) {
@@ -1082,7 +1101,6 @@ public class FragmentMapa extends Fragment implements
         return foundLocation;
     }
 
-
     public void getFiltros() {
         SharedPreferences prefs_pokeWhere = mContext.getSharedPreferences(Constants.PREFS_POKEWHERE, mContext.MODE_PRIVATE);
 
@@ -1102,9 +1120,9 @@ public class FragmentMapa extends Fragment implements
 
         boolean encountered = false;
 
-        if (object instanceof LocalPokemon) {
-            for (LocalPokemon localPokemon : mLocalPokemons) {
-                if (String.valueOf(localPokemon.getId()).equals(enconunteredId)) {
+        if (object instanceof LocalUserPokemon) {
+            for (LocalUserPokemon localUserPokemon : mLocalPokemons) {
+                if (String.valueOf(localUserPokemon.getId()).equals(enconunteredId)) {
                     encountered = true;
                 }
             }
@@ -1118,40 +1136,7 @@ public class FragmentMapa extends Fragment implements
 
         Boolean remove = false;
 
-        if (object instanceof LocalGym || object instanceof LocalPokeStop) {
-
-            double earthRadius = 6371000; //meters
-
-            double dLat;
-            double dLng;
-            double a = 0.0f;
-
-            if (object instanceof LocalGym) {
-                dLat = Math.toRadians(((LocalGym) object).getLatitude() - userPosition.latitude);
-                dLng = Math.toRadians(((LocalGym) object).getLongitude() - userPosition.longitude);
-                a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                        Math.cos(Math.toRadians(userPosition.latitude)) * Math.cos(Math.toRadians(((LocalGym) object).getLatitude())) *
-                                Math.sin(dLng / 2) * Math.sin(dLng / 2);
-            } else if (object instanceof LocalPokeStop) {
-                dLat = Math.toRadians(((LocalPokeStop) object).getLatitude() - userPosition.latitude);
-                dLng = Math.toRadians(((LocalPokeStop) object).getLongitude() - userPosition.longitude);
-                a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                        Math.cos(Math.toRadians(userPosition.latitude)) * Math.cos(Math.toRadians(((LocalPokeStop) object).getLatitude())) *
-                                Math.sin(dLng / 2) * Math.sin(dLng / 2);
-            }
-
-
-            double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            float dist = (float) (earthRadius * c);
-
-            if (dist > 150) {
-                remove = true;
-            } else {
-                remove = false;
-            }
-
-
-        } else if (object instanceof LocalPokemon) {
+        if (object instanceof LocalUserPokemon) {
             //LOCAL POKEMON
             //Get the local time
             Calendar localCalendar = Calendar.getInstance(Locale.getDefault());
@@ -1159,7 +1144,7 @@ public class FragmentMapa extends Fragment implements
             int localSeconds = localCalendar.get(Calendar.SECOND);
 
             //Getting the pokemon time expiration
-            Date date = new Date(((LocalPokemon) object).getExpiration_time());
+            Date date = new Date(((LocalUserPokemon) object).getExpirationTimeMs());
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(date);
             int expirationMinutes = calendar.get(Calendar.MINUTE);
@@ -1193,7 +1178,6 @@ public class FragmentMapa extends Fragment implements
             int diferrenceMinutes = localMinutes - expirationMinutes;
 
             if (diferrenceMinutes >= 2) {
-
                 remove = true;
             } else {
                 remove = false;
@@ -1211,15 +1195,16 @@ public class FragmentMapa extends Fragment implements
 
         @Override
         public void onFinish() {
-            mCounterToRemoveMarkers = null;
-            mCounterToRemoveMarkers = new CounterToRemoveMarkers(60000, 10000);
             mCounterToRemoveMarkers.start();
         }
+
+
 
         @Override
         public void onTick(long millisUntilFinished) {
             if (mMarkers != null) {
                 final List<Marker> mMarkersToRemove = new ArrayList<>();
+
                 for (Marker marker : mMarkers) {
                     if (shouldMarkerRemove(marker.getTag())) {
                         mMarkersToRemove.add(marker);
@@ -1227,7 +1212,7 @@ public class FragmentMapa extends Fragment implements
 
                         Object object = marker.getTag();
 
-                        if (object instanceof LocalPokemon) {
+                        if (object instanceof LocalUserPokemon) {
                             mLocalPokemons.remove(object);
                         }
                     }
@@ -1238,6 +1223,7 @@ public class FragmentMapa extends Fragment implements
                 }
             }
         }
+
     }
 
     public void showToast(final String message) {
@@ -1271,9 +1257,7 @@ public class FragmentMapa extends Fragment implements
         dialog.show();
     }
 
-    private void catchPokemon(CatchablePokemon catchablePokemon, int pokeballs, int greatBalls) throws LoginFailedException, RemoteServerException, NoSuchItemException {
-
-        Log.i(TAG, "POKEBALL:" + String.valueOf(pokeballs) + " GREAT_BALL: " + String.valueOf(greatBalls));
+    private void catchPokemon(CatchablePokemon catchablePokemon) throws LoginFailedException, RemoteServerException, NoSuchItemException {
 
         // You need to Encounter first.
         EncounterResult encResult = catchablePokemon.encounterPokemon();
@@ -1286,21 +1270,12 @@ public class FragmentMapa extends Fragment implements
 
             CatchOptions options = new CatchOptions(mPokemonGo);
 
-            if (options.getRazzberries() > 0) {
-                options.maxRazzberries(0);
-            }
+            if (options.getMaxPokeballs()>50){
+                if (options.getRazzberries() > 20) {
+                    options.maxRazzberries(1);
+                }
 
-            if (pokeballs != 0) {
-                options.usePokeball(Pokeball.POKEBALL);
-                options.noMasterBall(true);
-                CatchResult result = catchablePokemon.catchPokemon(options);
-
-                Log.i(TAG, "Attempt to catch: " + catchablePokemon.getPokemonId() + " " + result.getStatus());
-
-                showToast(catchablePokemon.getPokemonId() + " " + result.getStatus());
-
-            } else if (greatBalls != 0) {
-                options.usePokeball(Pokeball.GREATBALL);
+                options.useBestBall(true);
                 options.noMasterBall(true);
                 CatchResult result = catchablePokemon.catchPokemon(options);
 
@@ -1308,6 +1283,10 @@ public class FragmentMapa extends Fragment implements
 
                 showToast(catchablePokemon.getPokemonId() + " " + result.getStatus());
             }
+            else{
+                Log.i(TAG, "Yo only have: 50 pokeballs");
+            }
+
 
         }
     }
