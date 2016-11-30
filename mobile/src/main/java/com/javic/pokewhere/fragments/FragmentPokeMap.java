@@ -7,9 +7,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
@@ -72,23 +69,15 @@ import com.javic.pokewhere.R;
 import com.javic.pokewhere.interfaces.OnFragmentListener;
 import com.javic.pokewhere.models.LocalGym;
 import com.javic.pokewhere.models.LocalPokeStop;
-import com.javic.pokewhere.models.LocalPokemon;
 import com.javic.pokewhere.models.PlaceSuggestion;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.gym.Gym;
-import com.pokegoapi.api.inventory.Pokeball;
 import com.pokegoapi.api.map.fort.Pokestop;
 import com.pokegoapi.api.map.fort.PokestopLootResult;
-import com.pokegoapi.api.map.pokemon.CatchResult;
-import com.pokegoapi.api.map.pokemon.CatchablePokemon;
-import com.pokegoapi.api.map.pokemon.encounter.EncounterResult;
-import com.pokegoapi.api.settings.CatchOptions;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -99,7 +88,6 @@ import java.util.Map;
 import java.util.Random;
 
 import POGOProtos.Inventory.Item.ItemAwardOuterClass;
-import POGOProtos.Inventory.Item.ItemIdOuterClass;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 
@@ -126,13 +114,13 @@ public class FragmentPokeMap extends Fragment implements
 
     // API PokemonGO
     private static PokemonGo mPokemonGo;
-    private PokemonsTask mPokemonTask;
+    //private PokemonsTask mPokemonTask;
     private PokeStopsTask mPokeStopsTask;
     private GymsTask mGymsTask;
 
     //Marcadores y listas
     private Map<String, String> mPokemonsMap = new HashMap<String, String>();
-    private List<LocalPokemon> mLocalPokemons = new ArrayList<>();
+    //private List<LocalPokemon> mLocalPokemons = new ArrayList<>();
     private List<LocalPokeStop> mLocalPokeStops = new ArrayList<>();
     private List<LocalGym> mLocalGyms = new ArrayList<>();
     private List<Marker> mMarkers = new ArrayList();
@@ -516,7 +504,7 @@ public class FragmentPokeMap extends Fragment implements
 
     }
 
-    public void drawPokemon(LocalPokemon localPokemon) {
+    /*public void drawPokemon(LocalPokemon localPokemon) {
 
         AssetManager assetManager = mContext.getAssets();
 
@@ -529,7 +517,7 @@ public class FragmentPokeMap extends Fragment implements
                 is = assetManager.open(String.valueOf("0" + localPokemon.getPokemonId()) + ".ico");
             } else {
                 is = assetManager.open(String.valueOf(localPokemon.getPokemonId()) + ".ico");
-            }*/
+            }
 
             if (localPokemon.getNumber() < 10) {
                 is = assetManager.open(String.valueOf("00" + localPokemon.getNumber()) + ".png");
@@ -554,7 +542,7 @@ public class FragmentPokeMap extends Fragment implements
         } catch (IOException e) {
             Log.e(TAG, e.getMessage());
         }
-    }
+    }*/
 
     public void drawPokeStop(LocalPokeStop localPokeStop) {
 
@@ -717,7 +705,7 @@ public class FragmentPokeMap extends Fragment implements
      */
     private void attemptSearch() {
 
-        if (mPokemonTask == null) {
+       /* if (mPokemonTask == null) {
             mPokemonTask = new PokemonsTask(true);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -725,7 +713,7 @@ public class FragmentPokeMap extends Fragment implements
             } else {
                 mPokemonTask.execute();
             }
-        }
+        }*/
 
         /*if (mPokeStopsTask == null) {
             mPokeStopsTask = new PokeStopsTask(true);
@@ -776,7 +764,7 @@ public class FragmentPokeMap extends Fragment implements
      * Represents an asynchronous get pokemons
      * with a location.
      */
-    public class PokemonsTask extends AsyncTask<Void, LocalPokemon, Boolean> {
+    /*public class PokemonsTask extends AsyncTask<Void, LocalPokemon, Boolean> {
 
 
         PokemonsTask(Boolean isEnabled) {
@@ -911,7 +899,7 @@ public class FragmentPokeMap extends Fragment implements
             mPokemonTask = null;
             isSearching = false;
         }
-    }
+    }*/
 
     /**
      * Represents an asynchronous get poke stops
@@ -1160,10 +1148,10 @@ public class FragmentPokeMap extends Fragment implements
             isSearching = false;
         }
 
-        if (mPokemonTask!=null){
+        /*if (mPokemonTask!=null){
             mPokemonTask.cancel(true);
             mPokemonTask = null;
-        }
+        }*/
 
         if (mPokeStopsTask!=null){
             mPokeStopsTask.cancel(true);
@@ -1502,7 +1490,7 @@ public class FragmentPokeMap extends Fragment implements
 
                 if (action == Constants.ALERT_RESUME_TASK) {
                     mGoogleMap.clear();
-                    mLocalPokemons = new ArrayList<>();
+                   // mLocalPokemons = new ArrayList<>();
                     mLocalPokeStops = new ArrayList<>();
                     mLocalGyms = new ArrayList<>();
                     mMarkers = new ArrayList();
@@ -1767,13 +1755,13 @@ public class FragmentPokeMap extends Fragment implements
 
     public boolean containsEncounteredId(Object object, String enconunteredId) {
 
-        if (object instanceof LocalPokemon) {
+        /*if (object instanceof LocalPokemon) {
             for (LocalPokemon localPokemon : mLocalPokemons) {
                 if (String.valueOf(localPokemon.getId()).equals(enconunteredId)) {
                     return true;
                 }
             }
-        } else if (object instanceof LocalGym) {
+        } else*/ if (object instanceof LocalGym) {
             for (LocalGym localGym : mLocalGyms) {
                 if (String.valueOf(localGym.getId()).equals(enconunteredId)) {
                     return true;
@@ -1853,7 +1841,7 @@ public class FragmentPokeMap extends Fragment implements
             }
 
 
-        } else if (object instanceof LocalPokemon) {
+        } /*else if (object instanceof LocalPokemon) {
             //LOCAL POKEMON
             //Get the local time
             Calendar localCalendar = Calendar.getInstance(Locale.getDefault());
@@ -1880,7 +1868,7 @@ public class FragmentPokeMap extends Fragment implements
             } else {
                 remove = false;
             }
-        } else if (object instanceof Long) {
+        } */ else if (object instanceof Long) {
             //Get the local time
             Calendar localCalendar = Calendar.getInstance(Locale.getDefault());
             int localMinutes = localCalendar.get(Calendar.MINUTE);
@@ -1935,9 +1923,9 @@ public class FragmentPokeMap extends Fragment implements
                         else if(object instanceof  LocalGym){
                             mLocalGyms.remove(object);
                         }
-                        else if (object instanceof LocalPokemon){
+                       /* else if (object instanceof LocalPokemon){
                             mLocalPokemons.remove(object);
-                        }
+                        }*/
                     }
                 }
 

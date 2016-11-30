@@ -1680,6 +1680,10 @@ public class ActivityDashboard extends AppCompatActivity
                 localUserPokemon.setStamina(specificPokemon.getIndividualStamina());
                 localUserPokemon.setMaxCp(specificPokemon.getMaxCpFullEvolveAndPowerupForPlayer());
                 localUserPokemon.setEvolveCP(specificPokemon.getCpAfterEvolve());
+
+                localUserPokemon.setEvolveCP(specificPokemon.getCpAfterEvolve());
+
+
                 localUserPokemon.setLevel(specificPokemon.getLevel());
                 localUserPokemon.setCandies(specificPokemon.getCandy());
                 localUserPokemon.setPowerUpStardust(specificPokemon.getStardustCostsForPowerup());
