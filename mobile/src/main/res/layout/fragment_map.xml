@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -10,7 +11,8 @@
 <FrameLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background_login">
+    android:background="@drawable/background_login"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
     <!-- TODO: Update blank fragment layout -->
     <com.google.android.gms.maps.MapView
@@ -54,5 +56,30 @@
         android:visibility="gone"/>
 
 </FrameLayout>
+
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/bottomSheet"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:orientation="vertical"
+            android:background="@color/transparent"
+            app:layout_behavior="@string/bottom_sheet_behavior"
+            app:behavior_hideable="true"
+            app:behavior_peekHeight="70dp"
+            android:gravity="center">
+
+            <android.support.v4.view.ViewPager
+                android:id="@+id/pager"
+                android:layout_width="match_parent"
+                android:background="@color/transparent"
+                android:layout_height="65dp"
+                android:layout_gravity="center"
+                android:paddingStart="30dp"
+                android:paddingLeft="30dp"
+                android:paddingEnd="30dp"
+                android:paddingRight="30dp" />
+
+        </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>

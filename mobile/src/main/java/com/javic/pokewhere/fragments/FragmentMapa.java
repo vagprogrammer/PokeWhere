@@ -25,6 +25,7 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetBehavior;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -34,10 +35,12 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -97,6 +100,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
+import POGOProtos.Data.PokemonDataOuterClass;
 import POGOProtos.Enums.PokemonIdOuterClass;
 import POGOProtos.Inventory.Item.ItemIdOuterClass;
 
@@ -126,6 +130,7 @@ public class FragmentMapa extends Fragment implements
     private LinearLayout mBottomSheet;
     private AdapterCatchablePokemon mAdapter;
     private ViewPager mViewPager;
+    private BottomSheetBehavior bsb;
 
 
     // API PokemonGO
@@ -299,12 +304,49 @@ public class FragmentMapa extends Fragment implements
             mUserMarker = (ImageView) mView.findViewById(R.id.user_marker);
             mGetPokemonsButton = (FloatingActionButton) mView.findViewById(R.id.fab);
 
+            mAdapter =new AdapterCatchablePokemon(mContext, mLocalPokemons);
             mBottomSheet = (LinearLayout) mView.findViewById(R.id.bottomSheet);
             mViewPager = (ViewPager) mView.findViewById(R.id.pager);
+            mViewPager.setClipToPadding(false);
+            mViewPager.setPageMargin(40);
+            mViewPager.setAdapter(mAdapter);
 
-            final BottomSheetBehavior bsb = BottomSheetBehavior.from(mBottomSheet);
 
-            bsb.setState(BottomSheetBehavior.STATE_EXPANDED);
+            bsb = BottomSheetBehavior.from(mBottomSheet);
+            bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
+            bsb.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+                @Override
+                public void onStateChanged(@NonNull View bottomSheet, int newState) {
+
+                    String nuevoEstado = "";
+
+                    switch(newState) {
+                        case BottomSheetBehavior.STATE_COLLAPSED:
+                            nuevoEstado = "STATE_COLLAPSED";
+                            break;
+                        case BottomSheetBehavior.STATE_EXPANDED:
+                            nuevoEstado = "STATE_EXPANDED";
+                            break;
+                        case BottomSheetBehavior.STATE_HIDDEN:
+                            nuevoEstado = "STATE_HIDDEN";
+                            break;
+                        case BottomSheetBehavior.STATE_DRAGGING:
+                            nuevoEstado = "STATE_DRAGGING";
+                            break;
+                        case BottomSheetBehavior.STATE_SETTLING:
+                            nuevoEstado = "STATE_SETTLING";
+                            break;
+                    }
+
+                    Log.i("BottomSheets", "Nuevo estado: " + nuevoEstado);
+                }
+
+                @Override
+                public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                    Log.i("BottomSheets", "Offset: " + slideOffset);
+                }
+            });
+
 
             mGetPokemonsButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -604,10 +646,17 @@ public class FragmentMapa extends Fragment implements
                     @TargetApi(Build.VERSION_CODES.M)
                     public void onClick(View v) {
                         //onlyCancel
+                        if (bsb.getState() == BottomSheetBehavior.STATE_COLLAPSED || bsb.getState() == BottomSheetBehavior.STATE_EXPANDED){
+                            bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
+                        }
+
                         cancelTask(true);
                     }
                 });
 
+        CoordinatorLayout.LayoutParams params =(CoordinatorLayout.LayoutParams)mSnackBar.getView().getLayoutParams();
+        params.gravity = Gravity.TOP;
+        mSnackBar.getView().setLayoutParams(params);
         mSnackBar.show();
 
         mSearchView.showProgress();
@@ -650,31 +699,44 @@ public class FragmentMapa extends Fragment implements
 
                             for (CatchablePokemon catchablePokemon : catchablePokemonList) {
 
-                                if (Constants.DEBUG_MODE) {
+                                // You need to Encounter first.
+                                EncounterResult encResult = catchablePokemon.encounterPokemon();
 
-                                    //catchPokemon(catchablePokemon);
+                                if (encResult.wasSuccessful()){
+
+                                    Log.i(TAG, " Encountered Result: " + encResult.getStatus().toString());
+
+                                    PokemonDataOuterClass.PokemonData pokemonData= encResult.getPokemonData();
+
+                                    LocalUserPokemon localUserPokemon = new LocalUserPokemon();
+
+                                    localUserPokemon.setId(catchablePokemon.getEncounterId());
+                                    localUserPokemon.setExpirationTimeMs(catchablePokemon.getExpirationTimestampMs());
+                                    localUserPokemon.setNumber(catchablePokemon.getPokemonId().getNumber());
+                                    localUserPokemon.setName(catchablePokemon.getPokemonId().name());
+                                    localUserPokemon.setLatitude(catchablePokemon.getLatitude());
+                                    localUserPokemon.setLongitude(catchablePokemon.getLongitude());
+                                    localUserPokemon.setBitmap(getBitmapFromAssets(catchablePokemon.getPokemonId().getNumber()));
+                                    localUserPokemon.setCp(pokemonData.getCp());
+                                    Double iv_ratio = ((pokemonData.getIndividualAttack() + pokemonData.getIndividualDefense() + pokemonData.getIndividualStamina())/45.0)*(100.0);
+                                    localUserPokemon.setIv(iv_ratio.intValue());
+                                    localUserPokemon.setAttack(pokemonData.getIndividualAttack());
+                                    localUserPokemon.setDefense(pokemonData.getIndividualDefense());
+                                    localUserPokemon.setStamina(pokemonData.getIndividualStamina());
+
+                                    Boolean isEncountered = containsEncounteredId(localUserPokemon, String.valueOf(localUserPokemon.getId()));
+
+                                    if (!isEncountered) {
+
+                                        Log.i(TAG, " Encountered: " + encResult.getPokemonData().getPokemonId() + " CP: " + encResult.getPokemonData().getCp() + " ExpirationTime: " + String.valueOf(catchablePokemon.getExpirationTimestampMs()));
+                                        mLocalPokemons.add(localUserPokemon);
+                                        publishProgress(localUserPokemon);
+                                    }
+
+                                    if (Constants.DEBUG_MODE) {
+                                        //catchPokemon(catchablePokemon, encResult);
+                                    }
                                 }
-
-                                LocalUserPokemon localUserPokemon = new LocalUserPokemon();
-
-                                localUserPokemon.setId(catchablePokemon.getEncounterId());
-                                localUserPokemon.setExpirationTimeMs(catchablePokemon.getExpirationTimestampMs());
-                                localUserPokemon.setNumber(catchablePokemon.getPokemonId().getNumber());
-                                localUserPokemon.setName(catchablePokemon.getPokemonId().name());
-                                localUserPokemon.setLatitude(catchablePokemon.getLatitude());
-                                localUserPokemon.setLongitude(catchablePokemon.getLongitude());
-
-
-                                Boolean isEncountered = containsEncounteredId(localUserPokemon, String.valueOf(localUserPokemon.getId()));
-
-                                if (!isEncountered) {
-
-                                    Log.i(TAG, catchablePokemon.getPokemonId().name()+  " SpawnPointId: " +catchablePokemon.getSpawnPointId() + " ExpirationTime: " + String.valueOf(catchablePokemon.getExpirationTimestampMs()));
-
-                                    mLocalPokemons.add(localUserPokemon);
-                                    publishProgress(localUserPokemon);
-                                }
-
                             }
 
                             sleep(10000);
@@ -697,6 +759,13 @@ public class FragmentMapa extends Fragment implements
 
             super.onProgressUpdate(localPokemon);
             drawPokemon(localPokemon[0]);
+
+            mAdapter.notifyDataSetChanged();
+
+            if (bsb.getState() == BottomSheetBehavior.STATE_HIDDEN){
+                bsb.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+
         }
 
         @Override
@@ -1236,58 +1305,44 @@ public class FragmentMapa extends Fragment implements
         });
     }
 
-    public void showCustomDialog() {
-
-        MaterialDialog.Builder builder = new MaterialDialog.Builder(mContext)
-                .title(getString(R.string.dialog_title_unaviable_service))
-                .content(getString(R.string.dialog_content_unaviable_service))
-                .autoDismiss(false)
-                .cancelable(false)
-                .positiveText(getString(R.string.dialog_positive_unaviable_service))
-                .onPositive(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        dialog.dismiss();
-                        //ActivityDashboard.mDrawerLayout.openDrawer(ActivityDashboard.mNavigationView);
-                        getActivity().onBackPressed();
-                    }
-                });
-
-        MaterialDialog dialog = builder.build();
-        dialog.show();
-    }
-
-    private void catchPokemon(CatchablePokemon catchablePokemon) throws LoginFailedException, RemoteServerException, NoSuchItemException {
-
-        // You need to Encounter first.
-        EncounterResult encResult = catchablePokemon.encounterPokemon();
-
-        Log.i(TAG, " Encountered Result: " + encResult.getStatus().toString());
-
-        // if encounter was succesful, catch
-        if (encResult.wasSuccessful()) {
-            Log.i(TAG, " Encountered: " + encResult.getPokemonData().getPokemonId() + " CP: " + encResult.getPokemonData().getCp());
+    private void catchPokemon(CatchablePokemon catchablePokemon, EncounterResult encResult) throws LoginFailedException, RemoteServerException, NoSuchItemException {
 
             CatchOptions options = new CatchOptions(mPokemonGo);
 
-            if (options.getMaxPokeballs()>50){
                 if (options.getRazzberries() > 20) {
                     options.maxRazzberries(1);
                 }
 
-                options.useBestBall(true);
+                options.useSmartSelect(true);
                 options.noMasterBall(true);
                 CatchResult result = catchablePokemon.catchPokemon(options);
 
-                Log.i(TAG, "Attempt to catch: " + catchablePokemon.getPokemonId() + " " + result.getStatus());
+                Log.i(TAG, catchablePokemon.getPokemonId() + " " + result.getStatus());
 
                 showToast(catchablePokemon.getPokemonId() + " " + result.getStatus());
-            }
-            else{
-                Log.i(TAG, "Yo only have: 50 pokeballs");
+    }
+
+    private Bitmap getBitmapFromAssets(int pokemonIdNumber) {
+        AssetManager assetManager = mContext.getAssets();
+
+        Bitmap bitmap = null;
+
+        try {
+            InputStream is = null;
+
+            if (pokemonIdNumber < 10) {
+                is = assetManager.open(String.valueOf("00" + pokemonIdNumber) + ".png");
+            } else if (pokemonIdNumber < 100) {
+                is = assetManager.open(String.valueOf("0" + pokemonIdNumber) + ".png");
+            } else {
+                is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
             }
 
-
+            bitmap = BitmapFactory.decodeStream(is);
+        } catch (IOException e) {
+            Log.e("ERROR", e.getMessage());
         }
+
+        return bitmap;
     }
 }

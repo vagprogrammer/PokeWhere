@@ -4,6 +4,8 @@ import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.util.Calendar;
 
 /**
@@ -33,6 +35,10 @@ public class LocalUserPokemon implements Parcelable{
     private Long creationTimeMillis;
     private int pokemonCount;
 
+    private double latitude;
+    private double longitude;
+    private long expirationTimeMs;
+
     public LocalUserPokemon(){
         //Empty constructor is needed
     }
@@ -61,6 +67,7 @@ public class LocalUserPokemon implements Parcelable{
         this.pokemonCount = pokemonCount;
     }
 
+
     protected LocalUserPokemon(Parcel in){
         id = in.readLong();
         name = in.readString();
@@ -83,6 +90,10 @@ public class LocalUserPokemon implements Parcelable{
         evolveCandies = in.readInt();
         creationTimeMillis = in.readLong();
         pokemonCount = in.readInt();
+
+        latitude = in.readDouble();
+        longitude = in.readDouble();
+        expirationTimeMs = in.readLong();
     }
 
 
@@ -109,6 +120,10 @@ public class LocalUserPokemon implements Parcelable{
         parcel.writeInt(evolveCandies);
         parcel.writeLong(creationTimeMillis);
         parcel.writeInt(pokemonCount);
+
+        parcel.writeDouble(latitude);
+        parcel.writeDouble(longitude);
+        parcel.writeLong(expirationTimeMs);
 
     }
 
@@ -296,5 +311,29 @@ public class LocalUserPokemon implements Parcelable{
 
     public void setPokemonCount(int pokemonCount) {
         this.pokemonCount = pokemonCount;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public long getExpirationTimeMs() {
+        return expirationTimeMs;
+    }
+
+    public void setExpirationTimeMs(long expirationTimeMs) {
+        this.expirationTimeMs = expirationTimeMs;
     }
 }

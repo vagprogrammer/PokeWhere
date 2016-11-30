@@ -196,8 +196,12 @@ public class ActivityLogin extends AppCompatActivity {
 
         //HIde the Keyboard
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
-                InputMethodManager.RESULT_UNCHANGED_SHOWN);
+
+        if (imm!=null){
+            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
+                    InputMethodManager.RESULT_UNCHANGED_SHOWN);
+        }
+        
         // Reset errors.
         mEmailView.setError(null);
         mPasswordView.setError(null);
