@@ -38,7 +38,9 @@ import com.javic.pokewhere.app.AppController;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.auth.GoogleUserCredentialProvider;
+import com.pokegoapi.exceptions.CaptchaActiveException;
 import com.pokegoapi.exceptions.LoginFailedException;
+import com.pokegoapi.exceptions.NoSuchItemException;
 import com.pokegoapi.exceptions.RemoteServerException;
 
 import org.json.JSONException;
@@ -230,9 +232,12 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
                     mUserTeam = go.getPlayerProfile().getPlayerData().getTeamValue();
                     mUserLevel = go.getPlayerProfile().getStats().getLevel();*/
 
-                } catch (LoginFailedException | RemoteServerException e) {
-                    e.printStackTrace();
+                } catch (LoginFailedException | RemoteServerException | CaptchaActiveException e) {
+                    // failed to login, invalid credentials, auth issue or server issue.
+                    Log.e(TAG, "Failed to login, captcha or server issue: ", e);
+
                     return false;
+
                 }
 
 
@@ -300,9 +305,12 @@ public class ActivitySelectAccount extends AppCompatActivity implements View.OnC
                     PokemonGo go = new PokemonGo(httpClient);
                     go.login(provider);
 
-                } catch (LoginFailedException | RemoteServerException e) {
-                    e.printStackTrace();
+                } catch (LoginFailedException | RemoteServerException | CaptchaActiveException e) {
+                    // failed to login, invalid credentials, auth issue or server issue.
+                    Log.e(TAG, "Failed to login, captcha or server issue: ", e);
+
                     return false;
+
                 }
 
 

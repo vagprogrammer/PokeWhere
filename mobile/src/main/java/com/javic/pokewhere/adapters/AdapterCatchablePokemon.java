@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.javic.pokewhere.R;
@@ -38,13 +39,13 @@ public class AdapterCatchablePokemon extends PagerAdapter {
 
     @Override
     public boolean isViewFromObject(View view, Object object) {
-        return view == ((LinearLayout) object);
+        return view == ((RelativeLayout) object);
     }
 
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
         // Remove viewpager_item.xml from ViewPager
-        ((ViewPager) container).removeView((LinearLayout) object);
+        ((ViewPager) container).removeView((RelativeLayout) object);
     }
 
     @Override
@@ -58,7 +59,7 @@ public class AdapterCatchablePokemon extends PagerAdapter {
         mInflator = (LayoutInflater) mContext
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        final View itemView = mInflator.inflate(R.layout.layout_catchable_pokemon, container,
+        final View itemView = mInflator.inflate(R.layout.layout_pokemon_catchable, container,
                 false);;
 
         if (itemView!=null){

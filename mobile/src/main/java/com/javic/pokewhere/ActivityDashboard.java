@@ -57,11 +57,15 @@ import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.Item;
 import com.pokegoapi.api.inventory.Stats;
 import com.pokegoapi.api.player.PlayerProfile;
+import com.pokegoapi.api.pokemon.Evolution;
+import com.pokegoapi.api.pokemon.Evolutions;
 import com.pokegoapi.api.pokemon.Pokemon;
 import com.pokegoapi.auth.GoogleAutoCredentialProvider;
 import com.pokegoapi.auth.GoogleUserCredentialProvider;
 import com.pokegoapi.auth.PtcCredentialProvider;
+import com.pokegoapi.exceptions.CaptchaActiveException;
 import com.pokegoapi.exceptions.LoginFailedException;
+import com.pokegoapi.exceptions.NoSuchItemException;
 import com.pokegoapi.exceptions.RemoteServerException;
 
 import java.io.IOException;
@@ -76,6 +80,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import POGOProtos.Data.PlayerDataOuterClass;
+import POGOProtos.Enums.PokemonIdOuterClass;
 import POGOProtos.Inventory.Item.ItemIdOuterClass;
 import POGOProtos.Networking.Responses.ReleasePokemonResponseOuterClass;
 import okhttp3.OkHttpClient;
@@ -1267,10 +1272,10 @@ public class ActivityDashboard extends AppCompatActivity
             sleep(500);
             try {
                 mGO.getInventories().updateInventories(true);
-            } catch (LoginFailedException e) {
-                e.printStackTrace();
-            } catch (RemoteServerException e) {
-                e.printStackTrace();
+            } catch (LoginFailedException | RemoteServerException | CaptchaActiveException e) {
+                // failed to login, invalid credentials, auth issue or server issue.
+                Log.e(TAG, "Failed to login, captcha or server issue: ", e);
+
             }
             mUserPokemonList = mGO.getInventories().getPokebank().getPokemons();
 
@@ -1453,9 +1458,10 @@ public class ActivityDashboard extends AppCompatActivity
                     case Constants.FRAGMENT_POKEBANK:
                         mFragmentPokemonBank.onTaskFinish(ACTION_REFRESH_USER_DATA, visibleFragment, getLocalUserpokemonList());
 
-                        if (mFragmentBag!=null){
+                        /*if (mFragmentBag!=null){
                             mFragmentBag.onTaskFinish(ACTION_REFRESH_USER_DATA, visibleFragment, getLocalItems());
-                        }
+                        }*/
+
                         break;
                     case Constants.FRAGMENT_COMPARE:
 
@@ -1465,22 +1471,22 @@ public class ActivityDashboard extends AppCompatActivity
                             mFragmentPokemonBank.onTaskFinish(ACTION_REFRESH_USER_DATA, visibleFragment, getLocalUserpokemonList());
                         }
 
-                        if (mFragmentBag!=null){
+                        /*if (mFragmentBag!=null){
                             mFragmentBag.onTaskFinish(ACTION_REFRESH_USER_DATA, visibleFragment, getLocalItems());
-                        }
+                        }*/
 
                         break;
                     case Constants.FRAGMENT_BAG:
 
                         mFragmentBag.onTaskFinish(ACTION_REFRESH_USER_DATA, visibleFragment, getLocalItems());
 
-                        if (mFragmentPokemonBank != null) {
+                        /*if (mFragmentPokemonBank != null) {
                             mFragmentPokemonBank.onTaskFinish(ACTION_REFRESH_USER_DATA, visibleFragment, getLocalUserpokemonList());
-                        }
+                        }*/
 
-                        if (mFragmentCompare!=null){
+                        /*if (mFragmentCompare!=null){
                             mFragmentCompare.onTaskFinish(ACTION_REFRESH_USER_DATA, visibleFragment, getLocalSpecificPokemonList(mFragmentCompare.localUserPokemon.getName()));
-                        }
+                        }*/
 
                         break;
                 }
@@ -1644,8 +1650,42 @@ public class ActivityDashboard extends AppCompatActivity
             localUserPokemon.setAttack(pokemon.getIndividualAttack());
             localUserPokemon.setDefense(pokemon.getIndividualDefense());
             localUserPokemon.setStamina(pokemon.getIndividualStamina());
-            localUserPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer());
-            localUserPokemon.setEvolveCP(pokemon.getCpAfterEvolve());
+
+            Log.i(TAG," ");
+            Log.i(TAG," ");
+
+            Log.i(TAG, pokemon.getPokemonId().name() + " CP: " + String.valueOf(localUserPokemon.getCp()));
+
+            Evolution evolution = Evolutions.getEvolution(pokemon.getPokemonId());
+
+            List<PokemonIdOuterClass.PokemonId> evolutions = Evolutions.getEvolutions(pokemon.getPokemonId());
+
+            if (evolutions.size() > 0) {
+                Log.i(TAG,  "Evolutions: "  + " -> " + evolutions + " (Stage: " + evolution.getStage() + ")");
+            }
+
+            /*List<PokemonIdOuterClass.PokemonId> basic = Evolutions.getBasic(pokemon.getPokemonId());
+            if (basic.size() > 0) {
+                //Check this is not the most basic pokemon
+                if (!(basic.size() == 1 && basic.contains(pokemon.getPokemonId()))) {
+                    Log.i(TAG,"Most Basic: " + " -> " + basic);
+                }
+            }
+
+            if (highest.size() > 0) {
+                //Check this is not the highest pokemon
+                if (!(highest.size() == 1 && highest.contains(pokemon.getPokemonId()))) {
+                    Log.i(TAG,"Highest: " + " -> " + highest);
+                }
+            }*/
+
+            List<PokemonIdOuterClass.PokemonId> highest = Evolutions.getHighest(pokemon.getPokemonId());
+            Log.i(TAG,"Highest: " + " -> " + highest);
+
+            //CP_EVOLVE
+            //localUserPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer(highest.get(0)));
+            //localUserPokemon.setEvolveCP(pokemon.getCpAfterEvolve(evolution.getPokemon()));
+
             localUserPokemon.setLevel(pokemon.getLevel());
             localUserPokemon.setCandies(pokemon.getCandy());
             localUserPokemon.setPowerUpStardust(pokemon.getStardustCostsForPowerup());
@@ -1678,11 +1718,10 @@ public class ActivityDashboard extends AppCompatActivity
                 localUserPokemon.setAttack(specificPokemon.getIndividualAttack());
                 localUserPokemon.setDefense(specificPokemon.getIndividualDefense());
                 localUserPokemon.setStamina(specificPokemon.getIndividualStamina());
-                localUserPokemon.setMaxCp(specificPokemon.getMaxCpFullEvolveAndPowerupForPlayer());
-                localUserPokemon.setEvolveCP(specificPokemon.getCpAfterEvolve());
 
-                localUserPokemon.setEvolveCP(specificPokemon.getCpAfterEvolve());
-
+                //CP_EVOLVE
+                //localUserPokemon.setMaxCp(specificPokemon.getMaxCpFullEvolveAndPowerupForPlayer());
+                //localUserPokemon.setEvolveCP(specificPokemon.getCpAfterEvolve());
 
                 localUserPokemon.setLevel(specificPokemon.getLevel());
                 localUserPokemon.setCandies(specificPokemon.getCandy());

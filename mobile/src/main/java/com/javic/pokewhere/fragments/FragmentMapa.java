@@ -87,6 +87,8 @@ import com.pokegoapi.api.map.pokemon.CatchResult;
 import com.pokegoapi.api.map.pokemon.CatchablePokemon;
 import com.pokegoapi.api.map.pokemon.encounter.EncounterResult;
 import com.pokegoapi.api.settings.CatchOptions;
+import com.pokegoapi.api.settings.PokeballSelector;
+import com.pokegoapi.exceptions.CaptchaActiveException;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.NoSuchItemException;
 import com.pokegoapi.exceptions.RemoteServerException;
@@ -107,7 +109,7 @@ import POGOProtos.Inventory.Item.ItemIdOuterClass;
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 
 public class FragmentMapa extends Fragment implements
-        OnMapReadyCallback, GoogleMap.OnCameraChangeListener, GoogleApiClient.ConnectionCallbacks,
+        OnMapReadyCallback, GoogleMap.OnCameraChangeListener, GoogleMap.OnMarkerClickListener, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = FragmentMapa.class.getSimpleName();
@@ -304,7 +306,7 @@ public class FragmentMapa extends Fragment implements
             mUserMarker = (ImageView) mView.findViewById(R.id.user_marker);
             mGetPokemonsButton = (FloatingActionButton) mView.findViewById(R.id.fab);
 
-            mAdapter =new AdapterCatchablePokemon(mContext, mLocalPokemons);
+            mAdapter = new AdapterCatchablePokemon(mContext, mLocalPokemons);
             mBottomSheet = (LinearLayout) mView.findViewById(R.id.bottomSheet);
             mViewPager = (ViewPager) mView.findViewById(R.id.pager);
             mViewPager.setClipToPadding(false);
@@ -314,13 +316,14 @@ public class FragmentMapa extends Fragment implements
 
             bsb = BottomSheetBehavior.from(mBottomSheet);
             bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
+
             bsb.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
                 @Override
                 public void onStateChanged(@NonNull View bottomSheet, int newState) {
 
                     String nuevoEstado = "";
 
-                    switch(newState) {
+                    switch (newState) {
                         case BottomSheetBehavior.STATE_COLLAPSED:
                             nuevoEstado = "STATE_COLLAPSED";
                             break;
@@ -444,6 +447,19 @@ public class FragmentMapa extends Fragment implements
         userPosition = new LatLng(cameraPosition.target.latitude, cameraPosition.target.longitude);
 
         ltn = null;
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+
+        if (marker.getTag() instanceof LocalUserPokemon) {
+            if (bsb.getState() == BottomSheetBehavior.STATE_HIDDEN) {
+                bsb.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            } else {
+
+            }
+        }
+        return true;
     }
 
     /**
@@ -640,21 +656,23 @@ public class FragmentMapa extends Fragment implements
 
         mGetPokemonsButton.setVisibility(View.GONE);
 
+        mGoogleMap.getUiSettings().setZoomControlsEnabled(false);
+
+        //onlyCancel
+        if (bsb.getState() == BottomSheetBehavior.STATE_COLLAPSED || bsb.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+            bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
+        }
+
         mSnackBar = Snackbar.make(mView, R.string.message_snackbar_searching_text, Snackbar.LENGTH_INDEFINITE)
                 .setAction(R.string.snack_bar_neg_btn, new View.OnClickListener() {
                     @Override
                     @TargetApi(Build.VERSION_CODES.M)
                     public void onClick(View v) {
-                        //onlyCancel
-                        if (bsb.getState() == BottomSheetBehavior.STATE_COLLAPSED || bsb.getState() == BottomSheetBehavior.STATE_EXPANDED){
-                            bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
-                        }
-
                         cancelTask(true);
                     }
                 });
 
-        CoordinatorLayout.LayoutParams params =(CoordinatorLayout.LayoutParams)mSnackBar.getView().getLayoutParams();
+        CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) mSnackBar.getView().getLayoutParams();
         params.gravity = Gravity.TOP;
         mSnackBar.getView().setLayoutParams(params);
         mSnackBar.show();
@@ -702,11 +720,9 @@ public class FragmentMapa extends Fragment implements
                                 // You need to Encounter first.
                                 EncounterResult encResult = catchablePokemon.encounterPokemon();
 
-                                if (encResult.wasSuccessful()){
+                                if (encResult.wasSuccessful()) {
 
-                                    Log.i(TAG, " Encountered Result: " + encResult.getStatus().toString());
-
-                                    PokemonDataOuterClass.PokemonData pokemonData= encResult.getPokemonData();
+                                    PokemonDataOuterClass.PokemonData pokemonData = encResult.getPokemonData();
 
                                     LocalUserPokemon localUserPokemon = new LocalUserPokemon();
 
@@ -718,7 +734,7 @@ public class FragmentMapa extends Fragment implements
                                     localUserPokemon.setLongitude(catchablePokemon.getLongitude());
                                     localUserPokemon.setBitmap(getBitmapFromAssets(catchablePokemon.getPokemonId().getNumber()));
                                     localUserPokemon.setCp(pokemonData.getCp());
-                                    Double iv_ratio = ((pokemonData.getIndividualAttack() + pokemonData.getIndividualDefense() + pokemonData.getIndividualStamina())/45.0)*(100.0);
+                                    Double iv_ratio = ((pokemonData.getIndividualAttack() + pokemonData.getIndividualDefense() + pokemonData.getIndividualStamina()) / 45.0) * (100.0);
                                     localUserPokemon.setIv(iv_ratio.intValue());
                                     localUserPokemon.setAttack(pokemonData.getIndividualAttack());
                                     localUserPokemon.setDefense(pokemonData.getIndividualDefense());
@@ -728,13 +744,13 @@ public class FragmentMapa extends Fragment implements
 
                                     if (!isEncountered) {
 
-                                        Log.i(TAG, " Encountered: " + encResult.getPokemonData().getPokemonId() + " CP: " + encResult.getPokemonData().getCp() + " ExpirationTime: " + String.valueOf(catchablePokemon.getExpirationTimestampMs()));
+                                        Log.i(TAG, encResult.getPokemonData().getPokemonId() + " Encountered..." + " CP: " + encResult.getPokemonData().getCp() + " ExpirationTime: " + String.valueOf(catchablePokemon.getExpirationTimestampMs()));
                                         mLocalPokemons.add(localUserPokemon);
                                         publishProgress(localUserPokemon);
                                     }
 
                                     if (Constants.DEBUG_MODE) {
-                                        //catchPokemon(catchablePokemon, encResult);
+                                        catchPokemon(catchablePokemon);
                                     }
                                 }
                             }
@@ -762,7 +778,7 @@ public class FragmentMapa extends Fragment implements
 
             mAdapter.notifyDataSetChanged();
 
-            if (bsb.getState() == BottomSheetBehavior.STATE_HIDDEN){
+            if (bsb.getState() == BottomSheetBehavior.STATE_HIDDEN) {
                 bsb.setState(BottomSheetBehavior.STATE_COLLAPSED);
             }
 
@@ -776,6 +792,13 @@ public class FragmentMapa extends Fragment implements
                 mSnackBar.dismiss();
                 mGetPokemonsButton.setVisibility(View.VISIBLE);
                 mSearchView.hideProgress();
+
+                mGoogleMap.getUiSettings().setZoomControlsEnabled(true);
+
+                //onlyCancel
+                if (bsb.getState() == BottomSheetBehavior.STATE_COLLAPSED || bsb.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                    bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
+                }
             }
 
         }
@@ -803,6 +826,15 @@ public class FragmentMapa extends Fragment implements
                 mSnackBar.dismiss();
                 mGetPokemonsButton.setVisibility(View.VISIBLE);
                 mSearchView.hideProgress();
+
+
+                mGoogleMap.getUiSettings().setZoomControlsEnabled(true);
+
+                //onlyCancel
+                if (bsb.getState() == BottomSheetBehavior.STATE_COLLAPSED || bsb.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                    bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
+                }
+
             }
         } else {
             if (!Constants.DEBUG_MODE) {
@@ -1160,12 +1192,12 @@ public class FragmentMapa extends Fragment implements
 
         Log.i(TAG, "New Location");
 
-        getActivity().runOnUiThread(new Runnable() {
+        /*getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 drawLocation(foundLocation);
             }
-        });
+        });*/
 
         return foundLocation;
     }
@@ -1268,7 +1300,6 @@ public class FragmentMapa extends Fragment implements
         }
 
 
-
         @Override
         public void onTick(long millisUntilFinished) {
             if (mMarkers != null) {
@@ -1279,10 +1310,9 @@ public class FragmentMapa extends Fragment implements
                         mMarkersToRemove.add(marker);
                         marker.remove();
 
-                        Object object = marker.getTag();
-
-                        if (object instanceof LocalUserPokemon) {
-                            mLocalPokemons.remove(object);
+                        if (marker.getTag() instanceof LocalUserPokemon) {
+                            mLocalPokemons.remove(marker.getTag());
+                            mAdapter.notifyDataSetChanged();
                         }
                     }
                 }
@@ -1305,21 +1335,34 @@ public class FragmentMapa extends Fragment implements
         });
     }
 
-    private void catchPokemon(CatchablePokemon catchablePokemon, EncounterResult encResult) throws LoginFailedException, RemoteServerException, NoSuchItemException {
+    private void catchPokemon(CatchablePokemon catchablePokemon)
+    {
+        try {
+            CatchOptions options = new CatchOptions(mPokemonGo)
+                    .withPokeballSelector(PokeballSelector.SMART);
 
-            CatchOptions options = new CatchOptions(mPokemonGo);
+            if (options.getRazzberries() > 20) {
+                options.useRazzberry(true);
+            }
 
-                if (options.getRazzberries() > 20) {
-                    options.maxRazzberries(1);
-                }
+            List<Pokeball> useablePokeballs = mPokemonGo.getInventories().getItemBag().getUseablePokeballs();
+            double probability = catchablePokemon.getCaptureProbability();
+            Pokeball pokeball = PokeballSelector.SMART.select(useablePokeballs, probability);
 
-                options.useSmartSelect(true);
-                options.noMasterBall(true);
-                CatchResult result = catchablePokemon.catchPokemon(options);
+            Log.i(TAG,"Attempting to catch: " + catchablePokemon.getPokemonId() + " with " + pokeball
+                    + " (" + probability + ")");
 
-                Log.i(TAG, catchablePokemon.getPokemonId() + " " + result.getStatus());
+            CatchResult result = catchablePokemon.catchPokemon(options);
 
-                showToast(catchablePokemon.getPokemonId() + " " + result.getStatus());
+            Log.i(TAG, catchablePokemon.getPokemonId() + " " + result.getStatus());
+
+            showToast(catchablePokemon.getPokemonId() + " " + result.getStatus());
+
+        } catch (LoginFailedException | NoSuchItemException | RemoteServerException | CaptchaActiveException e) {
+            // failed to login, invalid credentials, auth issue or server issue.
+            Log.e(TAG, "Failed to login, captcha or server issue: ", e);
+
+        }
     }
 
     private Bitmap getBitmapFromAssets(int pokemonIdNumber) {

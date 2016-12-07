@@ -502,8 +502,12 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                         localPokemon.setAttack(pokemon.getIndividualAttack());
                         localPokemon.setDefense(pokemon.getIndividualDefense());
                         localPokemon.setStamina(pokemon.getIndividualStamina());
-                        localPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer());
-                        localPokemon.setEvolveCP(pokemon.getCpAfterEvolve());
+
+                        //CP_EVOLVE
+                        //localPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer());
+                        //localPokemon.setEvolveCP(pokemon.getCpAfterEvolve());
+
+
                         localPokemon.setLevel(pokemon.getLevel());
                         localPokemon.setCandies(pokemon.getCandy());
                         localPokemon.setPowerUpStardust(pokemon.getStardustCostsForPowerup());
@@ -634,8 +638,11 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                             localPokemon.setAttack(pokemon.getIndividualAttack());
                             localPokemon.setDefense(pokemon.getIndividualDefense());
                             localPokemon.setStamina(pokemon.getIndividualStamina());
-                            localPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer());
-                            localPokemon.setEvolveCP(pokemon.getCpAfterEvolve());
+
+                            //CP_EVOLVE
+                            //localPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer());
+                            //localPokemon.setEvolveCP(pokemon.getCpAfterEvolve());
+
                             localPokemon.setLevel(pokemon.getLevel());
                             localPokemon.setCandies(pokemon.getCandy());
                             localPokemon.setPowerUpStardust(pokemon.getStardustCostsForPowerup());
