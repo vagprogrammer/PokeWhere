@@ -6,7 +6,7 @@ package com.javic.pokewhere.util;
 
 public class Constants {
 
-    public final static Boolean DEBUG_MODE = true;
+    public final static Boolean DEBUG_MODE = false;
     public static final int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
     public static final int ALERT_ADDRESS_RESULT_RECIVER = 0;
     public static final int ALERT_RESUME_TASK = 1;

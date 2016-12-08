@@ -19,6 +19,8 @@
     <color name="colorPrimary">#FFA726</color>
     <color name="colorPrimaryDark">#FF9800</color>
     <color name="colorAccent">#FF9800</color>
+    <color name="colorPrimaryD">#80FFA726</color>
+
     <color name="color_textPrimary">#FFFFFF</color>
     <color name="color_background_login_start_color">#FFFFFF</color>
     <color name="color_background_login_end_color">#E3F6CE</color>

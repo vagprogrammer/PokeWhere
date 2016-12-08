@@ -59,7 +59,9 @@ import com.pokegoapi.api.inventory.Stats;
 import com.pokegoapi.api.player.PlayerProfile;
 import com.pokegoapi.api.pokemon.Evolution;
 import com.pokegoapi.api.pokemon.Evolutions;
+import com.pokegoapi.api.pokemon.MovementType;
 import com.pokegoapi.api.pokemon.Pokemon;
+import com.pokegoapi.api.pokemon.PokemonMeta;
 import com.pokegoapi.auth.GoogleAutoCredentialProvider;
 import com.pokegoapi.auth.GoogleUserCredentialProvider;
 import com.pokegoapi.auth.PtcCredentialProvider;
@@ -81,6 +83,7 @@ import java.util.Map;
 
 import POGOProtos.Data.PlayerDataOuterClass;
 import POGOProtos.Enums.PokemonIdOuterClass;
+import POGOProtos.Enums.PokemonMoveOuterClass;
 import POGOProtos.Inventory.Item.ItemIdOuterClass;
 import POGOProtos.Networking.Responses.ReleasePokemonResponseOuterClass;
 import okhttp3.OkHttpClient;
@@ -1651,7 +1654,13 @@ public class ActivityDashboard extends AppCompatActivity
             localUserPokemon.setDefense(pokemon.getIndividualDefense());
             localUserPokemon.setStamina(pokemon.getIndividualStamina());
 
-            Log.i(TAG," ");
+            //PokemonMoveOuterClass.PokemonMove mMove1 = pokemon.getMove1();
+            //PokemonMoveOuterClass.PokemonMove mMove2 = pokemon.getMove2();
+
+
+            //Log.i(TAG,pokemon.getPokemonId().name()+ " Moves: " + " -> " + "Move1: " + mMove1.name() + " " + + " Move2: " + mMove2.name()+ " " + String.valueOf(pokemon.getIndividualAttack()));
+
+           /* Log.i(TAG," ");
             Log.i(TAG," ");
 
             Log.i(TAG, pokemon.getPokemonId().name() + " CP: " + String.valueOf(localUserPokemon.getCp()));
@@ -1678,9 +1687,6 @@ public class ActivityDashboard extends AppCompatActivity
                     Log.i(TAG,"Highest: " + " -> " + highest);
                 }
             }*/
-
-            List<PokemonIdOuterClass.PokemonId> highest = Evolutions.getHighest(pokemon.getPokemonId());
-            Log.i(TAG,"Highest: " + " -> " + highest);
 
             //CP_EVOLVE
             //localUserPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer(highest.get(0)));
@@ -1858,7 +1864,7 @@ public class ActivityDashboard extends AppCompatActivity
                         } else if (potion_type.equalsIgnoreCase("HYPER")) {
                             potionTypeList.add(new ChildItem(R.drawable.ic_hyper_potion, potion_type + " " + full_name[2], item.getCount()));
                         } else if (potion_type.equalsIgnoreCase("MAX")) {
-                            potionTypeList.add(new ChildItem(R.drawable.ic_potions, potion_type + " " + full_name[2], item.getCount()));
+                            potionTypeList.add(new ChildItem(R.drawable.ic_max_potion, potion_type + " " + full_name[2], item.getCount()));
                         }
                     }
 
@@ -1876,7 +1882,7 @@ public class ActivityDashboard extends AppCompatActivity
                         } else if (potion_type.equalsIgnoreCase("HYPER")) {
                             potionTypeList.add(new ChildItem(R.drawable.ic_hyper_potion, potion_type + " " + full_name[2], item.getCount()));
                         } else if (potion_type.equalsIgnoreCase("MAX")) {
-                            potionTypeList.add(new ChildItem(R.drawable.ic_potions, potion_type + " " + full_name[2], item.getCount()));
+                            potionTypeList.add(new ChildItem(R.drawable.ic_max_potion, potion_type + " " + full_name[2], item.getCount()));
                         }
                     }
 
@@ -1996,7 +2002,7 @@ public class ActivityDashboard extends AppCompatActivity
                         if (revive_type.equalsIgnoreCase("REVIVE")) {
                             reviveTypeList.add(new ChildItem(R.drawable.ic_crystal, revive_type, item.getCount()));
                         } else if (revive_type.equalsIgnoreCase("MAX")) {
-                            reviveTypeList.add(new ChildItem(R.drawable.ic_crystal, revive_type + full_name[2], item.getCount()));
+                            reviveTypeList.add(new ChildItem(R.drawable.ic_max_revive, revive_type + full_name[2], item.getCount()));
                         }
                     }
 
@@ -2010,7 +2016,7 @@ public class ActivityDashboard extends AppCompatActivity
                         if (revive_type.equalsIgnoreCase("REVIVE")) {
                             reviveTypeList.add(new ChildItem(R.drawable.ic_crystal, revive_type, item.getCount()));
                         } else if (revive_type.equalsIgnoreCase("MAX")) {
-                            reviveTypeList.add(new ChildItem(R.drawable.ic_crystal, revive_type + full_name[2], item.getCount()));
+                            reviveTypeList.add(new ChildItem(R.drawable.ic_max_revive, revive_type + full_name[2], item.getCount()));
                         }
                     }
                     mGroupItemList.set(mGroupItemList.indexOf(getGroupItem(title_group)), new GroupItem(getString(R.string.group_revives), reviveTypeList, R.drawable.ic_crystal));

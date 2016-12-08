@@ -66,6 +66,8 @@ import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -150,8 +152,10 @@ public class FragmentMapa extends Fragment implements
 
     //Variables
     private Context mContext;
-    private LatLng ltn = null;
+    private LatLng mSearchPoint;
     private String mLastQuery = "";
+    private Circle mMapCircleSearchPoint;
+    private Circle mMapCircleRandomPoint;
 
     //Class and interface
     private CounterToRemoveMarkers mCounterToRemoveMarkers;
@@ -443,10 +447,13 @@ public class FragmentMapa extends Fragment implements
     public void onCameraChange(CameraPosition cameraPosition) {
 
         Log.i(TAG, "Change Camera to Latitude:" + cameraPosition.target.latitude + " Longitude: " + cameraPosition.target.longitude);
-
         userPosition = new LatLng(cameraPosition.target.latitude, cameraPosition.target.longitude);
 
-        ltn = null;
+        if (mSearchPoint != null) {
+            mSearchPoint = null;
+        }
+
+        cancelTask(true);
     }
 
     @Override
@@ -640,6 +647,12 @@ public class FragmentMapa extends Fragment implements
      */
     private void attemptSearch() {
 
+        mMapCircleSearchPoint = mGoogleMap.addCircle(new CircleOptions()
+                .center(mGoogleMap.getCameraPosition().target)
+                .radius(100)
+                .strokeColor(getResources().getColor(R.color.colorPrimaryDark))
+                .fillColor(getResources().getColor(R.color.colorPrimaryD)));
+
         if (mPokemonTask == null) {
             mPokemonTask = new PokemonsTask();
 
@@ -687,22 +700,36 @@ public class FragmentMapa extends Fragment implements
     public class PokemonsTask extends AsyncTask<Void, LocalUserPokemon, Boolean> {
 
         @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
         protected Boolean doInBackground(Void... params) {
             try {
+
                 while (!isCancelled()) {
 
-                    if (ltn == null) {
-                        ltn = new LatLng(userPosition.longitude, userPosition.latitude);
+                    if (mSearchPoint == null) {
+                        mSearchPoint = new LatLng(userPosition.latitude, userPosition.longitude);
                     } else {
-                        ltn = getRandomeLocation(userPosition.longitude, userPosition.latitude, 100);
+                        mSearchPoint = getRandomeLocation(userPosition.latitude, userPosition.longitude, 200);
                     }
 
-                    mPokemonGo.setLocation(ltn.latitude, ltn.longitude, 1);
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            if (mMapCircleRandomPoint != null) {
+                                mMapCircleRandomPoint.remove();
+                            }
+
+                            mMapCircleRandomPoint = mGoogleMap.addCircle(new CircleOptions()
+                                    .center(mSearchPoint)
+                                    .radius(40)
+                                    .strokeColor(getResources().getColor(R.color.colorPrimaryDark))
+                                    .fillColor(getResources().getColor(R.color.colorPrimaryD)));
+                        }
+                    });
+
+                    sleep(5000);
+
+                    /*mPokemonGo.setLocation(mSearchPoint.latitude, mSearchPoint.longitude, 1);
 
                     try {
                         List<CatchablePokemon> catchablePokemonList = mPokemonGo.getMap().getCatchablePokemon();
@@ -760,7 +787,7 @@ public class FragmentMapa extends Fragment implements
                     } catch (LoginFailedException | RemoteServerException e) {
                         Log.e(TAG, "Failed to get pokemons or server issue Login or RemoteServer exception: ", e);
                         break;
-                    }
+                    }*/
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Failed to get pokemons or server issue General exception: ", e);
@@ -836,6 +863,14 @@ public class FragmentMapa extends Fragment implements
                 }
 
             }
+
+            if (mMapCircleSearchPoint!=null){
+                mMapCircleSearchPoint.remove();
+            }
+            if (mMapCircleRandomPoint!=null){
+                mMapCircleRandomPoint.remove();
+            }
+
         } else {
             if (!Constants.DEBUG_MODE) {
                 Log.i(TAG, "DEBUG MODE IS DISABLE");
@@ -1188,8 +1223,6 @@ public class FragmentMapa extends Fragment implements
         double foundLatitude = y + y0;
         final LatLng foundLocation = new LatLng(foundLatitude, foundLongitude);
 
-        //Log.i(TAG, "Longitude: " + foundLongitude + "  Latitude: " + foundLatitude);
-
         Log.i(TAG, "New Location");
 
         /*getActivity().runOnUiThread(new Runnable() {
@@ -1335,8 +1368,7 @@ public class FragmentMapa extends Fragment implements
         });
     }
 
-    private void catchPokemon(CatchablePokemon catchablePokemon)
-    {
+    private void catchPokemon(CatchablePokemon catchablePokemon) {
         try {
             CatchOptions options = new CatchOptions(mPokemonGo)
                     .withPokeballSelector(PokeballSelector.SMART);
@@ -1349,7 +1381,7 @@ public class FragmentMapa extends Fragment implements
             double probability = catchablePokemon.getCaptureProbability();
             Pokeball pokeball = PokeballSelector.SMART.select(useablePokeballs, probability);
 
-            Log.i(TAG,"Attempting to catch: " + catchablePokemon.getPokemonId() + " with " + pokeball
+            Log.i(TAG, "Attempting to catch: " + catchablePokemon.getPokemonId() + " with " + pokeball
                     + " (" + probability + ")");
 
             CatchResult result = catchablePokemon.catchPokemon(options);
@@ -1388,4 +1420,5 @@ public class FragmentMapa extends Fragment implements
 
         return bitmap;
     }
+
 }

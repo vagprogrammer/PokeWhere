@@ -177,7 +177,7 @@
     <string name="text_stardust">Polvo Estelar:</string>
 
 
-    <!-- Strings related to new update -->
+    <!-- Strings related to new update 1.2-->
     <string name="text_result_power_up">ha aumentado su poder!</string>
     <string name="message_un_powerup">no puede aumentar su poder!</string>
     <string name="message_un_power_up">Intentalo más tarde</string>
@@ -219,4 +219,6 @@
         <item><font fgcolor="red">¡Ocurrió un error!</font>\n\nSi ves un error de \"Ocurrió un error\", puedes intentar lo siguiente: \n\n*Si utlizas un Token de Google, por favor generá uno diferente, copialo, pegalo e intenta iniciar sesión nuevamente.\n\n*Si utilizas tu cuenta de PTC, por favor verifica tus datos e intenta iniciar sesión nuevamente. \n\nNormalmente reintentar el proceso de inicio de sesión puede solucionar los errores generados por la aplicación.</item>
     </string-array>
 
+    <!-- Strings related to new update 1.3-->
+    <string name="ic_action_select_all">Seleccionar todos</string>
 </resources>
