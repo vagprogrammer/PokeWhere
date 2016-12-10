@@ -54,7 +54,7 @@ public class AdapterCatchablePokemon extends PagerAdapter {
         final LocalUserPokemon pokemon = mLocalPokemonList.get(position);
 
         ImageView img_pokemon;
-        TextView tv_name, tv_cp, tv_iv;
+        TextView tv_name, tv_cp, tv_iv, tv_attack_iv, tv_defense_iv, tv_stamina_iv;
 
         mInflator = (LayoutInflater) mContext
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -72,6 +72,7 @@ public class AdapterCatchablePokemon extends PagerAdapter {
             tv_name.setText(pokemon.getName());
             tv_cp.setText(String.valueOf(pokemon.getCp()));
             tv_iv.setText(String.valueOf(pokemon.getIv()) + "%");
+
         }
 
         // Add viewpager_item.xml to ViewPager

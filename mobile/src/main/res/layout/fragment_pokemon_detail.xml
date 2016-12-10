@@ -488,6 +488,8 @@
                                 android:text="100" />
                         </LinearLayout>
                     </LinearLayout>
+
+
                 </LinearLayout>
 
                 <LinearLayout

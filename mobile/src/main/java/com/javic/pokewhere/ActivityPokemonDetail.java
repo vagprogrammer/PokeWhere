@@ -32,6 +32,7 @@ import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.Stats;
 import com.pokegoapi.api.map.pokemon.EvolutionResult;
 import com.pokegoapi.api.player.PlayerProfile;
+import com.pokegoapi.api.pokemon.Evolutions;
 import com.pokegoapi.api.pokemon.Pokemon;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
@@ -40,6 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import POGOProtos.Enums.PokemonIdOuterClass;
 import POGOProtos.Networking.Responses.ReleasePokemonResponseOuterClass;
 
 public class ActivityPokemonDetail extends AppCompatActivity implements FragmentPokemonDetail.OnFragmentInteractionListener, Animator.AnimatorListener {
@@ -50,7 +52,6 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
     private AdapterPokemonDetail mAdapter;
     private ViewPager mViewPager;
     private ImageView leftArrow, rightArrow;
-
 
     //Listas
     public static List<LocalUserPokemon> mLocalUserPokemonList;
@@ -95,18 +96,14 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
 
         if (args != null) {
             mIndex = args.getInt("index");
+
+            mUserLevel = args.getInt("level");
+            mUserExperience = args.getLong("expirience");
+            mUserNextLevelXP = args.getLong("nextLevelXp");
+            mUserStardust = args.getLong("stardust");
+
         } else {
             mIndex = 0;
-        }
-
-        if (mGO != null) {
-            final Stats stats = mGO.getPlayerProfile().getStats();
-
-            mUserStardust = mGO.getPlayerProfile().getCurrency(PlayerProfile.Currency.STARDUST);
-
-            mUserLevel = stats.getLevel();
-            mUserExperience = stats.getExperience();
-            mUserNextLevelXP = stats.getNextLevelXp();
         }
 
         leftArrow = (ImageView) findViewById(R.id.leftArrow);
@@ -443,6 +440,7 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
         }
 
     }
+    //Actual S: 85531;
 
     public class PowerUpTask extends AsyncTask<Void, String, Boolean> {
 
@@ -503,10 +501,36 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                         localPokemon.setDefense(pokemon.getIndividualDefense());
                         localPokemon.setStamina(pokemon.getIndividualStamina());
 
-                        //CP_EVOLVE
-                        //localPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer());
-                        //localPokemon.setEvolveCP(pokemon.getCpAfterEvolve());
+                        //CP
+                        //Log.i(TAG," ");
+                        //Log.i(TAG," ");
+                        //Log.i(TAG, pokemon.getPokemonId().name() + " CP: " + String.valueOf(localUserPokemon.getCp()));
 
+                        List<PokemonIdOuterClass.PokemonId> evolutions = Evolutions.getEvolutions(pokemon.getPokemonId());
+                        if (evolutions.size() > 0) {
+                            //Log.i(TAG,  "Evolutions: "  + " -> " + evolutions);
+
+                            if (pokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
+                                localPokemon.setEvolveCP(pokemon.getCpAfterEvolve(evolutions.get(0)));
+                            }
+                            else{
+                                localPokemon.setEvolveCP(-1);
+                            }
+                        }
+
+                        List<PokemonIdOuterClass.PokemonId> highest = Evolutions.getHighest(pokemon.getPokemonId());
+                        if (highest.size() > 0) {
+                            //Check this is not the highest pokemon
+                                    /*if (!(highest.size() == 1 && highest.contains(pokemon.getPokemonId()))) {
+                                        Log.i(TAG,"Highest: " + " -> " + highest);
+                                    }*/
+
+                            if (pokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
+                                localPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer(highest.get(0)));
+                            }else{
+                                localPokemon.setMaxCp(-1);
+                            }
+                        }
 
                         localPokemon.setLevel(pokemon.getLevel());
                         localPokemon.setCandies(pokemon.getCandy());
@@ -639,9 +663,36 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                             localPokemon.setDefense(pokemon.getIndividualDefense());
                             localPokemon.setStamina(pokemon.getIndividualStamina());
 
-                            //CP_EVOLVE
-                            //localPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer());
-                            //localPokemon.setEvolveCP(pokemon.getCpAfterEvolve());
+                            //CP
+                            //Log.i(TAG," ");
+                            //Log.i(TAG," ");
+                            //Log.i(TAG, pokemon.getPokemonId().name() + " CP: " + String.valueOf(localUserPokemon.getCp()));
+
+                            List<PokemonIdOuterClass.PokemonId> evolutions = Evolutions.getEvolutions(pokemon.getPokemonId());
+                            if (evolutions.size() > 0) {
+                                //Log.i(TAG,  "Evolutions: "  + " -> " + evolutions);
+
+                                if (pokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
+                                    localPokemon.setEvolveCP(pokemon.getCpAfterEvolve(evolutions.get(0)));
+                                }
+                                else{
+                                    localPokemon.setEvolveCP(-1);
+                                }
+                            }
+
+                            List<PokemonIdOuterClass.PokemonId> highest = Evolutions.getHighest(pokemon.getPokemonId());
+                            if (highest.size() > 0) {
+                                //Check this is not the highest pokemon
+                                    /*if (!(highest.size() == 1 && highest.contains(pokemon.getPokemonId()))) {
+                                        Log.i(TAG,"Highest: " + " -> " + highest);
+                                    }*/
+
+                                if (pokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
+                                    localPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer(highest.get(0)));
+                                }else{
+                                    localPokemon.setMaxCp(-1);
+                                }
+                            }
 
                             localPokemon.setLevel(pokemon.getLevel());
                             localPokemon.setCandies(pokemon.getCandy());

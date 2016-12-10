@@ -29,7 +29,8 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
     private Context mContext;
 
     //Fragment UI
-    private View mView;
+    private View mView, mLayoutPowerUp, mLayoutEvolve;
+
     private ImageView imgPokemon, imgFavorite;
     private TextView txtCP, txtName, txtIv, txtAttack,txtDefense,txtStamina,txtMaxCP,
             txtMultCP, txtLevel, txtCandies, txtStardustToPowerup, txtCandiesToPowerUp,
@@ -100,6 +101,9 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
 
         // Inflate the layout for this fragment
         mView = inflater.inflate(R.layout.fragment_pokemon_detail, container, false);
+        mLayoutPowerUp = mView.findViewById(R.id.layoutPowerup);
+        mLayoutEvolve = mView.findViewById(R.id.layoutEvolve);
+
         imgPokemon = (ImageView) mView.findViewById(R.id.imgPokemon);
         imgFavorite = (ImageView) mView.findViewById(R.id.imgFavorite);
         txtCP = (TextView) mView.findViewById(R.id.txtCP);
@@ -138,20 +142,6 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
             txtName.setText(mPokemon.getNickname());
         }
 
-        txtIv.setText(String.valueOf(mPokemon.getIv())+ "%");
-        txtAttack.setText(String.valueOf(mPokemon.getAttack()));
-        txtDefense.setText(String.valueOf(mPokemon.getDefense()));
-        txtStamina.setText(String.valueOf(mPokemon.getStamina()));
-        txtMaxCP.setText(String.valueOf(mPokemon.getMaxCp()));
-        txtMultCP.setText(String.valueOf(mPokemon.getEvolveCP()));
-        txtLevel.setText(String.valueOf(mPokemon.getLevel()));
-        txtCandies.setText(String.valueOf(mPokemon.getCandies()));
-        txtStardustToPowerup.setText(String.valueOf(mPokemon.getPowerUpStardust()));
-        txtCandiesToPowerUp.setText(String.valueOf(mPokemon.getPoweUpCandies()));
-        txtCandiesToEvolve.setText(String.valueOf(mPokemon.getEvolveCandies()));
-        txtStardust.setText(String.valueOf(mUserStardust));
-
-
         if (mPokemon.getFavorite()){
             imgFavorite.setImageResource(R.drawable.ic_bookmarked);
         }
@@ -159,11 +149,39 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
             imgFavorite.setImageResource(R.drawable.ic_bookmark);
         }
 
+
+        txtIv.setText(String.valueOf(mPokemon.getIv())+ "%");
+        txtAttack.setText(String.valueOf(mPokemon.getAttack()));
+        txtDefense.setText(String.valueOf(mPokemon.getDefense()));
+        txtStamina.setText(String.valueOf(mPokemon.getStamina()));
+        txtMaxCP.setText(String.valueOf(mPokemon.getMaxCp()));
+        txtMultCP.setText(String.valueOf(mPokemon.getEvolveCP()));
+        txtLevel.setText(String.valueOf(mPokemon.getLevel()));
+        txtStardust.setText(String.valueOf(mUserStardust));
+        txtCandies.setText(String.valueOf(mPokemon.getCandies()));
+
         imgFavorite.setOnClickListener(this);
-        btnPowerUp.setOnClickListener(this);
-        btnEvolve.setOnClickListener(this);
-        btnTransfer.setOnClickListener(this);
         btnEditName.setOnClickListener(this);
+        btnTransfer.setOnClickListener(this);
+
+
+        if (mPokemon.getCandies()>=mPokemon.getPoweUpCandies() && mUserStardust>=mPokemon.getPowerUpStardust()){
+            txtStardustToPowerup.setText(String.valueOf(mPokemon.getPowerUpStardust()));
+            txtCandiesToPowerUp.setText(String.valueOf(mPokemon.getPoweUpCandies()));
+            btnPowerUp.setOnClickListener(this);
+        }
+        else {
+            mLayoutPowerUp.setVisibility(View.GONE);
+        }
+
+        if (mPokemon.getCandies()>=mPokemon.getEvolveCandies() & mPokemon.getEvolveCandies()>0){
+            txtCandiesToEvolve.setText(String.valueOf(mPokemon.getEvolveCandies()));
+            btnEvolve.setOnClickListener(this);
+        }
+        else {
+            mLayoutEvolve.setVisibility(View.GONE);
+        }
+
 
     }
 

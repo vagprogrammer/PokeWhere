@@ -891,12 +891,19 @@ public class ActivityDashboard extends AppCompatActivity
                 break;
             case Constants.ACTION_GO_TO_DETAIL:
 
+                ActivityPokemonDetail.mGO = null;
                 ActivityPokemonDetail.mGO = mGO;
+
                 ActivityPokemonDetail.mUserPokemonList = mUserPokemonList;
                 ActivityPokemonDetail.mLocalUserPokemonList = (List<LocalUserPokemon>) (((List<Object>) object).get(0));
 
                 Intent i = new Intent(ActivityDashboard.this, ActivityPokemonDetail.class);
                 i.putExtra("index", (Integer) (((List<Object>) object).get(1)));
+                i.putExtra("stardust", mUserStardust);
+                i.putExtra("level", mUserLevel);
+                i.putExtra("expirience", mUserExperience);
+                i.putExtra("nextLevelXp", mUserNextLevelXP);
+
                 startActivityForResult(i, Constants.REQUEST_CODE_ACTIVITY_POKEMON_DETAIL);
 
                 break;
@@ -1654,43 +1661,42 @@ public class ActivityDashboard extends AppCompatActivity
             localUserPokemon.setDefense(pokemon.getIndividualDefense());
             localUserPokemon.setStamina(pokemon.getIndividualStamina());
 
+            //MOVES
             //PokemonMoveOuterClass.PokemonMove mMove1 = pokemon.getMove1();
             //PokemonMoveOuterClass.PokemonMove mMove2 = pokemon.getMove2();
-
-
             //Log.i(TAG,pokemon.getPokemonId().name()+ " Moves: " + " -> " + "Move1: " + mMove1.name() + " " + + " Move2: " + mMove2.name()+ " " + String.valueOf(pokemon.getIndividualAttack()));
 
-           /* Log.i(TAG," ");
-            Log.i(TAG," ");
 
-            Log.i(TAG, pokemon.getPokemonId().name() + " CP: " + String.valueOf(localUserPokemon.getCp()));
-
-            Evolution evolution = Evolutions.getEvolution(pokemon.getPokemonId());
+            //CP
+            //Log.i(TAG," ");
+            //Log.i(TAG," ");
+            //Log.i(TAG, pokemon.getPokemonId().name() + " CP: " + String.valueOf(localUserPokemon.getCp()));
 
             List<PokemonIdOuterClass.PokemonId> evolutions = Evolutions.getEvolutions(pokemon.getPokemonId());
-
             if (evolutions.size() > 0) {
-                Log.i(TAG,  "Evolutions: "  + " -> " + evolutions + " (Stage: " + evolution.getStage() + ")");
-            }
+                //Log.i(TAG,  "Evolutions: "  + " -> " + evolutions);
 
-            /*List<PokemonIdOuterClass.PokemonId> basic = Evolutions.getBasic(pokemon.getPokemonId());
-            if (basic.size() > 0) {
-                //Check this is not the most basic pokemon
-                if (!(basic.size() == 1 && basic.contains(pokemon.getPokemonId()))) {
-                    Log.i(TAG,"Most Basic: " + " -> " + basic);
+                if (pokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
+                    localUserPokemon.setEvolveCP(pokemon.getCpAfterEvolve(evolutions.get(0)));
+                }
+                else{
+                    localUserPokemon.setEvolveCP(-1);
                 }
             }
 
+            List<PokemonIdOuterClass.PokemonId> highest = Evolutions.getHighest(pokemon.getPokemonId());
             if (highest.size() > 0) {
                 //Check this is not the highest pokemon
-                if (!(highest.size() == 1 && highest.contains(pokemon.getPokemonId()))) {
+                /*if (!(highest.size() == 1 && highest.contains(pokemon.getPokemonId()))) {
                     Log.i(TAG,"Highest: " + " -> " + highest);
-                }
-            }*/
+                }*/
 
-            //CP_EVOLVE
-            //localUserPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer(highest.get(0)));
-            //localUserPokemon.setEvolveCP(pokemon.getCpAfterEvolve(evolution.getPokemon()));
+                if (pokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
+                    localUserPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer(highest.get(0)));
+                }else{
+                    localUserPokemon.setMaxCp(-1);
+                }
+            }
 
             localUserPokemon.setLevel(pokemon.getLevel());
             localUserPokemon.setCandies(pokemon.getCandy());
@@ -1725,9 +1731,36 @@ public class ActivityDashboard extends AppCompatActivity
                 localUserPokemon.setDefense(specificPokemon.getIndividualDefense());
                 localUserPokemon.setStamina(specificPokemon.getIndividualStamina());
 
-                //CP_EVOLVE
-                //localUserPokemon.setMaxCp(specificPokemon.getMaxCpFullEvolveAndPowerupForPlayer());
-                //localUserPokemon.setEvolveCP(specificPokemon.getCpAfterEvolve());
+                //CP
+                //Log.i(TAG," ");
+                //Log.i(TAG," ");
+                //Log.i(TAG, pokemon.getPokemonId().name() + " CP: " + String.valueOf(localUserPokemon.getCp()));
+
+                List<PokemonIdOuterClass.PokemonId> evolutions = Evolutions.getEvolutions(specificPokemon.getPokemonId());
+                if (evolutions.size() > 0) {
+                    //Log.i(TAG,  "Evolutions: "  + " -> " + evolutions);
+
+                    if (specificPokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
+                        localUserPokemon.setEvolveCP(specificPokemon.getCpAfterEvolve(evolutions.get(0)));
+                    }
+                    else{
+                        localUserPokemon.setEvolveCP(-1);
+                    }
+                }
+
+                List<PokemonIdOuterClass.PokemonId> highest = Evolutions.getHighest(specificPokemon.getPokemonId());
+                if (highest.size() > 0) {
+                    //Check this is not the highest pokemon
+                /*if (!(highest.size() == 1 && highest.contains(pokemon.getPokemonId()))) {
+                    Log.i(TAG,"Highest: " + " -> " + highest);
+                }*/
+
+                    if (specificPokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
+                        localUserPokemon.setMaxCp(specificPokemon.getMaxCpFullEvolveAndPowerupForPlayer(highest.get(0)));
+                    }else{
+                        localUserPokemon.setMaxCp(-1);
+                    }
+                }
 
                 localUserPokemon.setLevel(specificPokemon.getLevel());
                 localUserPokemon.setCandies(specificPokemon.getCandy());
