@@ -76,12 +76,15 @@ import com.javic.pokewhere.adapters.AdapterCatchablePokemon;
 import com.javic.pokewhere.interfaces.OnFragmentListener;
 import com.javic.pokewhere.models.LocalUserPokemon;
 import com.javic.pokewhere.models.PlaceSuggestion;
+import com.javic.pokewhere.models.PokemonMove;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.Pokeball;
 import com.pokegoapi.api.map.pokemon.CatchResult;
 import com.pokegoapi.api.map.pokemon.CatchablePokemon;
 import com.pokegoapi.api.map.pokemon.encounter.EncounterResult;
+import com.pokegoapi.api.pokemon.PokemonMoveMeta;
+import com.pokegoapi.api.pokemon.PokemonMoveMetaRegistry;
 import com.pokegoapi.api.settings.CatchOptions;
 import com.pokegoapi.api.settings.PokeballSelector;
 import com.pokegoapi.exceptions.CaptchaActiveException;
@@ -104,7 +107,7 @@ import POGOProtos.Inventory.Item.ItemIdOuterClass;
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 
 public class FragmentMapa extends Fragment implements
-        OnMapReadyCallback, GoogleMap.OnCameraChangeListener, GoogleMap.OnMarkerClickListener, GoogleApiClient.ConnectionCallbacks,
+        OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMapLongClickListener, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = FragmentMapa.class.getSimpleName();
@@ -271,8 +274,8 @@ public class FragmentMapa extends Fragment implements
     public void onPause() {
         super.onPause();
 
-        //OnlyCnacel
-        cancelTask(true);
+        //Cnacel
+        cancelTask();
 
         if (mGoogleMap != null) {
 
@@ -419,7 +422,6 @@ public class FragmentMapa extends Fragment implements
         return true;
     }
 
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         MapsInitializer.initialize(mContext);
@@ -437,29 +439,23 @@ public class FragmentMapa extends Fragment implements
 
 
     @Override
-    public void onCameraChange(CameraPosition cameraPosition) {
-
-        Log.i(TAG, "Change Camera to Latitude:" + cameraPosition.target.latitude + " Longitude: " + cameraPosition.target.longitude);
-        userPosition = new LatLng(cameraPosition.target.latitude, cameraPosition.target.longitude);
-
-        if (mSearchPoint != null) {
-            mSearchPoint = null;
-        }
-
-        cancelTask(true);
-    }
-
-    @Override
     public boolean onMarkerClick(Marker marker) {
 
         if (marker.getTag() instanceof LocalUserPokemon) {
-            if (bsb.getState() == BottomSheetBehavior.STATE_HIDDEN) {
-                bsb.setState(BottomSheetBehavior.STATE_COLLAPSED);
-            } else {
-
-            }
+            bsb.setState(BottomSheetBehavior.STATE_COLLAPSED);
         }
         return true;
+    }
+
+    @Override
+    public void onMapLongClick(LatLng point) {
+
+        Log.i(TAG, "Change Camera to Latitude:" + point.latitude + " Longitude: " + point.longitude);
+
+        mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, Constants.USER_ZOOM));
+
+        cancelTask();
+
     }
 
     /**
@@ -599,21 +595,6 @@ public class FragmentMapa extends Fragment implements
         }
     }
 
-    public void drawLocation(LatLng position) {
-
-        if (mBusquedaMarkers) {
-
-            Marker mMarker = mGoogleMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(position.latitude, position.longitude)));
-
-            Long currentTime = System.currentTimeMillis();
-            mMarker.setTag(currentTime);
-            mMarkers.add(mMarker);
-        }
-
-    }
-
-
     /**
      * Google api callback methods
      */
@@ -640,8 +621,10 @@ public class FragmentMapa extends Fragment implements
      */
     private void attemptSearch() {
 
+        userPosition = mGoogleMap.getCameraPosition().target;
+
         mMapCircleSearchPoint = mGoogleMap.addCircle(new CircleOptions()
-                .center(mGoogleMap.getCameraPosition().target)
+                .center(userPosition)
                 .radius(100)
                 .strokeColor(getResources().getColor(R.color.colorPrimaryDark))
                 .fillColor(getResources().getColor(R.color.colorPrimaryD)));
@@ -674,7 +657,7 @@ public class FragmentMapa extends Fragment implements
                     @Override
                     @TargetApi(Build.VERSION_CODES.M)
                     public void onClick(View v) {
-                        cancelTask(true);
+                        cancelTask();
                     }
                 });
 
@@ -690,7 +673,7 @@ public class FragmentMapa extends Fragment implements
      * Represents an asynchronous get pokemons
      * with a location.
      */
-    public class PokemonsTask extends AsyncTask<Void, LocalUserPokemon, Boolean> {
+    public class PokemonsTask extends AsyncTask<Void, Object, Boolean> {
 
         @Override
         protected Boolean doInBackground(Void... params) {
@@ -701,26 +684,10 @@ public class FragmentMapa extends Fragment implements
                     if (mSearchPoint == null) {
                         mSearchPoint = new LatLng(userPosition.latitude, userPosition.longitude);
                     } else {
-                        mSearchPoint = getRandomeLocation(userPosition.latitude, userPosition.longitude, 200);
+                        mSearchPoint = getRandomeLocation(userPosition.longitude, userPosition.latitude, 100);
                     }
 
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-
-                            if (mMapCircleRandomPoint != null) {
-                                mMapCircleRandomPoint.remove();
-                            }
-
-                            mMapCircleRandomPoint = mGoogleMap.addCircle(new CircleOptions()
-                                    .center(mSearchPoint)
-                                    .radius(40)
-                                    .strokeColor(getResources().getColor(R.color.colorPrimaryDark))
-                                    .fillColor(getResources().getColor(R.color.colorPrimaryD)));
-                        }
-                    });
-
-                    sleep(5000);
+                    publishProgress(mSearchPoint);
 
                     mPokemonGo.setLocation(mSearchPoint.latitude, mSearchPoint.longitude, 1);
 
@@ -760,6 +727,15 @@ public class FragmentMapa extends Fragment implements
                                     localUserPokemon.setDefense(pokemonData.getIndividualDefense());
                                     localUserPokemon.setStamina(pokemonData.getIndividualStamina());
 
+                                    PokemonMoveMeta moveMeta1 = PokemonMoveMetaRegistry.getMeta(pokemonData.getMove1());
+                                    PokemonMoveMeta moveMeta2 = PokemonMoveMetaRegistry.getMeta(pokemonData.getMove2());
+                                    PokemonMove move1 = new PokemonMove(moveMeta1.getMove().name(), moveMeta1.getAccuracy(), moveMeta1.getCritChance(), moveMeta1.getEnergy(),moveMeta1.getPower(), moveMeta1.getTime());
+                                    PokemonMove move2 = new PokemonMove(moveMeta2.getMove().name(), moveMeta2.getAccuracy(), moveMeta2.getCritChance(), moveMeta2.getEnergy(),moveMeta2.getPower(), moveMeta2.getTime());
+                                    final List<PokemonMove> moves = new ArrayList<>();
+                                    moves.add(move1);
+                                    moves.add(move2);
+                                    localUserPokemon.setMoves(moves);
+
                                     Boolean isEncountered = containsEncounteredId(localUserPokemon, String.valueOf(localUserPokemon.getId()));
 
                                     if (!isEncountered) {
@@ -791,16 +767,33 @@ public class FragmentMapa extends Fragment implements
         }
 
         @Override
-        protected void onProgressUpdate(LocalUserPokemon... localPokemon) {
+        protected void onProgressUpdate(Object... obj) {
 
-            super.onProgressUpdate(localPokemon);
-            drawPokemon(localPokemon[0]);
+            super.onProgressUpdate(obj);
 
-            mAdapter.notifyDataSetChanged();
 
-            if (bsb.getState() == BottomSheetBehavior.STATE_HIDDEN) {
-                bsb.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            if (obj[0] instanceof LocalUserPokemon){
+                drawPokemon((LocalUserPokemon)obj[0]);
+
+                mAdapter.notifyDataSetChanged();
+
+                if (bsb.getState() == BottomSheetBehavior.STATE_HIDDEN) {
+                    bsb.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                }
             }
+            else{
+                if (mMapCircleRandomPoint==null) {
+                    mMapCircleRandomPoint = mGoogleMap.addCircle(new CircleOptions()
+                            .center((LatLng) obj[0])
+                            .radius(40)
+                            .strokeColor(getResources().getColor(R.color.black))
+                            .fillColor(getResources().getColor(R.color.colorPrimaryD)));
+                }
+                else{
+                    mMapCircleRandomPoint.setCenter((LatLng) obj[0]);
+                }
+            }
+
 
         }
 
@@ -829,7 +822,11 @@ public class FragmentMapa extends Fragment implements
         }
     }
 
-    public void cancelTask(Boolean onlyCancel) {
+    public void cancelTask() {
+
+        if (mSearchPoint != null) {
+            mSearchPoint = null;
+        }
 
         if (mPokemonTask != null) {
             mPokemonTask.cancel(true);
@@ -839,68 +836,29 @@ public class FragmentMapa extends Fragment implements
             mCounterToRemoveMarkers.cancel();
         }
 
-        if (onlyCancel) {
-            Log.i(TAG, "ONLY CANCEL TASK");
+        if (mMapCircleSearchPoint != null) {
+            mMapCircleSearchPoint.remove();
+            mMapCircleSearchPoint =null;
+        }
+        if (mMapCircleRandomPoint != null) {
+            mMapCircleRandomPoint.remove();
+            mMapCircleRandomPoint = null;
+        }
 
-            if (mSnackBar != null && mSearchView != null && mGetPokemonsButton != null) {
-                mSnackBar.dismiss();
-                mGetPokemonsButton.setVisibility(View.VISIBLE);
-                mSearchView.hideProgress();
+        Log.i(TAG, "ONLY CANCEL TASK");
 
+        if (mSnackBar != null && mSearchView != null && mGetPokemonsButton != null) {
+            mSnackBar.dismiss();
+            mGetPokemonsButton.setVisibility(View.VISIBLE);
+            mSearchView.hideProgress();
 
-                mGoogleMap.getUiSettings().setZoomControlsEnabled(true);
+            mGoogleMap.getUiSettings().setZoomControlsEnabled(true);
 
-                //onlyCancel
-                if (bsb.getState() == BottomSheetBehavior.STATE_COLLAPSED || bsb.getState() == BottomSheetBehavior.STATE_EXPANDED) {
-                    bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
-                }
-
+            //onlyCancel
+            if (bsb.getState() == BottomSheetBehavior.STATE_COLLAPSED || bsb.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
             }
 
-            if (mMapCircleSearchPoint!=null){
-                mMapCircleSearchPoint.remove();
-            }
-            if (mMapCircleRandomPoint!=null){
-                mMapCircleRandomPoint.remove();
-            }
-
-        } else {
-            if (!Constants.DEBUG_MODE) {
-                Log.i(TAG, "DEBUG MODE IS DISABLE");
-                //Show snackBar to let user restart the tasks
-
-                if (mSnackBar != null && mSearchView != null) {
-                    mSnackBar.dismiss();
-                    mSnackBar = null;
-                    mSearchView.hideProgress();
-                }
-
-                if (mSnackBar == null) {
-                    mSnackBar = Snackbar.make(mView, R.string.snack_bar_error_with_pokemon, Snackbar.LENGTH_INDEFINITE)
-                            .setAction(R.string.snack_bar_error_with_pokemon_negative_btn, new View.OnClickListener() {
-                                @Override
-                                @TargetApi(Build.VERSION_CODES.M)
-                                public void onClick(View v) {
-                                    mGetPokemonsButton.setVisibility(View.VISIBLE);
-                                }
-                            })
-                            .setAction(R.string.snack_bar_error_with_pokemon_positive_btn, new View.OnClickListener() {
-                                @Override
-                                @TargetApi(Build.VERSION_CODES.M)
-                                public void onClick(View v) {
-
-                                    attemptSearch();
-                                }
-                            });
-                    mSnackBar.show();
-                }
-            } else {
-
-                sleep(10000);
-                Log.i(TAG, "DEBUG MODE IS ENABLED, SO RESTART ALL THE TASKS");
-                //Restart all the Tasks
-                attemptSearch();
-            }
         }
 
     }
@@ -1109,7 +1067,8 @@ public class FragmentMapa extends Fragment implements
             mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
             mGoogleMap.getUiSettings().setZoomControlsEnabled(true);
             mGoogleMap.getUiSettings().setCompassEnabled(false);
-            mGoogleMap.setOnCameraChangeListener(this);
+            mGoogleMap.setOnMarkerClickListener(this);
+            mGoogleMap.setOnMapLongClickListener(this);
 
             mSearchView.setVisibility(View.VISIBLE);
             mUserMarker.setVisibility(View.VISIBLE);
@@ -1196,6 +1155,7 @@ public class FragmentMapa extends Fragment implements
 
     }
 
+
     public LatLng getRandomeLocation(double x0, double y0, int radius) {
         Random random = new Random();
 
@@ -1216,14 +1176,11 @@ public class FragmentMapa extends Fragment implements
         double foundLatitude = y + y0;
         final LatLng foundLocation = new LatLng(foundLatitude, foundLongitude);
 
+        //Log.i(TAG, "Longitude: " + foundLongitude + "  Latitude: " + foundLatitude);
+
         Log.i(TAG, "New Location");
 
-        /*getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                drawLocation(foundLocation);
-            }
-        });*/
+        Log.e(TAG, "Randome Point --> Latitude:" +foundLocation.latitude + " Longuitude: " + foundLocation.longitude);
 
         return foundLocation;
     }

@@ -26,7 +26,7 @@ public class Constants {
     public static final String URL_FEED = "https://pokevision.com/map/data/";
 
     //DEFAULT VALUES
-    public static final int USER_ZOOM =15;
+    public static final int USER_ZOOM =16;
 
     //Dashboard Actions
     public static final int ACTION_CONNECT_WITH_PG = 0;

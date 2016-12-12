@@ -54,7 +54,7 @@ public class AdapterCatchablePokemon extends PagerAdapter {
         final LocalUserPokemon pokemon = mLocalPokemonList.get(position);
 
         ImageView img_pokemon;
-        TextView tv_name, tv_cp, tv_iv, tv_attack_iv, tv_defense_iv, tv_stamina_iv;
+        TextView tv_name, tv_cp, tv_iv, txtAttack, txtDefense, txtStamina;
 
         mInflator = (LayoutInflater) mContext
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -68,10 +68,19 @@ public class AdapterCatchablePokemon extends PagerAdapter {
             tv_cp = (TextView) itemView.findViewById(R.id.cp);
             tv_iv = (TextView) itemView.findViewById(R.id.iv);
 
+            txtAttack= (TextView) itemView.findViewById(R.id.txtAttack);
+            txtDefense= (TextView) itemView.findViewById(R.id.txtDefense);
+            txtStamina= (TextView) itemView.findViewById(R.id.txtStamina);
+
+
             img_pokemon.setImageBitmap(pokemon.getBitmap());
             tv_name.setText(pokemon.getName());
             tv_cp.setText(String.valueOf(pokemon.getCp()));
             tv_iv.setText(String.valueOf(pokemon.getIv()) + "%");
+
+            txtAttack.setText(String.valueOf(pokemon.getAttack()));
+            txtDefense.setText(String.valueOf(pokemon.getDefense()));
+            txtStamina.setText(String.valueOf(pokemon.getStamina()));
 
         }
 

@@ -958,14 +958,14 @@ public class ActivityDashboard extends AppCompatActivity
                     if (mGO != null) {
 
                         publishProgress(getString(R.string.message_get_user_information));
-                        sleep(1000);
+                        //sleep(1000);
                         final PlayerDataOuterClass.PlayerData playerData = mGO.getPlayerProfile().getPlayerData();
 
                         publishProgress(getString(R.string.message_get_account_information));
-                        sleep(1000);
+                        //sleep(1000);
                         final Stats stats = mGO.getPlayerProfile().getStats();
 
-                        sleep(1000);
+                        //sleep(1000);
                         mUserStardust = mGO.getPlayerProfile().getCurrency(PlayerProfile.Currency.STARDUST);
 
                         mUserName = playerData.getUsername();
