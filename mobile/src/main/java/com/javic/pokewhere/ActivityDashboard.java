@@ -49,25 +49,25 @@ import com.javic.pokewhere.models.ChildItem;
 import com.javic.pokewhere.models.GroupItem;
 import com.javic.pokewhere.models.ItemToDelete;
 import com.javic.pokewhere.models.LocalUserPokemon;
+import com.javic.pokewhere.models.PokemonMove;
 import com.javic.pokewhere.models.ProgressTransferPokemon;
 import com.javic.pokewhere.services.ServiceFloatingMap;
+import com.javic.pokewhere.util.AppRater;
 import com.javic.pokewhere.util.Constants;
 import com.javic.pokewhere.util.PrefManager;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.Item;
 import com.pokegoapi.api.inventory.Stats;
 import com.pokegoapi.api.player.PlayerProfile;
-import com.pokegoapi.api.pokemon.Evolution;
 import com.pokegoapi.api.pokemon.Evolutions;
-import com.pokegoapi.api.pokemon.MovementType;
 import com.pokegoapi.api.pokemon.Pokemon;
-import com.pokegoapi.api.pokemon.PokemonMeta;
+import com.pokegoapi.api.pokemon.PokemonMoveMeta;
+import com.pokegoapi.api.pokemon.PokemonMoveMetaRegistry;
 import com.pokegoapi.auth.GoogleAutoCredentialProvider;
 import com.pokegoapi.auth.GoogleUserCredentialProvider;
 import com.pokegoapi.auth.PtcCredentialProvider;
 import com.pokegoapi.exceptions.CaptchaActiveException;
 import com.pokegoapi.exceptions.LoginFailedException;
-import com.pokegoapi.exceptions.NoSuchItemException;
 import com.pokegoapi.exceptions.RemoteServerException;
 
 import java.io.IOException;
@@ -83,7 +83,6 @@ import java.util.Map;
 
 import POGOProtos.Data.PlayerDataOuterClass;
 import POGOProtos.Enums.PokemonIdOuterClass;
-import POGOProtos.Enums.PokemonMoveOuterClass;
 import POGOProtos.Inventory.Item.ItemIdOuterClass;
 import POGOProtos.Networking.Responses.ReleasePokemonResponseOuterClass;
 import okhttp3.OkHttpClient;
@@ -1021,6 +1020,8 @@ public class ActivityDashboard extends AppCompatActivity
 
             if (succes) {
 
+                AppRater.app_launched(ActivityDashboard.this);
+
                 setUpHeaderNavigationView();
 
                 switch (visibleFragment) {
@@ -1662,10 +1663,35 @@ public class ActivityDashboard extends AppCompatActivity
             localUserPokemon.setStamina(pokemon.getIndividualStamina());
 
             //MOVES
-            //PokemonMoveOuterClass.PokemonMove mMove1 = pokemon.getMove1();
-            //PokemonMoveOuterClass.PokemonMove mMove2 = pokemon.getMove2();
-            //Log.i(TAG,pokemon.getPokemonId().name()+ " Moves: " + " -> " + "Move1: " + mMove1.name() + " " + + " Move2: " + mMove2.name()+ " " + String.valueOf(pokemon.getIndividualAttack()));
+            PokemonMoveMeta moveMeta1 = PokemonMoveMetaRegistry.getMeta(pokemon.getMove1());
+            PokemonMoveMeta moveMeta2 = PokemonMoveMetaRegistry.getMeta(pokemon.getMove2());
+            PokemonMove move1 = new PokemonMove(moveMeta1.getMove().name(), moveMeta1.getAccuracy(), moveMeta1.getCritChance(), moveMeta1.getEnergy(),moveMeta1.getPower(), moveMeta1.getTime());
+            PokemonMove move2 = new PokemonMove(moveMeta2.getMove().name(), moveMeta2.getAccuracy(), moveMeta2.getCritChance(), moveMeta2.getEnergy(),moveMeta2.getPower(), moveMeta2.getTime());
+            final List<PokemonMove> moves = new ArrayList<>();
+            moves.add(move1);
+            moves.add(move2);
+            localUserPokemon.setMoves(moves);
 
+            /*Log.i(TAG," ");
+            Log.i(TAG," ");
+            Log.i(TAG,pokemon.getPokemonId().name()+ " CP: " + String.valueOf(pokemon.getCp()));
+            Log.i(TAG,"Moves");
+            Log.i(TAG,"Move 1:");
+            Log.i(TAG,"Nombre:" + move1.getName()
+                    + " Exactitud: " + String.valueOf(move1.getAccuracy())
+                    + " CritChance: " + String.valueOf(move1.getCritChance())
+                    + " Energía: " + String.valueOf(move1.getEnergy())
+                    + " Poder: " + String.valueOf(move1.getPower())
+                    + " Tiempo: " + String.valueOf(move1.getTime())
+            );
+            Log.i(TAG,"Move 2:");
+            Log.i(TAG,"Nombre:" + move2.getName()
+                    + " Exactitud: " + String.valueOf(move2.getAccuracy())
+                    + " CritChance: " + String.valueOf(move2.getCritChance())
+                    + " Energía: " + String.valueOf(move2.getEnergy())
+                    + " Poder: " + String.valueOf(move2.getPower())
+                    + " Tiempo: " + String.valueOf(move2.getTime())
+            );*/
 
             //CP
             //Log.i(TAG," ");
@@ -1731,15 +1757,19 @@ public class ActivityDashboard extends AppCompatActivity
                 localUserPokemon.setDefense(specificPokemon.getIndividualDefense());
                 localUserPokemon.setStamina(specificPokemon.getIndividualStamina());
 
-                //CP
-                //Log.i(TAG," ");
-                //Log.i(TAG," ");
-                //Log.i(TAG, pokemon.getPokemonId().name() + " CP: " + String.valueOf(localUserPokemon.getCp()));
+                //MOVES
+                PokemonMoveMeta moveMeta1 = PokemonMoveMetaRegistry.getMeta(specificPokemon.getMove1());
+                PokemonMoveMeta moveMeta2 = PokemonMoveMetaRegistry.getMeta(specificPokemon.getMove2());
+                PokemonMove move1 = new PokemonMove(moveMeta1.getMove().name(), moveMeta1.getAccuracy(), moveMeta1.getCritChance(), moveMeta1.getEnergy(),moveMeta1.getPower(), moveMeta1.getTime());
+                PokemonMove move2 = new PokemonMove(moveMeta2.getMove().name(), moveMeta2.getAccuracy(), moveMeta2.getCritChance(), moveMeta2.getEnergy(),moveMeta2.getPower(), moveMeta2.getTime());
+                final List<PokemonMove> moves = new ArrayList<>();
+                moves.add(move1);
+                moves.add(move2);
+                localUserPokemon.setMoves(moves);
 
+                //CP
                 List<PokemonIdOuterClass.PokemonId> evolutions = Evolutions.getEvolutions(specificPokemon.getPokemonId());
                 if (evolutions.size() > 0) {
-                    //Log.i(TAG,  "Evolutions: "  + " -> " + evolutions);
-
                     if (specificPokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
                         localUserPokemon.setEvolveCP(specificPokemon.getCpAfterEvolve(evolutions.get(0)));
                     }
@@ -1747,21 +1777,14 @@ public class ActivityDashboard extends AppCompatActivity
                         localUserPokemon.setEvolveCP(-1);
                     }
                 }
-
                 List<PokemonIdOuterClass.PokemonId> highest = Evolutions.getHighest(specificPokemon.getPokemonId());
                 if (highest.size() > 0) {
-                    //Check this is not the highest pokemon
-                /*if (!(highest.size() == 1 && highest.contains(pokemon.getPokemonId()))) {
-                    Log.i(TAG,"Highest: " + " -> " + highest);
-                }*/
-
                     if (specificPokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
                         localUserPokemon.setMaxCp(specificPokemon.getMaxCpFullEvolveAndPowerupForPlayer(highest.get(0)));
                     }else{
                         localUserPokemon.setMaxCp(-1);
                     }
                 }
-
                 localUserPokemon.setLevel(specificPokemon.getLevel());
                 localUserPokemon.setCandies(specificPokemon.getCandy());
                 localUserPokemon.setPowerUpStardust(specificPokemon.getStardustCostsForPowerup());

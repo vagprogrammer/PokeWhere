@@ -25,20 +25,23 @@ import com.daimajia.androidanimations.library.YoYo;
 import com.javic.pokewhere.adapters.AdapterPokemonDetail;
 import com.javic.pokewhere.fragments.FragmentPokemonDetail;
 import com.javic.pokewhere.models.LocalUserPokemon;
+import com.javic.pokewhere.models.PokemonMove;
 import com.javic.pokewhere.models.ProgressTransferPokemon;
 import com.javic.pokewhere.util.Constants;
 import com.nineoldandroids.animation.Animator;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.Stats;
 import com.pokegoapi.api.map.pokemon.EvolutionResult;
-import com.pokegoapi.api.player.PlayerProfile;
 import com.pokegoapi.api.pokemon.Evolutions;
 import com.pokegoapi.api.pokemon.Pokemon;
+import com.pokegoapi.api.pokemon.PokemonMoveMeta;
+import com.pokegoapi.api.pokemon.PokemonMoveMetaRegistry;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import POGOProtos.Enums.PokemonIdOuterClass;
@@ -501,15 +504,19 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                         localPokemon.setDefense(pokemon.getIndividualDefense());
                         localPokemon.setStamina(pokemon.getIndividualStamina());
 
-                        //CP
-                        //Log.i(TAG," ");
-                        //Log.i(TAG," ");
-                        //Log.i(TAG, pokemon.getPokemonId().name() + " CP: " + String.valueOf(localUserPokemon.getCp()));
+                        //MOVES
+                        PokemonMoveMeta moveMeta1 = PokemonMoveMetaRegistry.getMeta(pokemon.getMove1());
+                        PokemonMoveMeta moveMeta2 = PokemonMoveMetaRegistry.getMeta(pokemon.getMove2());
+                        PokemonMove move1 = new PokemonMove(moveMeta1.getMove().name(), moveMeta1.getAccuracy(), moveMeta1.getCritChance(), moveMeta1.getEnergy(),moveMeta1.getPower(), moveMeta1.getTime());
+                        PokemonMove move2 = new PokemonMove(moveMeta2.getMove().name(), moveMeta2.getAccuracy(), moveMeta2.getCritChance(), moveMeta2.getEnergy(),moveMeta2.getPower(), moveMeta2.getTime());
+                        final List<PokemonMove> moves = new ArrayList<>();
+                        moves.add(move1);
+                        moves.add(move2);
+                        localPokemon.setMoves(moves);
 
+                        //CP
                         List<PokemonIdOuterClass.PokemonId> evolutions = Evolutions.getEvolutions(pokemon.getPokemonId());
                         if (evolutions.size() > 0) {
-                            //Log.i(TAG,  "Evolutions: "  + " -> " + evolutions);
-
                             if (pokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
                                 localPokemon.setEvolveCP(pokemon.getCpAfterEvolve(evolutions.get(0)));
                             }
@@ -517,14 +524,8 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                                 localPokemon.setEvolveCP(-1);
                             }
                         }
-
                         List<PokemonIdOuterClass.PokemonId> highest = Evolutions.getHighest(pokemon.getPokemonId());
                         if (highest.size() > 0) {
-                            //Check this is not the highest pokemon
-                                    /*if (!(highest.size() == 1 && highest.contains(pokemon.getPokemonId()))) {
-                                        Log.i(TAG,"Highest: " + " -> " + highest);
-                                    }*/
-
                             if (pokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
                                 localPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer(highest.get(0)));
                             }else{
@@ -663,15 +664,20 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                             localPokemon.setDefense(pokemon.getIndividualDefense());
                             localPokemon.setStamina(pokemon.getIndividualStamina());
 
-                            //CP
-                            //Log.i(TAG," ");
-                            //Log.i(TAG," ");
-                            //Log.i(TAG, pokemon.getPokemonId().name() + " CP: " + String.valueOf(localUserPokemon.getCp()));
+                            //MOVES
+                            PokemonMoveMeta moveMeta1 = PokemonMoveMetaRegistry.getMeta(pokemon.getMove1());
+                            PokemonMoveMeta moveMeta2 = PokemonMoveMetaRegistry.getMeta(pokemon.getMove2());
+                            PokemonMove move1 = new PokemonMove(moveMeta1.getMove().name(), moveMeta1.getAccuracy(), moveMeta1.getCritChance(), moveMeta1.getEnergy(),moveMeta1.getPower(), moveMeta1.getTime());
+                            PokemonMove move2 = new PokemonMove(moveMeta2.getMove().name(), moveMeta2.getAccuracy(), moveMeta2.getCritChance(), moveMeta2.getEnergy(),moveMeta2.getPower(), moveMeta2.getTime());
+                            final List<PokemonMove> moves = new ArrayList<>();
+                            moves.add(move1);
+                            moves.add(move2);
+                            localPokemon.setMoves(moves);
 
+
+                            //CP
                             List<PokemonIdOuterClass.PokemonId> evolutions = Evolutions.getEvolutions(pokemon.getPokemonId());
                             if (evolutions.size() > 0) {
-                                //Log.i(TAG,  "Evolutions: "  + " -> " + evolutions);
-
                                 if (pokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
                                     localPokemon.setEvolveCP(pokemon.getCpAfterEvolve(evolutions.get(0)));
                                 }
@@ -679,14 +685,8 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
                                     localPokemon.setEvolveCP(-1);
                                 }
                             }
-
                             List<PokemonIdOuterClass.PokemonId> highest = Evolutions.getHighest(pokemon.getPokemonId());
                             if (highest.size() > 0) {
-                                //Check this is not the highest pokemon
-                                    /*if (!(highest.size() == 1 && highest.contains(pokemon.getPokemonId()))) {
-                                        Log.i(TAG,"Highest: " + " -> " + highest);
-                                    }*/
-
                                 if (pokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
                                     localPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer(highest.get(0)));
                                 }else{

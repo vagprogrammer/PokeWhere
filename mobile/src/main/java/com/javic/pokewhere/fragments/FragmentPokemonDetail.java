@@ -15,7 +15,11 @@ import android.widget.Toast;
 
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.models.LocalUserPokemon;
+import com.javic.pokewhere.models.PokemonMove;
 import com.javic.pokewhere.util.Constants;
+
+import java.text.DecimalFormat;
+import java.util.List;
 
 
 public class FragmentPokemonDetail extends Fragment implements View.OnClickListener{
@@ -34,7 +38,8 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
     private ImageView imgPokemon, imgFavorite;
     private TextView txtCP, txtName, txtIv, txtAttack,txtDefense,txtStamina,txtMaxCP,
             txtMultCP, txtLevel, txtCandies, txtStardustToPowerup, txtCandiesToPowerUp,
-            txtCandiesToEvolve, txtStardust;
+            txtCandiesToEvolve, txtStardust,  txtAttack1, txtAttack2, txtEnergy1, txtEnergy2, txtDamage1, txtDamage2, txtDPS1, txtDPS2, txtDPSTAB1, txtDPSTAB2;
+
     private Button btnPowerUp, btnEvolve, btnTransfer;
     private ImageButton btnEditName;
 
@@ -120,6 +125,16 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
         txtCandiesToPowerUp= (TextView) mView.findViewById(R.id.txtCandiesToPowerUp);
         txtCandiesToEvolve= (TextView) mView.findViewById(R.id.txtCandiesToEvolve);
         txtStardust= (TextView) mView.findViewById(R.id.txtStardust);
+        txtAttack1= (TextView) mView.findViewById(R.id.txtAttack1);
+        txtAttack2= (TextView) mView.findViewById(R.id.txtAttack2);
+        txtEnergy1 = (TextView) mView.findViewById(R.id.txtEnergy1);
+        txtEnergy2= (TextView) mView.findViewById(R.id.txtEnergy2);
+        txtDamage1= (TextView) mView.findViewById(R.id.txtDamage1);
+        txtDamage2= (TextView) mView.findViewById(R.id.txtDamage2);
+        txtDPS1= (TextView) mView.findViewById(R.id.txtDPS1);
+        txtDPS2= (TextView) mView.findViewById(R.id.txtDPS2);
+        txtDPSTAB1 = (TextView) mView.findViewById(R.id.txtDPSTAB1);
+        txtDPSTAB2 = (TextView) mView.findViewById(R.id.txtDPSTAB2);
 
         btnPowerUp = (Button) mView.findViewById(R.id.btnPowerUp);
         btnEvolve = (Button) mView.findViewById(R.id.btnEvolve);
@@ -164,22 +179,48 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
         btnEditName.setOnClickListener(this);
         btnTransfer.setOnClickListener(this);
 
+        txtStardustToPowerup.setText(String.valueOf(mPokemon.getPowerUpStardust()));
+        txtCandiesToPowerUp.setText(String.valueOf(mPokemon.getPoweUpCandies()));
+        txtCandiesToEvolve.setText(String.valueOf(mPokemon.getEvolveCandies()));
+
+        final List<PokemonMove> moves = mPokemon.getMoves();
+        PokemonMove move1= moves.get(0);
+        PokemonMove move2= moves.get(1);
+
+        final double dps1 = (1000/(move1.getTime()*1.0))*(move1.getPower());
+        final double dps2 = (1000/(move2.getTime()*1.0))*(move2.getPower());
+
+
+        txtAttack1.setText(move1.getName());
+        txtEnergy1.setText(String.valueOf(move1.getEnergy()));
+        txtDamage1.setText(String.valueOf(move1.getPower()));
+        txtDPS1.setText(new DecimalFormat("##.##").format(dps1));
+        txtDPSTAB1.setText(new DecimalFormat("##.##").format(dps1 * Constants.VALUE_STAB));
+        txtAttack2.setText(move2.getName());
+        txtEnergy2.setText(String.valueOf(move2.getEnergy()));
+        txtDamage2.setText(String.valueOf(move2.getPower()));
+        txtDPS2.setText(new DecimalFormat("##.##").format(dps2));
+        txtDPSTAB2.setText(new DecimalFormat("##.##").format(dps2 * Constants.VALUE_STAB));
 
         if (mPokemon.getCandies()>=mPokemon.getPoweUpCandies() && mUserStardust>=mPokemon.getPowerUpStardust()){
-            txtStardustToPowerup.setText(String.valueOf(mPokemon.getPowerUpStardust()));
-            txtCandiesToPowerUp.setText(String.valueOf(mPokemon.getPoweUpCandies()));
             btnPowerUp.setOnClickListener(this);
         }
         else {
-            mLayoutPowerUp.setVisibility(View.GONE);
+            btnPowerUp.setBackground(getResources().getDrawable(R.drawable.buttonshape_disable));
+            btnPowerUp.setTextColor(getResources().getColor(R.color.color_background_stroke_user_profile));
+            btnPowerUp.setEnabled(false);
         }
 
-        if (mPokemon.getCandies()>=mPokemon.getEvolveCandies() & mPokemon.getEvolveCandies()>0){
-            txtCandiesToEvolve.setText(String.valueOf(mPokemon.getEvolveCandies()));
+        if (mPokemon.getEvolveCandies()==0){
+            mLayoutEvolve.setVisibility(View.GONE);
+        }
+        else if (mPokemon.getCandies()>=mPokemon.getEvolveCandies()){
             btnEvolve.setOnClickListener(this);
         }
         else {
-            mLayoutEvolve.setVisibility(View.GONE);
+            btnEvolve.setBackground(getResources().getDrawable(R.drawable.buttonshape_disable));
+            btnEvolve.setTextColor(getResources().getColor(R.color.color_background_stroke_user_profile));
+            btnEvolve.setEnabled(false);
         }
 
 

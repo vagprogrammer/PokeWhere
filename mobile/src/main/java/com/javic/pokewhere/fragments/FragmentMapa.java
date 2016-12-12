@@ -40,14 +40,11 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.afollestad.materialdialogs.DialogAction;
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
@@ -77,11 +74,8 @@ import com.javic.pokewhere.ActivityFiltros;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.adapters.AdapterCatchablePokemon;
 import com.javic.pokewhere.interfaces.OnFragmentListener;
-import com.javic.pokewhere.models.LocalGym;
-import com.javic.pokewhere.models.LocalPokeStop;
 import com.javic.pokewhere.models.LocalUserPokemon;
 import com.javic.pokewhere.models.PlaceSuggestion;
-import com.javic.pokewhere.util.ConnectivityCheck;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.Pokeball;
@@ -105,7 +99,6 @@ import java.util.Locale;
 import java.util.Random;
 
 import POGOProtos.Data.PokemonDataOuterClass;
-import POGOProtos.Enums.PokemonIdOuterClass;
 import POGOProtos.Inventory.Item.ItemIdOuterClass;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
@@ -729,7 +722,7 @@ public class FragmentMapa extends Fragment implements
 
                     sleep(5000);
 
-                    /*mPokemonGo.setLocation(mSearchPoint.latitude, mSearchPoint.longitude, 1);
+                    mPokemonGo.setLocation(mSearchPoint.latitude, mSearchPoint.longitude, 1);
 
                     try {
                         List<CatchablePokemon> catchablePokemonList = mPokemonGo.getMap().getCatchablePokemon();
@@ -787,7 +780,7 @@ public class FragmentMapa extends Fragment implements
                     } catch (LoginFailedException | RemoteServerException e) {
                         Log.e(TAG, "Failed to get pokemons or server issue Login or RemoteServer exception: ", e);
                         break;
-                    }*/
+                    }
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Failed to get pokemons or server issue General exception: ", e);
@@ -1344,8 +1337,11 @@ public class FragmentMapa extends Fragment implements
                         marker.remove();
 
                         if (marker.getTag() instanceof LocalUserPokemon) {
-                            mLocalPokemons.remove(marker.getTag());
+
                             mAdapter.notifyDataSetChanged();
+
+                            mLocalPokemons.remove(marker.getTag());
+
                         }
                     }
                 }

@@ -389,7 +389,7 @@
                             android:layout_weight="1.0"
                             android:text="@string/text_powerup"
                             android:textColor="@android:color/white"
-                            android:background="@drawable/buttonshape"
+                            android:background="@drawable/buttonshape_enabled"
                             android:shadowColor="@color/color_background_stroke_user_profile"
                             android:textAllCaps="false"
                             android:textStyle="bold"
@@ -454,7 +454,7 @@
                             android:layout_weight="1.0"
                             android:text="@string/text_evolve"
                             android:textColor="@android:color/white"
-                            android:background="@drawable/buttonshape"
+                            android:background="@drawable/buttonshape_enabled"
                             android:shadowColor="@color/color_background_stroke_user_profile"
                             android:textAllCaps="false"
                             android:textStyle="bold"
@@ -500,7 +500,16 @@
                     android:orientation="vertical"
                     android:paddingLeft="5.0dip"
                     android:paddingRight="5.0dip"
-                    android:visibility="gone">
+                    android:visibility="visible">
+
+                    <TextView
+                        android:id="@+id/titleAttack"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:layout_weight="1.0"
+                        android:textStyle="bold"
+                        android:text="@string/text_attacks" />
 
                     <TextView
                         android:id="@+id/txtAttack1"
@@ -508,13 +517,28 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/mat_dim_short"
                         android:layout_weight="1.0"
-                        android:text="Ataque 1" />
+                        android:text="1.- WATER_GUN_FAST" />
 
                     <LinearLayout
                         android:layout_width="fill_parent"
                         android:layout_height="fill_parent"
                         android:layout_marginBottom="@dimen/mat_dim_large"
                         android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/textView33"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/text_energy" />
+
+                        <TextView
+                            android:id="@+id/txtEnergy1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="@dimen/mat_dim_normal"
+                            android:layout_marginStart="@dimen/mat_dim_normal"
+                            android:layout_weight="1.0"
+                            android:text="7" />
 
                         <TextView
                             android:id="@+id/textView22"
@@ -531,20 +555,51 @@
                             android:layout_weight="1.0"
                             android:text="30" />
 
-                        <TextView
-                            android:id="@+id/textView24"
+                        <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/text_dps" />
-
-                        <TextView
-                            android:id="@+id/txtDPS1"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/mat_dim_normal"
-                            android:layout_marginLeft="@dimen/mat_dim_normal"
                             android:layout_weight="1.0"
-                            android:text="60" />
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/text_dps" />
+
+                                <TextView
+                                    android:id="@+id/txtDPS1"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="@dimen/mat_dim_normal"
+                                    android:layout_marginLeft="@dimen/mat_dim_normal"
+                                    android:layout_weight="1.0"
+                                    android:text="60" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/text_dps_stab" />
+
+                                <TextView
+                                    android:id="@+id/txtDPSTAB1"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="@dimen/mat_dim_normal"
+                                    android:layout_marginLeft="@dimen/mat_dim_normal"
+                                    android:layout_weight="1.0"
+                                    android:text="60" />
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+
                     </LinearLayout>
 
                     <TextView
@@ -553,12 +608,27 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/mat_dim_short"
                         android:layout_weight="1.0"
-                        android:text="Ataque 2" />
+                        android:text="2.- HYDRO_PUMP" />
 
                     <LinearLayout
                         android:layout_width="fill_parent"
                         android:layout_height="fill_parent"
                         android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/textView34"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/text_energy" />
+
+                        <TextView
+                            android:id="@+id/txtEnergy2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="@dimen/mat_dim_normal"
+                            android:layout_marginStart="@dimen/mat_dim_normal"
+                            android:layout_weight="1.0"
+                            android:text="30" />
 
                         <TextView
                             android:id="@+id/textView27"
@@ -575,20 +645,49 @@
                             android:layout_weight="1.0"
                             android:text="15" />
 
-                        <TextView
-                            android:id="@+id/textView26"
+                        <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/text_dps" />
-
-                        <TextView
-                            android:id="@+id/txtDPS2"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/mat_dim_normal"
-                            android:layout_marginLeft="@dimen/mat_dim_normal"
                             android:layout_weight="1.0"
-                            android:text="35" />
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/text_dps" />
+
+                                <TextView
+                                    android:id="@+id/txtDPS2"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="@dimen/mat_dim_normal"
+                                    android:layout_marginLeft="@dimen/mat_dim_normal"
+                                    android:layout_weight="1.0"
+                                    android:text="60" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/text_dps_stab" />
+
+                                <TextView
+                                    android:id="@+id/txtDPSTAB2"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="@dimen/mat_dim_normal"
+                                    android:layout_marginLeft="@dimen/mat_dim_normal"
+                                    android:layout_weight="1.0"
+                                    android:text="60" />
+                            </LinearLayout>
+
+                        </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
 
@@ -606,7 +705,7 @@
                         android:layout_weight="1.0"
                         android:text="@string/action_transferir"
                         android:textColor="@android:color/white"
-                        android:background="@drawable/buttonshape"
+                        android:background="@drawable/buttonshape_enabled"
                         android:shadowColor="@color/color_background_stroke_user_profile"
                         android:textAllCaps="false"
                         android:textStyle="bold"

@@ -172,8 +172,6 @@
     <string name="text_candies">Caramelos:</string>
     <string name="text_powerup">Más poder:</string>
     <string name="text_evolve">Evolucionar:</string>
-    <string name="text_damage">Daño:</string>
-    <string name="text_dps">Daño/seg:</string>
     <string name="text_stardust">Polvo Estelar:</string>
 
 
@@ -221,4 +219,26 @@
 
     <!-- Strings related to new update 1.3-->
     <string name="ic_action_select_all">Seleccionar todos</string>
+    <string name="text_attacks">ATAQUES:</string>
+    <string name="text_attack_1">Ataque 1:</string>
+    <string name="text_attack_2">Ataque 2:</string>
+    <string name="text_energy">Energía:</string>
+    <string name="text_damage">Daño:</string>
+    <string name="text_dps">Daño/seg:</string>
+    <string name="text_dps_stab">Daño/seg (STAB):</string>
+
+
+    <string name="title_categoria_rate">¿Te agrada PokeEASY?</string>
+    <string name="txt_dialog_rate_btn_negative">No mucho</string>
+    <string name="txt_dialog_rate_btn_positive">¡Si!</string>
+    <string name="txt_dialog_rate_btn_dont_ask_again">No volver a preguntar</string>
+
+    <string name="txt_rate_tit_pref">¡Valóranos!</string>
+    <string name="txt_rate_summ_pref">Tomate un tiempo para valorar la aplicación y decirnos que es lo que esperas ver en futuras versiones; con tu ayuda, podremos mejorar día con día. Saludos!</string>
+    <string name="txt_dialog_btn_positive">Valorar</string>
+    <string name="txt_dialog_btn_negative">No, gracias</string>
+    <string name="txt_dialog_btn_neutral">Más tarde</string>
+
+
+
 </resources>

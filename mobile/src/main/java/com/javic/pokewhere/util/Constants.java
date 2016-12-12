@@ -6,7 +6,7 @@ package com.javic.pokewhere.util;
 
 public class Constants {
 
-    public final static Boolean DEBUG_MODE = false;
+    public final static Boolean DEBUG_MODE = true;
     public static final int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
     public static final int ALERT_ADDRESS_RESULT_RECIVER = 0;
     public static final int ALERT_RESUME_TASK = 1;
@@ -79,4 +79,7 @@ public class Constants {
     public static final int VALUE_ATACK = 5;
     public static final int VALUE_DEFENSE = 6;
     public static final int VALUE_STAMINA = 7;
+
+    //Values
+    public static final Double VALUE_STAB = 1.25;
 }
