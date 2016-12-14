@@ -27,6 +27,7 @@ public class Constants {
 
     //DEFAULT VALUES
     public static final int USER_ZOOM =16;
+    public static final int REPEAT_TIME = 1; //segundos
 
     //Dashboard Actions
     public static final int ACTION_CONNECT_WITH_PG = 0;

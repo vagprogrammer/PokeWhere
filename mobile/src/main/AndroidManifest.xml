@@ -78,12 +78,28 @@
             android:screenOrientation="portrait"/>
 
         <service
-            android:name=".services.FetchAddressIntentService"
+            android:name=".services.ServiceFetchAddressIntent"
             android:exported="false" />
 
         <service
             android:name=".services.ServiceFloatingMap"
             android:exported="false" />
+
+
+        <service
+            android:name=".services.ServiceMapObjects"
+            android:exported="false">
+        </service>
+
+        <receiver android:name=".broadcast.BroadcastScheduleStartServiceMap" >
+            <intent-filter >
+                <action android:name="com.javic.pokewhere.broadcast.action.SHEDULE_STARTSERVICEMAP"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".broadcast.BroadcastStartServiceMap" >
+        </receiver>
+
 
     </application>
 

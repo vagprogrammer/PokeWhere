@@ -13,7 +13,10 @@ import android.widget.TextView;
 
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.models.LocalUserPokemon;
+import com.javic.pokewhere.models.PokemonMove;
+import com.javic.pokewhere.util.Constants;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 /**
@@ -54,7 +57,8 @@ public class AdapterCatchablePokemon extends PagerAdapter {
         final LocalUserPokemon pokemon = mLocalPokemonList.get(position);
 
         ImageView img_pokemon;
-        TextView tv_name, tv_cp, tv_iv, txtAttack, txtDefense, txtStamina;
+        TextView tv_name, tv_cp, tv_iv, txtAttack, txtDefense, txtStamina,
+                txtAttack1, txtAttack2, txtDamage1, txtDamage2, txtDPS1, txtDPS2, txtDPSTAB1, txtDPSTAB2;
 
         mInflator = (LayoutInflater) mContext
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -71,6 +75,34 @@ public class AdapterCatchablePokemon extends PagerAdapter {
             txtAttack= (TextView) itemView.findViewById(R.id.txtAttack);
             txtDefense= (TextView) itemView.findViewById(R.id.txtDefense);
             txtStamina= (TextView) itemView.findViewById(R.id.txtStamina);
+
+            txtAttack1= (TextView) itemView.findViewById(R.id.txtAttack1);
+            txtAttack2= (TextView) itemView.findViewById(R.id.txtAttack2);
+            txtDamage1= (TextView) itemView.findViewById(R.id.txtDamage1);
+            txtDamage2= (TextView) itemView.findViewById(R.id.txtDamage2);
+            txtDPS1= (TextView) itemView.findViewById(R.id.txtDPS1);
+            txtDPS2= (TextView) itemView.findViewById(R.id.txtDPS2);
+            txtDPSTAB1 = (TextView) itemView.findViewById(R.id.txtDPSTAB1);
+            txtDPSTAB2 = (TextView) itemView.findViewById(R.id.txtDPSTAB2);
+
+
+            final List<PokemonMove> moves = pokemon.getMoves();
+            PokemonMove move1= moves.get(0);
+            PokemonMove move2= moves.get(1);
+
+            final double dps1 = (1000/(move1.getTime()*1.0))*(move1.getPower());
+            final double dps2 = (1000/(move2.getTime()*1.0))*(move2.getPower());
+
+
+            txtAttack1.setText(move1.getName());
+            txtDamage1.setText(String.valueOf(move1.getPower()));
+            txtDPS1.setText(new DecimalFormat("##.##").format(dps1));
+            txtDPSTAB1.setText(new DecimalFormat("##.##").format(dps1 * Constants.VALUE_STAB));
+            txtAttack2.setText(move2.getName());
+            txtDamage2.setText(String.valueOf(move2.getPower()));
+            txtDPS2.setText(new DecimalFormat("##.##").format(dps2));
+            txtDPSTAB2.setText(new DecimalFormat("##.##").format(dps2 * Constants.VALUE_STAB));
+
 
 
             img_pokemon.setImageBitmap(pokemon.getBitmap());

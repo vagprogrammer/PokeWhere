@@ -2,9 +2,15 @@ package com.javic.pokewhere.fragments;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
@@ -20,6 +26,7 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.IBinder;
 import android.os.Message;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -35,7 +42,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -62,7 +68,6 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -73,10 +78,12 @@ import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.ActivityFiltros;
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.adapters.AdapterCatchablePokemon;
+import com.javic.pokewhere.broadcast.BroadcastScheduleStartServiceMap;
 import com.javic.pokewhere.interfaces.OnFragmentListener;
 import com.javic.pokewhere.models.LocalUserPokemon;
 import com.javic.pokewhere.models.PlaceSuggestion;
 import com.javic.pokewhere.models.PokemonMove;
+import com.javic.pokewhere.services.ServiceMapObjects;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.Pokeball;
@@ -160,6 +167,25 @@ public class FragmentMapa extends Fragment implements
     //Handlers
     HandlerThread mHandlerThread;
     Handler mThreadHandler;
+
+
+    private ServiceMapObjects s;
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        public void onServiceConnected(ComponentName className,
+                                       IBinder binder) {
+            ServiceMapObjects.MyBinder b = (ServiceMapObjects.MyBinder) binder;
+            s = b.getService();
+            Toast.makeText(mContext, "Connected", Toast.LENGTH_SHORT)
+                    .show();
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            s = null;
+        }
+    };
+
 
     public FragmentMapa() {
         // Required empty public constructor
@@ -442,8 +468,16 @@ public class FragmentMapa extends Fragment implements
     public boolean onMarkerClick(Marker marker) {
 
         if (marker.getTag() instanceof LocalUserPokemon) {
+
+            LocalUserPokemon localUserPokemon = (LocalUserPokemon) marker.getTag();
+
+            int index = mLocalPokemons.indexOf(localUserPokemon);
+            mViewPager.setCurrentItem(index);
+
             bsb.setState(BottomSheetBehavior.STATE_COLLAPSED);
         }
+
+
         return true;
     }
 
@@ -621,7 +655,11 @@ public class FragmentMapa extends Fragment implements
      */
     private void attemptSearch() {
 
-        userPosition = mGoogleMap.getCameraPosition().target;
+
+        startService();
+
+
+       /* userPosition = mGoogleMap.getCameraPosition().target;
 
         mMapCircleSearchPoint = mGoogleMap.addCircle(new CircleOptions()
                 .center(userPosition)
@@ -666,7 +704,47 @@ public class FragmentMapa extends Fragment implements
         mSnackBar.getView().setLayoutParams(params);
         mSnackBar.show();
 
-        mSearchView.showProgress();
+        mSearchView.showProgress();*/
+    }
+
+    public void startService(){
+
+        NotificationManager manager;
+        Notification myNotication;
+
+        manager = (NotificationManager) mContext.getSystemService(mContext.NOTIFICATION_SERVICE);
+
+        //API level 11
+        Intent notificationIntent = new Intent(mContext, ActivityDashboard.class);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, notificationIntent, PendingIntent.FLAG_NO_CREATE);
+
+        Notification.Builder builder = new Notification.Builder(mContext);
+
+        builder.setAutoCancel(false);
+        builder.setTicker("this is ticker text");
+        builder.setContentTitle("WhatsApp Notification");
+        builder.setContentText("You have a new message");
+        builder.setSmallIcon(R.drawable.ic_poke_service);
+        builder.setContentIntent(pendingIntent);
+        builder.setOngoing(true);
+        builder.setSubText("This is subtext...");   //API level 16
+        builder.build();
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+            myNotication = builder.getNotification();
+        } else {
+            myNotication = builder.build();
+        }
+
+        manager.notify(11, myNotication);
+
+        Intent intent = new Intent(BroadcastScheduleStartServiceMap.ACTION_SHEDULE);
+        Bundle extras = new Bundle();
+        extras.putString("action", "schedule");
+        intent.putExtras(extras);
+        mContext.sendBroadcast(intent);
+
     }
 
     /**

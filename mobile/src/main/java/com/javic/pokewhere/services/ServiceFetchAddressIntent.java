@@ -19,7 +19,7 @@ import com.javic.pokewhere.util.Constants;
 /**
  * Created by Elsa on 24/02/16.
  */
-public class FetchAddressIntentService extends IntentService {
+public class ServiceFetchAddressIntent extends IntentService {
 
     protected ResultReceiver mReceiver;
 
@@ -27,7 +27,7 @@ public class FetchAddressIntentService extends IntentService {
      * A constructor is required, and must call the super IntentService(String)
      * constructor with a name for the worker thread.
      */
-    public FetchAddressIntentService() {
+    public ServiceFetchAddressIntent() {
         super("HelloIntentService");
     }
 
