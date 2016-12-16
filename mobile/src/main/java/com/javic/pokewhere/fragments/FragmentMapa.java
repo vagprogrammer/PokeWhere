@@ -36,6 +36,8 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.ViewPager;
@@ -709,41 +711,43 @@ public class FragmentMapa extends Fragment implements
 
     public void startService(){
 
-        NotificationManager manager;
-        Notification myNotication;
+        Intent intent = new Intent(BroadcastScheduleStartServiceMap.ACTION_SHEDULE);
 
-        manager = (NotificationManager) mContext.getSystemService(mContext.NOTIFICATION_SERVICE);
+        Bundle extras1 = new Bundle();
+        extras1.putString("action", "schedule");
+        intent.putExtras(extras1);
+        mContext.sendBroadcast(intent);
 
-        //API level 11
+        Bundle extras2 = new Bundle();
+        extras2.putString("action", "cancel");
+        intent.putExtras(extras2);
+        PendingIntent pendingIntent2 = PendingIntent.getBroadcast(mContext, 0, intent, PendingIntent.FLAG_NO_CREATE);
+
         Intent notificationIntent = new Intent(mContext, ActivityDashboard.class);
-
         PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, notificationIntent, PendingIntent.FLAG_NO_CREATE);
 
-        Notification.Builder builder = new Notification.Builder(mContext);
+        // Cancel all previous notifications
+        //NotificationManagerCompat.from(mContext).cancelAll();
 
+        // Use NotificationCompat.Builder to set up our notification.
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
+        // Set a small icon that will appear in the upper right corner of the // notification card
         builder.setAutoCancel(false);
-        builder.setTicker("this is ticker text");
-        builder.setContentTitle("WhatsApp Notification");
-        builder.setContentText("You have a new message");
-        builder.setSmallIcon(R.drawable.ic_poke_service);
+        builder.setSmallIcon(R.mipmap.ic_launcher);
+        // Content title and description
+        builder.setContentTitle("PokéEasy");
+        builder.setContentText("PokéEasy se está ejecutando");
+
+        // Set a content intent to return to this example.
         builder.setContentIntent(pendingIntent);
-        builder.setOngoing(true);
-        builder.setSubText("This is subtext...");   //API level 16
-        builder.build();
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-            myNotication = builder.getNotification();
-        } else {
-            myNotication = builder.build();
-        }
+        builder.addAction(R.drawable.ic_clear_black_24dp, "CERRAR PokéEASY", pendingIntent2);
 
-        manager.notify(11, myNotication);
+        // Get an instance of the NotificationManagerCompat service
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(mContext);
 
-        Intent intent = new Intent(BroadcastScheduleStartServiceMap.ACTION_SHEDULE);
-        Bundle extras = new Bundle();
-        extras.putString("action", "schedule");
-        intent.putExtras(extras);
-        mContext.sendBroadcast(intent);
+        // Build the notification and notify it using notification manager.
+        notificationManager.notify(Constants.NOTIFICATION_ID, builder.build());
 
     }
 

@@ -7,14 +7,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.support.v4.app.NotificationManagerCompat;
+import android.util.Log;
+import android.widget.Toast;
 
-import com.google.android.gms.maps.model.Marker;
-import com.javic.pokewhere.models.LocalUserPokemon;
+import com.javic.pokewhere.services.ServiceMapObjects;
 import com.javic.pokewhere.util.Constants;
-
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 
 /**
  * Created by iMac_Vic on 13/12/16.
@@ -22,26 +21,29 @@ import java.util.List;
 
 public class BroadcastScheduleStartServiceMap extends BroadcastReceiver {
 
-    public static final String ACTION_SHEDULE = "com.javic.pokewhere.broadcast.action.SHEDULE_STARTSERVICEMAP";
+    private static final String TAG = ServiceMapObjects.class.getSimpleName();
 
-    // restart service every 15 seconds
-    private static final long REPEAT_TIME = 1000 * Constants.REPEAT_TIME;
+    public static final String ACTION_SHEDULE = "com.javic.pokewhere.broadcast.action.SHEDULE_START_SERVICEMAP";
 
-    private PendingIntent pending;
-    private AlarmManager service;
-    private Context mContext;
+    private static CounterToStartService mCounterToStartService;
 
     @Override
     public void onReceive(Context context, Intent intent) {
 
         Bundle extras = intent.getExtras();
 
-
         if (extras != null)
             {
                 if (extras.getString("action").equalsIgnoreCase("schedule")){
 
-                    service = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                    if (mCounterToStartService == null) {
+                        //Instantiate Counter
+                        Log.i(TAG, "Initiate  Counter");
+                        mCounterToStartService = new CounterToStartService(10000, 1000, context);
+                        mCounterToStartService.start();
+                    }
+
+                   /*service = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
                     Intent i = new Intent(context, BroadcastStartServiceMap.class);
 
@@ -56,15 +58,44 @@ public class BroadcastScheduleStartServiceMap extends BroadcastReceiver {
                     // InexactRepeating allows Android to optimize the energy consumption
                     //service.setInexactRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), REPEAT_TIME, pending);
 
-                    service.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), REPEAT_TIME, pending);
+                    service.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), REPEAT_TIME, pending);*/
                 }
 
                 else if (extras.getString("action").equalsIgnoreCase("cancel")){
-                    service.cancel(pending);
+                    Log.i(TAG, "Cancel Counter");
+
+                    NotificationManagerCompat.from(context).cancel(Constants.NOTIFICATION_ID);
+
+
+                    mCounterToStartService.cancel();
                 }
             }
     }
 
+    private static class CounterToStartService extends CountDownTimer {
+
+        private Context mContext;
+
+        public CounterToStartService(long millisInFuture, long countDownInterval, Context mContext) {
+            super(millisInFuture, countDownInterval);
+            this.mContext = mContext;
+        }
+
+        @Override
+        public void onFinish() {
+            Intent intent = new Intent(BroadcastStartServiceMap.ACTION_START);
+            mContext.sendBroadcast(intent);
+            mCounterToStartService.start();
+            Log.i(TAG, "Start Service");
+        }
 
 
+        @Override
+        public void onTick(long millisUntilFinished) {
+            //Toast.makeText(mContext, "onTick --> " + String.valueOf(millisUntilFinished/1000) + " seconds to start the Service", Toast.LENGTH_SHORT).show();
+            Log.i(TAG, String.valueOf(millisUntilFinished/1000) + " seconds to start the Service");
+        }
+
+
+    }
 }

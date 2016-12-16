@@ -83,4 +83,7 @@ public class Constants {
 
     //Values
     public static final Double VALUE_STAB = 1.25;
+
+    // A unique value that identifies the notification that we'll be sending.
+    public static final int NOTIFICATION_ID = 1;
 }

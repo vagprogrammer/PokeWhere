@@ -16,6 +16,7 @@ import android.widget.Toast;
 import com.google.android.gms.maps.model.LatLng;
 import com.javic.pokewhere.models.LocalUserPokemon;
 import com.javic.pokewhere.models.PokemonMove;
+import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.map.pokemon.CatchablePokemon;
 import com.pokegoapi.api.map.pokemon.encounter.EncounterResult;
 import com.pokegoapi.api.pokemon.PokemonMoveMeta;
@@ -45,7 +46,7 @@ public class ServiceMapObjects extends Service {
 
     private PokemonsTask mPokemonTask;
 
-    private CounterToRemoveMarkers mCounterToRemoveMarkers;
+    private PokemonGo mPokemonGo;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -53,7 +54,7 @@ public class ServiceMapObjects extends Service {
         Log.i(TAG, "onStartCommand");
 
         counter= counter+1;
-        Toast.makeText(this, "onStartCommand called: " + String.valueOf(counter) + " times", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "onStartCommand called: " + String.valueOf(counter) + " times", Toast.LENGTH_SHORT).show();
 
         /*if (mCounterToRemoveMarkers == null) {
             mCounterToRemoveMarkers.start();
@@ -106,9 +107,9 @@ public class ServiceMapObjects extends Service {
         @Override
         protected Boolean doInBackground(Void... params) {
                     try {
-                        //mPokemonGo.setLocation(mSearchPoint.latitude, mSearchPoint.longitude, 1);
+                        mPokemonGo.setLocation(mSearchPoint.latitude, mSearchPoint.longitude, 1);
 
-                       // List<CatchablePokemon> catchablePokemonList = mPokemonGo.getMap().getCatchablePokemon();
+                       List<CatchablePokemon> catchablePokemonList = mPokemonGo.getMap().getCatchablePokemon();
 
                         if (catchablePokemonList != null) {
 
@@ -146,7 +147,7 @@ public class ServiceMapObjects extends Service {
                                     moves.add(move2);
                                     localUserPokemon.setMoves(moves);
 
-                                   // Boolean isEncountered = containsEncounteredId(localUserPokemon, String.valueOf(localUserPokemon.getId()));
+                                   Boolean isEncountered = containsEncounteredId(localUserPokemon, String.valueOf(localUserPokemon.getId()));
 
                                     if (!isEncountered) {
                                         Log.i(TAG, encResult.getPokemonData().getPokemonId() + " Encountered..." + " CP: " + encResult.getPokemonData().getCp() + " ExpirationTime: " + String.valueOf(catchablePokemon.getExpirationTimestampMs()));
@@ -198,25 +199,20 @@ public class ServiceMapObjects extends Service {
         return bitmap;
     }
 
-    private class CounterToRemoveMarkers extends CountDownTimer {
+    public boolean containsEncounteredId(Object object, String enconunteredId) {
 
-        public CounterToRemoveMarkers(long millisInFuture, long countDownInterval) {
-            super(millisInFuture, countDownInterval);
-        }
+        boolean encountered = false;
 
-        @Override
-        public void onFinish() {
-            mCounterToRemoveMarkers.start();
-        }
-
-
-        @Override
-        public void onTick(long millisUntilFinished) {
-
-            if (mPokemonTask!=null){
-
+        if (object instanceof LocalUserPokemon) {
+            for (LocalUserPokemon localUserPokemon : localUserPokemonList) {
+                if (String.valueOf(localUserPokemon.getId()).equals(enconunteredId)) {
+                    encountered = true;
+                }
             }
         }
 
+        //If the encontered id exist, return true, if it doesn't exist return false
+        return encountered;
     }
+
 }

@@ -93,11 +93,14 @@
 
         <receiver android:name=".broadcast.BroadcastScheduleStartServiceMap" >
             <intent-filter >
-                <action android:name="com.javic.pokewhere.broadcast.action.SHEDULE_STARTSERVICEMAP"/>
+                <action android:name="com.javic.pokewhere.broadcast.action.SHEDULE_START_SERVICEMAP"/>
             </intent-filter>
         </receiver>
 
         <receiver android:name=".broadcast.BroadcastStartServiceMap" >
+            <intent-filter >
+                <action android:name="com.javic.pokewhere.broadcast.action.START_SERVICEMAP"/>
+            </intent-filter>
         </receiver>
 
 

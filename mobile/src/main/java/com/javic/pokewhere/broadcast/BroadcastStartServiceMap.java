@@ -12,6 +12,7 @@ import com.javic.pokewhere.services.ServiceMapObjects;
 
 public class BroadcastStartServiceMap extends BroadcastReceiver {
 
+    public static final String ACTION_START = "com.javic.pokewhere.broadcast.action.START_SERVICEMAP";
     @Override
     public void onReceive(Context context, Intent intent) {
         Intent service = new Intent(context, ServiceMapObjects.class);
