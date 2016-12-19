@@ -2,13 +2,13 @@ package com.javic.pokewhere.services;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Build;
-import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
@@ -16,11 +16,14 @@ import android.widget.Toast;
 import com.google.android.gms.maps.model.LatLng;
 import com.javic.pokewhere.models.LocalUserPokemon;
 import com.javic.pokewhere.models.PokemonMove;
+import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
+import com.pokegoapi.api.listener.LoginListener;
 import com.pokegoapi.api.map.pokemon.CatchablePokemon;
 import com.pokegoapi.api.map.pokemon.encounter.EncounterResult;
 import com.pokegoapi.api.pokemon.PokemonMoveMeta;
 import com.pokegoapi.api.pokemon.PokemonMoveMetaRegistry;
+import com.pokegoapi.auth.GoogleUserCredentialProvider;
 import com.pokegoapi.exceptions.CaptchaActiveException;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
@@ -31,6 +34,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import POGOProtos.Data.PokemonDataOuterClass;
+import okhttp3.OkHttpClient;
+
+
 
 /**
  * Created by iMac_Vic on 13/12/16.
@@ -45,30 +51,69 @@ public class ServiceMapObjects extends Service {
     private List<LocalUserPokemon> localUserPokemonList = new ArrayList<>();
 
     private PokemonsTask mPokemonTask;
+    private ConnectWithPokemonGoTask mConnectTask;
 
+    // API PokemonGO
+    private OkHttpClient httpClient = new OkHttpClient();
     private PokemonGo mPokemonGo;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         Log.i(TAG, "onStartCommand");
-
         counter= counter+1;
-        //Toast.makeText(this, "onStartCommand called: " + String.valueOf(counter) + " times", Toast.LENGTH_SHORT).show();
 
-        /*if (mCounterToRemoveMarkers == null) {
-            mCounterToRemoveMarkers.start();
-        }
+        Toast.makeText(this, "onStartCommand called: " + String.valueOf(counter) + " times", Toast.LENGTH_SHORT).show();
 
-        if (mPokemonTask == null) {
-            mPokemonTask = new PokemonsTask(new LatLng(121212,-121212));
+        if (mPokemonGo==null){
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                mPokemonTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-            } else {
-                mPokemonTask.execute();
+            mPokemonGo= new PokemonGo(httpClient);
+            Log.i(TAG, "mPokemonGo == null");
+            if (mConnectTask == null) {
+                mConnectTask = new ConnectWithPokemonGoTask();
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                    mConnectTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                } else {
+                    mConnectTask.execute();
+                }
             }
-        }*/
+
+
+            mPokemonGo.addListener(new LoginListener() {
+                @Override
+                public void onLogin(PokemonGo pokemonGo) {
+                    if (mPokemonTask == null) {
+                        mPokemonTask = new PokemonsTask(new LatLng(19.4359587,-99.1436272));
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                            mPokemonTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                        } else {
+                            mPokemonTask.execute();
+                        }
+                    }
+                }
+
+                @Override
+                public void onChallenge(PokemonGo pokemonGo, String s) {
+
+                }
+            });
+        }
+        else {
+            Log.i(TAG, "mPokemonGo == PokemonGo");
+
+            if (mPokemonTask == null) {
+                mPokemonTask = new PokemonsTask(new LatLng(19.4359587,-99.1436272));
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                    mPokemonTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                } else {
+                    mPokemonTask.execute();
+                }
+            }
+
+        }
 
 
         return Service.START_REDELIVER_INTENT;
@@ -91,6 +136,55 @@ public class ServiceMapObjects extends Service {
         return localUserPokemonList;
     }
 
+
+    /**
+     * Represents an asynchronous connect with pokemon go servers
+     * with a location.
+     */
+    public class ConnectWithPokemonGoTask extends AsyncTask<Void, Void, Boolean> {
+
+        @Override
+        protected void onPreExecute() {
+            Log.i(TAG, "CONNECT_WITH_POKEMON_TASK: onPreExecute");
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            Log.i(TAG, "CONNECT_WITH_POKEMON_TASK: doInBackground: start");
+
+            if (!getPref(Constants.KEY_PREF_REFRESH_TOKEN).equalsIgnoreCase("")) {
+                //User is logged in with Google Account
+                try {
+                    mPokemonGo.login(new GoogleUserCredentialProvider(httpClient, getPref(Constants.KEY_PREF_REFRESH_TOKEN)));
+                } catch (LoginFailedException | CaptchaActiveException | RemoteServerException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                //User is logged in with username and password
+                /*if (isGoogleAccount) {
+                    mPokemonGo.login(new GoogleAutoCredentialProvider(httpClient, getPref(Constants.KEY_PREF_USER_EMAIL), getPref(Constants.KEY_PREF_USER_PASS)));
+                } else {
+                    mPokemonGo.login(new PtcCredentialProvider(httpClient, getPref(Constants.KEY_PREF_USER_EMAIL), getPref(Constants.KEY_PREF_USER_PASS)));
+                }*/
+
+            }
+
+            return false;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean succes) {
+            Log.i(TAG, "CONNECT_WITH_POKEMON_TASK: onPostExecute: " + succes.toString());
+            mConnectTask = null;
+        }
+
+        @Override
+        protected void onCancelled() {
+            Log.i(TAG, "CONNECT_WITH_POKEMON_TASK: onCancelled");
+            mConnectTask = null;
+        }
+    }
 
     /**
      * Represents an asynchronous get pokemons
@@ -166,6 +260,12 @@ public class ServiceMapObjects extends Service {
         @Override
         protected void onPostExecute(Boolean succes) {
             mPokemonTask = null;
+
+            if (localUserPokemonList!=null){
+                for (LocalUserPokemon localUserPokemon: localUserPokemonList){
+                    Log.i(TAG, localUserPokemon.getName());
+                }
+            }
         }
 
         @Override
@@ -173,7 +273,6 @@ public class ServiceMapObjects extends Service {
             mPokemonTask = null;
         }
     }
-
 
     private Bitmap getBitmapFromAssets(int pokemonIdNumber) {
         AssetManager assetManager = getAssets();
@@ -215,4 +314,9 @@ public class ServiceMapObjects extends Service {
         return encountered;
     }
 
+    private String getPref(String KEY_PREF) {
+        SharedPreferences prefsPokeWhere = getSharedPreferences(Constants.PREFS_POKEWHERE, MODE_PRIVATE);
+        String pref = prefsPokeWhere.getString(KEY_PREF, "");
+        return pref;
+    }
 }

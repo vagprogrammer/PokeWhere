@@ -2,14 +2,11 @@ package com.javic.pokewhere.fragments;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -32,7 +29,6 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetBehavior;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -179,6 +175,7 @@ public class FragmentMapa extends Fragment implements
                                        IBinder binder) {
             ServiceMapObjects.MyBinder b = (ServiceMapObjects.MyBinder) binder;
             s = b.getService();
+
             Toast.makeText(mContext, "Connected", Toast.LENGTH_SHORT)
                     .show();
         }
@@ -295,6 +292,14 @@ public class FragmentMapa extends Fragment implements
             }*/
         }
 
+        Intent intent= new Intent(mContext, ServiceMapObjects.class);
+        mContext.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+
+        if (s!=null) {
+            mLocalPokemons = s.getLocalUserPokemonList();
+
+            mAdapter.notifyDataSetChanged();
+        }
 
     }
 
@@ -311,6 +316,8 @@ public class FragmentMapa extends Fragment implements
                 mGoogleMap.setMyLocationEnabled(false);
             }
         }
+
+        mContext.unbindService(mConnection);
     }
 
     @Override
@@ -727,12 +734,12 @@ public class FragmentMapa extends Fragment implements
         PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, notificationIntent, PendingIntent.FLAG_NO_CREATE);
 
         // Cancel all previous notifications
-        //NotificationManagerCompat.from(mContext).cancelAll();
+        NotificationManagerCompat.from(mContext).cancelAll();
 
         // Use NotificationCompat.Builder to set up our notification.
         NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
         // Set a small icon that will appear in the upper right corner of the // notification card
-        builder.setAutoCancel(false);
+        builder.setOngoing(true);
         builder.setSmallIcon(R.mipmap.ic_launcher);
         // Content title and description
         builder.setContentTitle("PokéEasy");
