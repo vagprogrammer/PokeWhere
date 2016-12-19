@@ -240,7 +240,7 @@ public class ActivityDashboard extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.action_refresh:
                 mRefreshUserDataTask = new RefreshUserDataTask();
 
@@ -478,9 +478,12 @@ public class ActivityDashboard extends AppCompatActivity
             }
         } else if (requestCode == Constants.REQUEST_CODE_ACTIVITY_POKEMON_DETAIL && resultCode == RESULT_OK) {
 
-            boolean isChanged = data.getExtras().getBoolean("resultado");
+            Bundle bundle = data.getExtras();
 
-            if (isChanged) {
+            if (bundle != null) {
+                boolean isChanged = data.getExtras().getBoolean("resultado");
+
+                if (isChanged) {
 
                 /*switch (visibleFragment){
                     case Constants.FRAGMENT_POKEBANK:
@@ -497,24 +500,26 @@ public class ActivityDashboard extends AppCompatActivity
 
                         break;
                 }*/
-                mUserLevel = data.getExtras().getInt("level");
-                mUserExperience = data.getExtras().getLong("expirience");
-                mUserNextLevelXP = data.getExtras().getLong("nextLevelXp");
-                mUserStardust = data.getExtras().getLong("stardust");
-                setUpHeaderNavigationView();
+                    mUserLevel = data.getExtras().getInt("level");
+                    mUserExperience = data.getExtras().getLong("expirience");
+                    mUserNextLevelXP = data.getExtras().getLong("nextLevelXp");
+                    mUserStardust = data.getExtras().getLong("stardust");
+                    setUpHeaderNavigationView();
 
-                mRefreshUserDataTask = new RefreshUserDataTask();
+                    mRefreshUserDataTask = new RefreshUserDataTask();
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                    mRefreshUserDataTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                } else {
-                    mRefreshUserDataTask.execute();
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                        mRefreshUserDataTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    } else {
+                        mRefreshUserDataTask.execute();
+                    }
+
                 }
-
+            } else {
+                super.onActivityResult(requestCode, resultCode, data);
             }
-        } else {
-            super.onActivityResult(requestCode, resultCode, data);
         }
+
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
@@ -596,7 +601,7 @@ public class ActivityDashboard extends AppCompatActivity
                                     final List<LocalUserPokemon> list = (List<LocalUserPokemon>) obj;
 
                                     new MaterialDialog.Builder(ActivityDashboard.this)
-                                            .title(getString(R.string.dialog_title_multiple_transfer) + " " +  String.valueOf(list.size()) +" " + getString(R.string.text_pokemones) +"?")
+                                            .title(getString(R.string.dialog_title_multiple_transfer) + " " + String.valueOf(list.size()) + " " + getString(R.string.text_pokemones) + "?")
                                             .content(getString(R.string.dialog_content_multiple_transfer_1))
                                             .positiveText(R.string.dialog_positive_btn_powerup)
                                             .negativeText(R.string.dialog_negative_btn_powerup)
@@ -847,7 +852,7 @@ public class ActivityDashboard extends AppCompatActivity
 
 
                 new MaterialDialog.Builder(ActivityDashboard.this)
-                        .title(getString(R.string.dialog_title_multiple_transfer) + " " +  String.valueOf(list.size()) +" " + getString(R.string.text_pokemones) +"?")
+                        .title(getString(R.string.dialog_title_multiple_transfer) + " " + String.valueOf(list.size()) + " " + getString(R.string.text_pokemones) + "?")
                         .content(getString(R.string.dialog_content_multiple_transfer_1))
                         .positiveText(R.string.dialog_positive_btn_powerup)
                         .negativeText(R.string.dialog_negative_btn_powerup)
@@ -1031,10 +1036,9 @@ public class ActivityDashboard extends AppCompatActivity
                         break;
                     case Constants.FRAGMENT_POKEBANK:
 
-                        if (mFragmentPokemonBank!=null){
+                        if (mFragmentPokemonBank != null) {
                             mFragmentPokemonBank.onTaskFinish(Constants.ACTION_CONNECT_WITH_PG, null, getLocalUserpokemonList());
-                        }
-                        else{
+                        } else {
                             setFragment(Constants.FRAGMENT_POKEBANK, mUserPokemonList);
                             mNavigationView.getMenu().getItem(Constants.FRAGMENT_POKEBANK).setChecked(true);
                         }
@@ -1045,20 +1049,18 @@ public class ActivityDashboard extends AppCompatActivity
                             mFragmentPokemonBank.onTaskFinish(Constants.ACTION_CONNECT_WITH_PG, null, getLocalUserpokemonList());
                         }
 
-                        if (mFragmentCompare!=null){
+                        if (mFragmentCompare != null) {
                             mFragmentCompare.onTaskFinish(Constants.ACTION_CONNECT_WITH_PG, null, getLocalSpecificPokemonList(localUserPokemon.getName()));
-                        }
-                        else{
+                        } else {
                             setFragment(Constants.FRAGMENT_POKEBANK, mUserPokemonList);
                             mNavigationView.getMenu().getItem(Constants.FRAGMENT_POKEBANK).setChecked(true);
                         }
 
                         break;
                     case Constants.FRAGMENT_BAG:
-                        if (mFragmentBag!=null){
+                        if (mFragmentBag != null) {
                             mFragmentBag.onTaskFinish(Constants.ACTION_DELETE_ITEMS, null, getLocalItems());
-                        }
-                        else{
+                        } else {
                             setFragment(Constants.FRAGMENT_BAG, mUserBagItemList);
                             mNavigationView.getMenu().getItem(Constants.FRAGMENT_BAG).setChecked(true);
                         }
@@ -1665,8 +1667,8 @@ public class ActivityDashboard extends AppCompatActivity
             //MOVES
             PokemonMoveMeta moveMeta1 = PokemonMoveMetaRegistry.getMeta(pokemon.getMove1());
             PokemonMoveMeta moveMeta2 = PokemonMoveMetaRegistry.getMeta(pokemon.getMove2());
-            PokemonMove move1 = new PokemonMove(moveMeta1.getMove().name(), moveMeta1.getAccuracy(), moveMeta1.getCritChance(), moveMeta1.getEnergy(),moveMeta1.getPower(), moveMeta1.getTime());
-            PokemonMove move2 = new PokemonMove(moveMeta2.getMove().name(), moveMeta2.getAccuracy(), moveMeta2.getCritChance(), moveMeta2.getEnergy(),moveMeta2.getPower(), moveMeta2.getTime());
+            PokemonMove move1 = new PokemonMove(moveMeta1.getMove().name(), moveMeta1.getAccuracy(), moveMeta1.getCritChance(), moveMeta1.getEnergy(), moveMeta1.getPower(), moveMeta1.getTime());
+            PokemonMove move2 = new PokemonMove(moveMeta2.getMove().name(), moveMeta2.getAccuracy(), moveMeta2.getCritChance(), moveMeta2.getEnergy(), moveMeta2.getPower(), moveMeta2.getTime());
             final List<PokemonMove> moves = new ArrayList<>();
             moves.add(move1);
             moves.add(move2);
@@ -1702,10 +1704,9 @@ public class ActivityDashboard extends AppCompatActivity
             if (evolutions.size() > 0) {
                 //Log.i(TAG,  "Evolutions: "  + " -> " + evolutions);
 
-                if (pokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
+                if (pokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE) {
                     localUserPokemon.setEvolveCP(pokemon.getCpAfterEvolve(evolutions.get(0)));
-                }
-                else{
+                } else {
                     localUserPokemon.setEvolveCP(-1);
                 }
             }
@@ -1717,9 +1718,9 @@ public class ActivityDashboard extends AppCompatActivity
                     Log.i(TAG,"Highest: " + " -> " + highest);
                 }*/
 
-                if (pokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
+                if (pokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE) {
                     localUserPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer(highest.get(0)));
-                }else{
+                } else {
                     localUserPokemon.setMaxCp(-1);
                 }
             }
@@ -1760,8 +1761,8 @@ public class ActivityDashboard extends AppCompatActivity
                 //MOVES
                 PokemonMoveMeta moveMeta1 = PokemonMoveMetaRegistry.getMeta(specificPokemon.getMove1());
                 PokemonMoveMeta moveMeta2 = PokemonMoveMetaRegistry.getMeta(specificPokemon.getMove2());
-                PokemonMove move1 = new PokemonMove(moveMeta1.getMove().name(), moveMeta1.getAccuracy(), moveMeta1.getCritChance(), moveMeta1.getEnergy(),moveMeta1.getPower(), moveMeta1.getTime());
-                PokemonMove move2 = new PokemonMove(moveMeta2.getMove().name(), moveMeta2.getAccuracy(), moveMeta2.getCritChance(), moveMeta2.getEnergy(),moveMeta2.getPower(), moveMeta2.getTime());
+                PokemonMove move1 = new PokemonMove(moveMeta1.getMove().name(), moveMeta1.getAccuracy(), moveMeta1.getCritChance(), moveMeta1.getEnergy(), moveMeta1.getPower(), moveMeta1.getTime());
+                PokemonMove move2 = new PokemonMove(moveMeta2.getMove().name(), moveMeta2.getAccuracy(), moveMeta2.getCritChance(), moveMeta2.getEnergy(), moveMeta2.getPower(), moveMeta2.getTime());
                 final List<PokemonMove> moves = new ArrayList<>();
                 moves.add(move1);
                 moves.add(move2);
@@ -1770,18 +1771,17 @@ public class ActivityDashboard extends AppCompatActivity
                 //CP
                 List<PokemonIdOuterClass.PokemonId> evolutions = Evolutions.getEvolutions(specificPokemon.getPokemonId());
                 if (evolutions.size() > 0) {
-                    if (specificPokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
+                    if (specificPokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE) {
                         localUserPokemon.setEvolveCP(specificPokemon.getCpAfterEvolve(evolutions.get(0)));
-                    }
-                    else{
+                    } else {
                         localUserPokemon.setEvolveCP(-1);
                     }
                 }
                 List<PokemonIdOuterClass.PokemonId> highest = Evolutions.getHighest(specificPokemon.getPokemonId());
                 if (highest.size() > 0) {
-                    if (specificPokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE){
+                    if (specificPokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE) {
                         localUserPokemon.setMaxCp(specificPokemon.getMaxCpFullEvolveAndPowerupForPlayer(highest.get(0)));
-                    }else{
+                    } else {
                         localUserPokemon.setMaxCp(-1);
                     }
                 }
@@ -2145,15 +2145,18 @@ public class ActivityDashboard extends AppCompatActivity
         Bitmap bitmap = null;
 
         try {
-            InputStream is = null;
+            InputStream is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
 
-            if (pokemonIdNumber < 10) {
+
+
+            /*if (pokemonIdNumber < 10) {
                 is = assetManager.open(String.valueOf("00" + pokemonIdNumber) + ".png");
             } else if (pokemonIdNumber < 100) {
                 is = assetManager.open(String.valueOf("0" + pokemonIdNumber) + ".png");
             } else {
                 is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
-            }
+            }*/
+
 
             bitmap = BitmapFactory.decodeStream(is);
         } catch (IOException e) {

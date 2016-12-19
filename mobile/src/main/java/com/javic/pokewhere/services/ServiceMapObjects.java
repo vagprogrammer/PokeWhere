@@ -9,11 +9,13 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.javic.pokewhere.fragments.FragmentMapa;
 import com.javic.pokewhere.models.LocalUserPokemon;
 import com.javic.pokewhere.models.PokemonMove;
 import com.javic.pokewhere.util.Constants;
@@ -48,7 +50,7 @@ public class ServiceMapObjects extends Service {
     private static final String TAG = ServiceMapObjects.class.getSimpleName();
 
     private final IBinder mBinder = new MyBinder();
-    private List<LocalUserPokemon> localUserPokemonList = new ArrayList<>();
+    private ArrayList<LocalUserPokemon> localUserPokemonList = new ArrayList<>();
 
     private PokemonsTask mPokemonTask;
     private ConnectWithPokemonGoTask mConnectTask;
@@ -249,6 +251,14 @@ public class ServiceMapObjects extends Service {
                                     }
                                 }
                             }
+
+                            Intent intent = new Intent(FragmentMapa.BroadcastScheduleMessage.ACTION_FIND_NEW_POKEMONS);
+
+                            Bundle bundle = new Bundle();
+                            bundle.putParcelableArrayList("data", localUserPokemonList);
+
+                            intent.putExtras(bundle);
+                            sendBroadcast(intent);
                         }
                     } catch (LoginFailedException | RemoteServerException | CaptchaActiveException e) {
                         Log.e(TAG, "Failed to get pokemons or server issue Login or RemoteServer exception: ", e);
@@ -280,15 +290,15 @@ public class ServiceMapObjects extends Service {
         Bitmap bitmap = null;
 
         try {
-            InputStream is = null;
+            InputStream is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
 
-            if (pokemonIdNumber < 10) {
+            /*if (pokemonIdNumber < 10) {
                 is = assetManager.open(String.valueOf("00" + pokemonIdNumber) + ".png");
             } else if (pokemonIdNumber < 100) {
                 is = assetManager.open(String.valueOf("0" + pokemonIdNumber) + ".png");
             } else {
                 is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
-            }
+            }*/
 
             bitmap = BitmapFactory.decodeStream(is);
         } catch (IOException e) {

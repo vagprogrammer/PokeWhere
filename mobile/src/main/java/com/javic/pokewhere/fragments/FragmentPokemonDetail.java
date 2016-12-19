@@ -191,16 +191,16 @@ public class FragmentPokemonDetail extends Fragment implements View.OnClickListe
         final double dps2 = (1000/(move2.getTime()*1.0))*(move2.getPower());
 
 
-        txtAttack1.setText(move1.getName());
-        txtEnergy1.setText(String.valueOf(move1.getEnergy()));
-        txtDamage1.setText(String.valueOf(move1.getPower()));
-        txtDPS1.setText(new DecimalFormat("##.##").format(dps1));
-        txtDPSTAB1.setText(new DecimalFormat("##.##").format(dps1 * Constants.VALUE_STAB));
-        txtAttack2.setText(move2.getName());
-        txtEnergy2.setText(String.valueOf(move2.getEnergy()));
-        txtDamage2.setText(String.valueOf(move2.getPower()));
-        txtDPS2.setText(new DecimalFormat("##.##").format(dps2));
-        txtDPSTAB2.setText(new DecimalFormat("##.##").format(dps2 * Constants.VALUE_STAB));
+        txtAttack1.setText("1.- "+move1.getName().replace("_", " "));
+        txtEnergy1.setText(String.valueOf(" "+move1.getEnergy()));
+        txtDamage1.setText(String.valueOf(" "+move1.getPower()));
+        txtDPS1.setText(" "+new DecimalFormat("##.##").format(dps1));
+        txtDPSTAB1.setText(" "+new DecimalFormat("##.##").format(dps1 * Constants.VALUE_STAB));
+        txtAttack2.setText("2.- "+move2.getName().replace("_", " "));
+        txtEnergy2.setText(" "+String.valueOf(move2.getEnergy()));
+        txtDamage2.setText(" "+String.valueOf(move2.getPower()));
+        txtDPS2.setText(" "+new DecimalFormat("##.##").format(dps2));
+        txtDPSTAB2.setText(" "+new DecimalFormat("##.##").format(dps2 * Constants.VALUE_STAB));
 
         if (mPokemon.getCandies()>=mPokemon.getPoweUpCandies() && mUserStardust>=mPokemon.getPowerUpStardust()){
             btnPowerUp.setOnClickListener(this);

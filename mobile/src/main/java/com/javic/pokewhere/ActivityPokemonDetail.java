@@ -328,15 +328,18 @@ public class ActivityPokemonDetail extends AppCompatActivity implements Fragment
         Bitmap bitmap = null;
 
         try {
-            InputStream is = null;
+            InputStream is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
 
-            if (pokemonIdNumber < 10) {
+
+
+            /*if (pokemonIdNumber < 10) {
                 is = assetManager.open(String.valueOf("00" + pokemonIdNumber) + ".png");
             } else if (pokemonIdNumber < 100) {
                 is = assetManager.open(String.valueOf("0" + pokemonIdNumber) + ".png");
             } else {
                 is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
-            }
+            }*/
+
 
             bitmap = BitmapFactory.decodeStream(is);
         } catch (IOException e) {

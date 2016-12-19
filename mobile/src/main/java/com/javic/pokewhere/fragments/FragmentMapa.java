@@ -3,10 +3,12 @@ package com.javic.pokewhere.fragments;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -167,6 +169,8 @@ public class FragmentMapa extends Fragment implements
     Handler mThreadHandler;
 
 
+    private BroadcastScheduleMessage mBroadcastSheduleMessage;
+
     private ServiceMapObjects s;
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -223,6 +227,8 @@ public class FragmentMapa extends Fragment implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         MapsInitializer.initialize(mContext);
+
+        mBroadcastSheduleMessage = new BroadcastScheduleMessage();
 
         if (mThreadHandler == null) {
             // Initialize and start the HandlerThread
@@ -295,11 +301,8 @@ public class FragmentMapa extends Fragment implements
         Intent intent= new Intent(mContext, ServiceMapObjects.class);
         mContext.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
-        if (s!=null) {
-            mLocalPokemons = s.getLocalUserPokemonList();
 
-            mAdapter.notifyDataSetChanged();
-        }
+        mContext.registerReceiver(mBroadcastSheduleMessage, new IntentFilter(BroadcastScheduleMessage.ACTION_FIND_NEW_POKEMONS));
 
     }
 
@@ -318,6 +321,7 @@ public class FragmentMapa extends Fragment implements
         }
 
         mContext.unbindService(mConnection);
+        mContext.unregisterReceiver(mBroadcastSheduleMessage);
     }
 
     @Override
@@ -667,8 +671,7 @@ public class FragmentMapa extends Fragment implements
 
         startService();
 
-
-       /* userPosition = mGoogleMap.getCameraPosition().target;
+       /*userPosition = mGoogleMap.getCameraPosition().target;
 
         mMapCircleSearchPoint = mGoogleMap.addCircle(new CircleOptions()
                 .center(userPosition)
@@ -1445,15 +1448,18 @@ public class FragmentMapa extends Fragment implements
         Bitmap bitmap = null;
 
         try {
-            InputStream is = null;
+            InputStream is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
 
-            if (pokemonIdNumber < 10) {
+
+
+            /*if (pokemonIdNumber < 10) {
                 is = assetManager.open(String.valueOf("00" + pokemonIdNumber) + ".png");
             } else if (pokemonIdNumber < 100) {
                 is = assetManager.open(String.valueOf("0" + pokemonIdNumber) + ".png");
             } else {
                 is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
-            }
+            }*/
+
 
             bitmap = BitmapFactory.decodeStream(is);
         } catch (IOException e) {
@@ -1461,6 +1467,23 @@ public class FragmentMapa extends Fragment implements
         }
 
         return bitmap;
+    }
+
+
+    public class BroadcastScheduleMessage extends BroadcastReceiver {
+
+        public static final String ACTION_FIND_NEW_POKEMONS = "com.javic.pokewhere.broadcast.action.FIND_NEW_POKEMONS";
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            Bundle bundle = intent.getExtras();
+
+            if(bundle!=null){
+                mLocalPokemons = bundle.getParcelableArrayList("data");
+                mAdapter.notifyDataSetChanged();
+            }
+        }
     }
 
 }

@@ -139,7 +139,8 @@
                             android:text="IV:"
                             android:layout_gravity="end"
                             android:textAlignment="viewEnd"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            android:textColor="@color/color_negro"/>
 
                         <TextView
                             android:id="@+id/txtIV"
@@ -151,7 +152,8 @@
                             android:text="100%"
                             android:layout_gravity="start"
                             android:textAlignment="viewStart"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            android:textColor="@color/color_negro"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -340,7 +342,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/mat_dim_normal"
                             android:layout_marginLeft="@dimen/mat_dim_normal"
-                            android:text="1250000" />
+                            android:maxEms="6"
+                            android:text="125000" />
 
                         </LinearLayout>
 
@@ -509,7 +512,8 @@
                         android:layout_marginBottom="10dp"
                         android:layout_weight="1.0"
                         android:textStyle="bold"
-                        android:text="@string/text_attacks" />
+                        android:text="@string/text_attacks"
+                        android:textColor="@color/color_negro"/>
 
                     <TextView
                         android:id="@+id/txtAttack1"
@@ -517,7 +521,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/mat_dim_short"
                         android:layout_weight="1.0"
-                        android:text="1.- WATER_GUN_FAST" />
+                        android:text="1.- WATER_GUN_FAST"
+                        android:textColor="@color/colorPrimaryDark"/>
 
                     <LinearLayout
                         android:layout_width="fill_parent"
@@ -535,10 +540,9 @@
                             android:id="@+id/txtEnergy1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/mat_dim_normal"
-                            android:layout_marginStart="@dimen/mat_dim_normal"
                             android:layout_weight="1.0"
-                            android:text="7" />
+                            android:text=" 7"
+                            android:textColor="@color/color_negro"/>
 
                         <TextView
                             android:id="@+id/textView22"
@@ -550,10 +554,9 @@
                             android:id="@+id/txtDamage1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/mat_dim_normal"
-                            android:layout_marginStart="@dimen/mat_dim_normal"
                             android:layout_weight="1.0"
-                            android:text="30" />
+                            android:text=" 30"
+                            android:textColor="@color/color_negro"/>
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -573,10 +576,9 @@
                                     android:id="@+id/txtDPS1"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginStart="@dimen/mat_dim_normal"
-                                    android:layout_marginLeft="@dimen/mat_dim_normal"
                                     android:layout_weight="1.0"
-                                    android:text="60" />
+                                    android:text=" 60"
+                                    android:textColor="@color/color_negro"/>
                             </LinearLayout>
 
                             <LinearLayout
@@ -591,10 +593,9 @@
                                     android:id="@+id/txtDPSTAB1"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginStart="@dimen/mat_dim_normal"
-                                    android:layout_marginLeft="@dimen/mat_dim_normal"
                                     android:layout_weight="1.0"
-                                    android:text="60" />
+                                    android:text=" 60"
+                                    android:textColor="@color/color_negro"/>
                             </LinearLayout>
 
                         </LinearLayout>
@@ -608,7 +609,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/mat_dim_short"
                         android:layout_weight="1.0"
-                        android:text="2.- HYDRO_PUMP" />
+                        android:text="2.- HYDRO_PUMP"
+                        android:textColor="@color/colorPrimaryDark"/>
 
                     <LinearLayout
                         android:layout_width="fill_parent"
@@ -625,10 +627,9 @@
                             android:id="@+id/txtEnergy2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/mat_dim_normal"
-                            android:layout_marginStart="@dimen/mat_dim_normal"
                             android:layout_weight="1.0"
-                            android:text="30" />
+                            android:text=" 30"
+                            android:textColor="@color/color_negro"/>
 
                         <TextView
                             android:id="@+id/textView27"
@@ -640,10 +641,9 @@
                             android:id="@+id/txtDamage2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/mat_dim_normal"
-                            android:layout_marginLeft="@dimen/mat_dim_normal"
                             android:layout_weight="1.0"
-                            android:text="15" />
+                            android:text=" 15"
+                            android:textColor="@color/color_negro"/>
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -666,7 +666,8 @@
                                     android:layout_marginStart="@dimen/mat_dim_normal"
                                     android:layout_marginLeft="@dimen/mat_dim_normal"
                                     android:layout_weight="1.0"
-                                    android:text="60" />
+                                    android:text=" 60"
+                                    android:textColor="@color/color_negro"/>
                             </LinearLayout>
 
                             <LinearLayout
@@ -681,10 +682,9 @@
                                     android:id="@+id/txtDPSTAB2"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginStart="@dimen/mat_dim_normal"
-                                    android:layout_marginLeft="@dimen/mat_dim_normal"
                                     android:layout_weight="1.0"
-                                    android:text="60" />
+                                    android:text=" 60"
+                                    android:textColor="@color/color_negro"/>
                             </LinearLayout>
 
                         </LinearLayout>

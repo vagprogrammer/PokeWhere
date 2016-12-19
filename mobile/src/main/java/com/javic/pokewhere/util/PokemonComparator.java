@@ -4,6 +4,9 @@ package com.javic.pokewhere.util;
  * Created by victor on 28/10/16.
  */
 
+import android.util.Log;
+
+import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.models.LocalUserPokemon;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
@@ -17,6 +20,8 @@ import java.util.Date;
  * into ascending order.
  */
 public class PokemonComparator implements Comparator<LocalUserPokemon> {
+
+    private static final String TAG = ActivityDashboard.class.getSimpleName();
 
     private int valueToCompare;
 
@@ -43,8 +48,8 @@ public class PokemonComparator implements Comparator<LocalUserPokemon> {
 
                 comparator.append(calendar2.get(Calendar.YEAR), calendar1.get(Calendar.YEAR))
                         .append(calendar2.get(Calendar.MONTH), calendar1.get(Calendar.MONTH))
-                        .append(calendar2.get(Calendar.DAY_OF_MONTH), calendar1.get(Calendar.DAY_OF_MONTH))
-                        .append(calendar2.get(Calendar.HOUR), calendar1.get(Calendar.HOUR))
+                        .append(calendar2.get(Calendar.DAY_OF_YEAR), calendar1.get(Calendar.DAY_OF_YEAR))
+                        .append(calendar2.get(Calendar.HOUR_OF_DAY), calendar1.get(Calendar.HOUR_OF_DAY))
                         .append(calendar2.get(Calendar.MINUTE), calendar1.get(Calendar.MINUTE))
                         .append(calendar2.get(Calendar.SECOND), calendar1.get(Calendar.SECOND))
                         .append(p2.getIv(), p1.getIv());
@@ -78,10 +83,8 @@ public class PokemonComparator implements Comparator<LocalUserPokemon> {
 
     private Calendar createDate(long timestamp) {
 
-        Date date = new Date(timestamp);
-
         Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
+        calendar.setTimeInMillis(timestamp);
 
         return calendar;
 

@@ -38,13 +38,14 @@ public class LocalUserPokemon implements Parcelable{
     private double latitude;
     private double longitude;
     private long expirationTimeMs;
+
     private List<PokemonMove> moves;
 
     public LocalUserPokemon(){
         //Empty constructor is needed
     }
 
-    public LocalUserPokemon(Long id, String name, Bitmap bitmap, int number, String nickname, Boolean isFavorite, Boolean isDead,int cp, int iv, int attack, int defense, int stamina, int maxCp, int evolveCP, float level, int candies, int powerUpStardust, int poweUpCandies, int evolveCandies, Calendar creationTime, Long creationTimeMillis, int pokemonCount, ArrayList<PokemonMove> moves) {
+    public LocalUserPokemon(Long id, String name, Bitmap bitmap, int number, String nickname, Boolean isFavorite, Boolean isDead,int cp, int iv, int attack, int defense, int stamina, int maxCp, int evolveCP, float level, int candies, int powerUpStardust, int poweUpCandies, int evolveCandies, Long creationTimeMillis, int pokemonCount, ArrayList<PokemonMove> moves) {
         this.id = id;
         this.name = name;
         this.bitmap = bitmap;
@@ -96,10 +97,12 @@ public class LocalUserPokemon implements Parcelable{
         longitude = in.readDouble();
         expirationTimeMs = in.readLong();
 
-        moves= new ArrayList<PokemonMove>();
-        in.readList(moves, null);
-
-        //moves = in.readArrayList(null);
+        if (in.readByte() == 0x01) {
+            moves = new ArrayList<PokemonMove>();
+            in.readList(moves, PokemonMove.class.getClassLoader());
+        } else {
+            moves = null;
+        }
     }
 
 
@@ -131,7 +134,12 @@ public class LocalUserPokemon implements Parcelable{
         parcel.writeDouble(longitude);
         parcel.writeLong(expirationTimeMs);
 
-        parcel.writeList(moves);
+        if (moves == null) {
+            parcel.writeByte((byte) (0x00));
+        } else {
+            parcel.writeByte((byte) (0x01));
+            parcel.writeList(moves);
+        }
 
     }
 
