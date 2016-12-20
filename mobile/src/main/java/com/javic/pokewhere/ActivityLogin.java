@@ -472,32 +472,39 @@ public class ActivityLogin extends AppCompatActivity {
             //ArrayList<String> names = new ArrayList<String>();
             ArrayList<String> emails = new ArrayList<String>();
             ContentResolver cr = getContentResolver();
-            Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
 
-            if (cur.getCount() > 0) {
-                while (cur.moveToNext()) {
-                    String id = cur.getString(cur.getColumnIndex(ContactsContract.Contacts._ID));
-                    Cursor cur1 = cr.query(
-                            ContactsContract.CommonDataKinds.Email.CONTENT_URI, null,
-                            ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?",
-                            new String[]{id}, null);
+            if (cr!=null){
+                Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
 
-                    while (cur1.moveToNext()) {
-                        //to get the contact names
-                        //String name=cur1.getString(cur1.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-                        //Log.e("Name :", name);
+                if (cur!=null){
+                    if (cur.getCount() > 0) {
+                        while (cur.moveToNext()) {
+                            String id = cur.getString(cur.getColumnIndex(ContactsContract.Contacts._ID));
+                            Cursor cur1 = cr.query(
+                                    ContactsContract.CommonDataKinds.Email.CONTENT_URI, null,
+                                    ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?",
+                                    new String[]{id}, null);
 
-                        //to get the contact emails
-                        String email = cur1.getString(cur1.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
-                        //Log.i(TAG, "Email: "+email);
-                        if (email != null) {
-                            emails.add(email);
+                            while (cur1.moveToNext()) {
+                                //to get the contact names
+                                //String name=cur1.getString(cur1.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                                //Log.e("Name :", name);
+
+                                //to get the contact emails
+                                String email = cur1.getString(cur1.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
+                                //Log.i(TAG, "Email: "+email);
+                                if (email != null) {
+                                    emails.add(email);
+                                }
+                            }
+                            cur1.close();
                         }
                     }
-                    cur1.close();
+                    cur.close();
                 }
+
             }
-            cur.close();
+
 
             return emails;
         }
@@ -634,8 +641,7 @@ public class ActivityLogin extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     mEmailView.setText("");
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(GoogleUserCredentialProvider.LOGIN_URL));
-                    startActivity(browserIntent);
+                    openTokenWebPage(GoogleUserCredentialProvider.LOGIN_URL);
                 }
             });
         }
@@ -699,7 +705,6 @@ public class ActivityLogin extends AppCompatActivity {
 
     }
 
-
     private void showHelp(){
 
         new MaterialDialog.Builder(this)
@@ -707,19 +712,24 @@ public class ActivityLogin extends AppCompatActivity {
                 .titleGravity(GravityEnum.CENTER)
                 .items(R.array.help_items)
                 .show();
-
-        /*new MaterialDialog.Builder(this)
-                .title(R.string.socialNetworks)
-                .items(R.array.socialNetworks_longItems)
-                .itemsCallback(new MaterialDialog.ListCallback() {
-                    @Override
-                    public void onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
-                        showToast(which + ": " + text);
-                    }
-                })
-                .show();*/
     }
 
+
+    /**
+     * Open a web page of a specified URL
+     *
+     * @param url URL to open
+     */
+    public void openTokenWebPage(String url) {
+        Uri webpage = Uri.parse(url);
+        Intent intent = new Intent(Intent.ACTION_VIEW, webpage);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        }
+        else{
+            Toast.makeText(this, getString(R.string.error_cant_handle_intent),  Toast.LENGTH_LONG).show();
+        }
+    }
 
 }
 

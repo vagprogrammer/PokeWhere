@@ -43,6 +43,7 @@ import com.javic.pokewhere.fragments.FragmentBag;
 import com.javic.pokewhere.fragments.FragmentBlank;
 import com.javic.pokewhere.fragments.FragmentCompare;
 import com.javic.pokewhere.fragments.FragmentMapa;
+import com.javic.pokewhere.fragments.FragmentPokeMap;
 import com.javic.pokewhere.fragments.FragmentPokemonBank;
 import com.javic.pokewhere.interfaces.OnFragmentListener;
 import com.javic.pokewhere.models.ChildItem;
@@ -100,7 +101,9 @@ public class ActivityDashboard extends AppCompatActivity
     private static final int MAPHEAD_OVERLAY_PERMISSION_REQUEST_CODE = 100;
 
     //Instance fragment's
-    private FragmentMapa mFragmentMapa;
+    private FragmentMapa mFragmentMapaa;
+    private FragmentPokeMap mFragmentPokeMap;
+
     private FragmentBag mFragmentBag;
     private FragmentPokemonBank mFragmentPokemonBank;
     private FragmentCompare mFragmentCompare;
@@ -214,8 +217,10 @@ public class ActivityDashboard extends AppCompatActivity
 
             @Override
             public void onDrawerClosed(View drawerView) {
+
                 if (visibleFragment == Constants.FRAGMENT_MAPA) {
-                    //mFragmentMapa.showCustomDialog();
+
+                    mFragmentPokeMap.showCustomDialog();
                 }
             }
         });
@@ -395,12 +400,23 @@ public class ActivityDashboard extends AppCompatActivity
                 break;
 
             case Constants.FRAGMENT_MAPA:
-                if (mFragmentMapa == null) {
+                /*if (mFragmentMapa == null) {
                     mFragmentMapa = FragmentMapa.newInstance(mGO);
                 }
                 if (visibleFragment != Constants.FRAGMENT_MAPA) {
                     replaceFragment(mFragmentMapa);
+                }*/
+
+
+                //Replace with the real Map
+                if (mFragmentPokeMap == null) {
+                    mFragmentPokeMap = FragmentPokeMap.newInstance(mGO);
                 }
+                if (visibleFragment != Constants.FRAGMENT_MAPA) {
+                    replaceFragment(mFragmentPokeMap);
+                }
+
+
                 break;
         }
     }

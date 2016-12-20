@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.javic.pokewhere.R;
 import com.javic.pokewhere.util.PlayGifView;
@@ -15,6 +16,8 @@ public class FragmentTutorial extends Fragment {
     private static final String ARG_PARAM1 = "param1";
 
     private int position;
+
+    private TextView tutorial_title, tutorial_subtitle;
 
     //Fragment UI
     private View mView;
@@ -46,6 +49,9 @@ public class FragmentTutorial extends Fragment {
         // Inflate the layout for this fragment
         mView = inflater.inflate(R.layout.fragment_tutorial, container, false);
 
+        tutorial_title = (TextView) mView.findViewById(R.id.tutorial_title);
+        tutorial_subtitle= (TextView) mView.findViewById(R.id.tutorial_subtitle);
+
         pGif = (PlayGifView) mView.findViewById(R.id.viewGif);
 
         return mView;
@@ -57,6 +63,14 @@ public class FragmentTutorial extends Fragment {
 
         switch (position){
             case 0:
+                tutorial_title.setText(getString(R.string.title_tutorial_pokebank));
+                tutorial_subtitle.setText(getString(R.string.message_tutorial_pokebank));
+                pGif.setImageResource(R.drawable.pokebank);
+                break;
+
+            case 1:
+                tutorial_title.setText(getString(R.string.title_tutorial_pokebank));
+                tutorial_subtitle.setText(getString(R.string.message_tutorial_pokebank));
                 pGif.setImageResource(R.drawable.pokebank);
                 break;
         }

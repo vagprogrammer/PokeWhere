@@ -2,17 +2,21 @@ package com.javic.pokewhere.fragments;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,11 +27,15 @@ import android.os.Message;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
 import android.util.Log;
@@ -36,10 +44,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.GravityEnum;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
@@ -58,7 +68,8 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -66,33 +77,43 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.ActivityFiltros;
 import com.javic.pokewhere.R;
+import com.javic.pokewhere.adapters.AdapterCatchablePokemon;
+import com.javic.pokewhere.broadcast.BroadcastScheduleStartServiceMap;
 import com.javic.pokewhere.interfaces.OnFragmentListener;
-import com.javic.pokewhere.models.LocalGym;
-import com.javic.pokewhere.models.LocalPokeStop;
+import com.javic.pokewhere.models.LocalUserPokemon;
 import com.javic.pokewhere.models.PlaceSuggestion;
+import com.javic.pokewhere.models.PokemonMove;
 import com.javic.pokewhere.util.Constants;
 import com.pokegoapi.api.PokemonGo;
-import com.pokegoapi.api.gym.Gym;
-import com.pokegoapi.api.map.fort.Pokestop;
-import com.pokegoapi.api.map.fort.PokestopLootResult;
+import com.pokegoapi.api.inventory.Pokeball;
+import com.pokegoapi.api.map.pokemon.CatchResult;
+import com.pokegoapi.api.map.pokemon.CatchablePokemon;
+import com.pokegoapi.api.map.pokemon.encounter.EncounterResult;
+import com.pokegoapi.api.pokemon.PokemonMoveMeta;
+import com.pokegoapi.api.pokemon.PokemonMoveMetaRegistry;
+import com.pokegoapi.api.settings.CatchOptions;
+import com.pokegoapi.api.settings.PokeballSelector;
+import com.pokegoapi.exceptions.CaptchaActiveException;
 import com.pokegoapi.exceptions.LoginFailedException;
+import com.pokegoapi.exceptions.NoSuchItemException;
 import com.pokegoapi.exceptions.RemoteServerException;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Random;
 
-import POGOProtos.Inventory.Item.ItemAwardOuterClass;
+import POGOProtos.Data.PokemonDataOuterClass;
+import POGOProtos.Inventory.Item.ItemIdOuterClass;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 
 public class FragmentPokeMap extends Fragment implements
-        OnMapReadyCallback, GoogleMap.OnCameraChangeListener, GoogleApiClient.ConnectionCallbacks,
+        OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMapLongClickListener, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = FragmentPokeMap.class.getSimpleName();
@@ -112,47 +133,84 @@ public class FragmentPokeMap extends Fragment implements
     private Snackbar mSnackBar;
     private Snackbar mSnackBarPermisions;
 
+    private LinearLayout mBottomSheet;
+    private BottomSheetBehavior bsb;
+
+    private AdapterCatchablePokemon mAdapter;
+    private ViewPager mViewPager;
+
+
     // API PokemonGO
     private static PokemonGo mPokemonGo;
-    //private PokemonsTask mPokemonTask;
-    private PokeStopsTask mPokeStopsTask;
-    private GymsTask mGymsTask;
+    private PokemonsTask mPokemonTask;
 
     //Marcadores y listas
-    private Map<String, String> mPokemonsMap = new HashMap<String, String>();
-    //private List<LocalPokemon> mLocalPokemons = new ArrayList<>();
-    private List<LocalPokeStop> mLocalPokeStops = new ArrayList<>();
-    private List<LocalGym> mLocalGyms = new ArrayList<>();
+    private List<LocalUserPokemon> mLocalPokemons = new ArrayList<>();
     private List<Marker> mMarkers = new ArrayList();
     private ArrayList<PlaceSuggestion> mPlaceSuggestionList = new ArrayList<>();
 
     //Filtros
     private Boolean mAllMarkers;
     private Boolean mBusquedaMarkers;
-    private Boolean mNormalPokeStopMarkers;
-    private Boolean mLuredPokeStopMarkers;
-    private Boolean mBlueGymMarkers;
-    private Boolean mRedGymMarkers;
-    private Boolean mYellowGymsMarkers;
-    private Boolean mWhiteGymsMarkers;
-
 
     //Variables
     private Context mContext;
-    private Boolean isSearching = true;
-    private LatLng ltn = null;
+    private LatLng mSearchPoint;
     private String mLastQuery = "";
+    private Circle mMapCircleSearchPoint;
+    private Circle mMapCircleRandomPoint;
 
     //Class and interface
     private CounterToRemoveMarkers mCounterToRemoveMarkers;
     private OnFragmentListener mListener;
 
-    //Handlres
+    //Handlers
     HandlerThread mHandlerThread;
     Handler mThreadHandler;
 
+
+    private BroadcastScheduleMessage mBroadcastSheduleMessage;
+
+
     public FragmentPokeMap() {
         // Required empty public constructor
+    }
+
+    /**
+     * @param
+     * @return A new instance of fragment FragmentMapa.
+     */
+    public static FragmentPokeMap newInstance(PokemonGo pokemonGo) {
+        FragmentPokeMap fragment = new FragmentPokeMap();
+        mPokemonGo = pokemonGo;
+        return fragment;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mContext = context;
+
+        if (context instanceof OnFragmentListener) {
+            mListener = (OnFragmentListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        MapsInitializer.initialize(mContext);
+
+        mBroadcastSheduleMessage = new BroadcastScheduleMessage();
 
         if (mThreadHandler == null) {
             // Initialize and start the HandlerThread
@@ -168,23 +226,12 @@ public class FragmentPokeMap extends Fragment implements
                 public void handleMessage(Message msg) {
                     if (msg.what == 1) {
 
-
-                        /*ArrayList<String> results = mAdapter.resultList;
-
-                        if (results != null && results.size() > 0) {
-                            mAdapter.notifyDataSetChanged();
-                        }
-                        else {
-                            mAdapter.notifyDataSetInvalidated();
-                        }*/
-
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 //this will swap the data and
                                 //render the collapse/expand animations as necessary
                                 mSearchView.swapSuggestions(mPlaceSuggestionList);
-
                                 //let the users know that the background
                                 //process has completed
                                 mSearchView.hideProgress();
@@ -194,33 +241,16 @@ public class FragmentPokeMap extends Fragment implements
                 }
             };
         }
-    }
 
-    /**
-     * @param
-     * @return A new instance of fragment FragmentMapa.
-     */
-    public static FragmentMapa newInstance(PokemonGo pokemonGo) {
-        FragmentMapa fragment = new FragmentMapa();
-
-        mPokemonGo = pokemonGo;
-
-        return fragment;
-    }
-
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        MapsInitializer.initialize(mContext);
-        setUpData();
-        getFiltros();
+        //Instantiate Counter
+        mCounterToRemoveMarkers = new CounterToRemoveMarkers(60000, 10000);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        //First we need to check if the GoogleMap was not created in OnCreate
+
+        //First we need to check if the GoogleMap was not created in onViewCreated
         if (mGoogleMap == null) {
 
             // We need to check availability of play services
@@ -250,6 +280,11 @@ public class FragmentPokeMap extends Fragment implements
             }*/
         }
 
+        /*Intent intent= new Intent(mContext, ServiceMapObjects.class);
+        mContext.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);*/
+
+
+        mContext.registerReceiver(mBroadcastSheduleMessage, new IntentFilter(BroadcastScheduleMessage.ACTION_FIND_NEW_POKEMONS));
 
     }
 
@@ -257,8 +292,8 @@ public class FragmentPokeMap extends Fragment implements
     public void onPause() {
         super.onPause();
 
-        //OnlyCnacel
-        cancelTask(true);
+        //Cnacel
+        cancelTask();
 
         if (mGoogleMap != null) {
 
@@ -266,6 +301,9 @@ public class FragmentPokeMap extends Fragment implements
                 mGoogleMap.setMyLocationEnabled(false);
             }
         }
+
+        //mContext.unbindService(mConnection);
+        mContext.unregisterReceiver(mBroadcastSheduleMessage);
     }
 
     @Override
@@ -280,7 +318,7 @@ public class FragmentPokeMap extends Fragment implements
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        if (mPokemonGo!=null){
+        if (mPokemonGo != null) {
 
             mListener.onFragmentCreatedViewStatus(Constants.FRAGMENT_MAPA);
 
@@ -289,13 +327,57 @@ public class FragmentPokeMap extends Fragment implements
             mUserMarker = (ImageView) mView.findViewById(R.id.user_marker);
             mGetPokemonsButton = (FloatingActionButton) mView.findViewById(R.id.fab);
 
+            mAdapter = new AdapterCatchablePokemon(mContext, mLocalPokemons);
+            mBottomSheet = (LinearLayout) mView.findViewById(R.id.bottomSheet);
+            mViewPager = (ViewPager) mView.findViewById(R.id.pager);
+            mViewPager.setClipToPadding(false);
+            mViewPager.setPageMargin(40);
+            mViewPager.setAdapter(mAdapter);
+
+            bsb = BottomSheetBehavior.from(mBottomSheet);
+            //bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
+
+            bsb.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+                @Override
+                public void onStateChanged(@NonNull View bottomSheet, int newState) {
+
+                    String nuevoEstado = "";
+
+                    switch (newState) {
+                        case BottomSheetBehavior.STATE_COLLAPSED:
+                            nuevoEstado = "STATE_COLLAPSED";
+                            break;
+                        case BottomSheetBehavior.STATE_EXPANDED:
+                            nuevoEstado = "STATE_EXPANDED";
+                            break;
+                        case BottomSheetBehavior.STATE_HIDDEN:
+                            nuevoEstado = "STATE_HIDDEN";
+                            break;
+                        case BottomSheetBehavior.STATE_DRAGGING:
+                            nuevoEstado = "STATE_DRAGGING";
+                            break;
+                        case BottomSheetBehavior.STATE_SETTLING:
+                            nuevoEstado = "STATE_SETTLING";
+                            break;
+                    }
+
+                    Log.i("BottomSheets", "Nuevo estado: " + nuevoEstado);
+                }
+
+                @Override
+                public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                    Log.i("BottomSheets", "Offset: " + slideOffset);
+                }
+            });
+
+
             mGetPokemonsButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
 
-                    attemptSearch();
+                    //attemptSearch();
 
-                    //showCustomDialog();
+                    showCustomDialog();
                 }
             });
 
@@ -315,29 +397,11 @@ public class FragmentPokeMap extends Fragment implements
                     mapView.getMapAsync(this);
                 }
             }
+
+            getFiltros();
         }
 
     }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        mContext = context;
-
-        if (context instanceof OnFragmentListener) {
-            mListener = (OnFragmentListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -380,7 +444,6 @@ public class FragmentPokeMap extends Fragment implements
         return true;
     }
 
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         MapsInitializer.initialize(mContext);
@@ -398,13 +461,31 @@ public class FragmentPokeMap extends Fragment implements
 
 
     @Override
-    public void onCameraChange(CameraPosition cameraPosition) {
+    public boolean onMarkerClick(Marker marker) {
 
-        Log.i(TAG, "Change Camera to Latitude:" + cameraPosition.target.latitude + " Longitude: " + cameraPosition.target.longitude);
+        if (marker.getTag() instanceof LocalUserPokemon) {
 
-        userPosition = new LatLng(cameraPosition.target.latitude, cameraPosition.target.longitude);
+            LocalUserPokemon localUserPokemon = (LocalUserPokemon) marker.getTag();
 
-        ltn = null;
+            int index = mLocalPokemons.indexOf(localUserPokemon);
+            mViewPager.setCurrentItem(index);
+
+            bsb.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        }
+
+
+        return true;
+    }
+
+    @Override
+    public void onMapLongClick(LatLng point) {
+
+        Log.i(TAG, "Change Camera to Latitude:" + point.latitude + " Longitude: " + point.longitude);
+
+        mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, Constants.USER_ZOOM));
+
+        cancelTask();
+
     }
 
     /**
@@ -422,15 +503,15 @@ public class FragmentPokeMap extends Fragment implements
 
         if (ContextCompat.checkSelfPermission(mContext, ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        }
 
-        if (mLastLocation != null) {
+            if (mLastLocation != null) {
 
-            userPosition = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-            mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userPosition, Constants.USER_ZOOM));
+                userPosition = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+                mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userPosition, Constants.USER_ZOOM));
 
-        } else {
-            showAlert(Constants.ALERT_ADDRESS_RESULT_RECIVER);
+            } else {
+                showAlert(Constants.ALERT_ADDRESS_RESULT_RECIVER);
+            }
         }
 
     }
@@ -504,36 +585,28 @@ public class FragmentPokeMap extends Fragment implements
 
     }
 
-    /*public void drawPokemon(LocalPokemon localPokemon) {
+    public void drawPokemon(LocalUserPokemon localPokemon) {
 
         AssetManager assetManager = mContext.getAssets();
 
         try {
-            InputStream is = null;
+            InputStream is = assetManager.open(String.valueOf(localPokemon.getNumber()) + ".png");
+
 
            /* if (localPokemon.getPokemonId() < 10) {
-                is = assetManager.open(String.valueOf("00" + localPokemon.getPokemonId()) + ".ico");
+                is = assetManager.open(String.valueOf("00" + localPokemon.getNumber()) + ".ico");
             } else if (localPokemon.getPokemonId() < 100) {
-                is = assetManager.open(String.valueOf("0" + localPokemon.getPokemonId()) + ".ico");
+                is = assetManager.open(String.valueOf("0" + localPokemon.getNumber()) + ".ico");
             } else {
-                is = assetManager.open(String.valueOf(localPokemon.getPokemonId()) + ".ico");
-            }
-
-            if (localPokemon.getNumber() < 10) {
-                is = assetManager.open(String.valueOf("00" + localPokemon.getNumber()) + ".png");
-            } else if (localPokemon.getNumber() < 100) {
-                is = assetManager.open(String.valueOf("0" + localPokemon.getNumber()) + ".png");
-            } else {
-                is = assetManager.open(String.valueOf(localPokemon.getNumber()) + ".png");
-            }
-
+                is = assetManager.open(String.valueOf(localPokemon.getNumber()) + ".ico");
+            }*/
             Bitmap bitmap = BitmapFactory.decodeStream(is);
 
             Marker mMarker = mGoogleMap.addMarker(new MarkerOptions()
                     .position(new LatLng(localPokemon.getLatitude(), localPokemon.getLongitude()))
                     .title(localPokemon.getName())
                     .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
-                    .snippet(createDate(localPokemon.getExpiration_time()))
+                    .snippet(createDate(localPokemon.getExpirationTimeMs()))
             );
 
             mMarker.setTag(localPokemon);
@@ -542,139 +615,6 @@ public class FragmentPokeMap extends Fragment implements
         } catch (IOException e) {
             Log.e(TAG, e.getMessage());
         }
-    }*/
-
-    public void drawPokeStop(LocalPokeStop localPokeStop) {
-
-        Log.i(TAG, "DRAW: " + localPokeStop.getName());
-
-        int resourceId;
-
-        if (!localPokeStop.getHasLure()) {
-
-            if (mNormalPokeStopMarkers) {
-                resourceId = R.drawable.ic_pokestop;
-
-                Marker mMarker = mGoogleMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(localPokeStop.getLatitude(), localPokeStop.getLongitude()))
-                        .title(localPokeStop.getName())
-                        .icon(BitmapDescriptorFactory.fromResource(resourceId))
-                        .snippet(localPokeStop.getDescription())
-                );
-
-                mMarker.setTag(localPokeStop);
-                mMarkers.add(mMarker);
-            }
-
-        } else {
-
-            if (mLuredPokeStopMarkers) {
-                resourceId = R.drawable.ic_pokestope_lucky;
-
-                Marker mMarker = mGoogleMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(localPokeStop.getLatitude(), localPokeStop.getLongitude()))
-                        .title(localPokeStop.getName())
-                        .icon(BitmapDescriptorFactory.fromResource(resourceId))
-                        .snippet(localPokeStop.getDescription())
-                );
-
-                mMarker.setTag(localPokeStop);
-                mMarkers.add(mMarker);
-            }
-
-        }
-    }
-
-    public void drawGym(LocalGym localGym) {
-
-        int icon_gym;
-
-        switch (localGym.getTeam()) {
-            case 1:
-                if (mBlueGymMarkers) {
-                    icon_gym = R.drawable.ic_gym_team_blue;
-
-                    Marker mMarker = mGoogleMap.addMarker(new MarkerOptions()
-                            .position(new LatLng(localGym.getLatitude(), localGym.getLongitude()))
-                            .title(localGym.getName())
-                            .icon(BitmapDescriptorFactory.fromResource(icon_gym))
-                            .snippet(localGym.getDescription())
-                    );
-
-                    mMarker.setTag(localGym);
-                    mMarkers.add(mMarker);
-                }
-
-                break;
-            case 2:
-                if (mRedGymMarkers) {
-                    icon_gym = R.drawable.ic_gym_team_red;
-                    Marker mMarker = mGoogleMap.addMarker(new MarkerOptions()
-                            .position(new LatLng(localGym.getLatitude(), localGym.getLongitude()))
-                            .title(localGym.getName())
-                            .icon(BitmapDescriptorFactory.fromResource(icon_gym))
-                            .snippet(localGym.getDescription())
-                    );
-
-                    mMarker.setTag(localGym);
-                    mMarkers.add(mMarker);
-                }
-
-                break;
-            case 3:
-
-                if (mYellowGymsMarkers) {
-                    icon_gym = R.drawable.ic_gym_team_yellow;
-                    Marker mMarker = mGoogleMap.addMarker(new MarkerOptions()
-                            .position(new LatLng(localGym.getLatitude(), localGym.getLongitude()))
-                            .title(localGym.getName())
-                            .icon(BitmapDescriptorFactory.fromResource(icon_gym))
-                            .snippet(localGym.getDescription())
-                    );
-
-                    mMarker.setTag(localGym);
-                    mMarkers.add(mMarker);
-                }
-
-
-                break;
-            default:
-
-                if (mWhiteGymsMarkers) {
-                    icon_gym = R.drawable.ic_gym_team_white;
-                    Marker mMarker = mGoogleMap.addMarker(new MarkerOptions()
-                            .position(new LatLng(localGym.getLatitude(), localGym.getLongitude()))
-                            .title(localGym.getName())
-                            .icon(BitmapDescriptorFactory.fromResource(icon_gym))
-                            .snippet(localGym.getDescription())
-                    );
-
-                    mMarker.setTag(localGym);
-                    mMarkers.add(mMarker);
-                }
-
-
-                break;
-        }
-
-
-    }
-
-    public void drawLocation(LatLng position) {
-
-        if (mBusquedaMarkers) {
-
-            Marker mMarker = mGoogleMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(position.latitude, position.longitude)));
-
-            Long currentTime = System.currentTimeMillis();
-            mMarker.setTitle("Custom Location");
-            mMarker.setTitle("At: " + createDate(currentTime));
-            mMarker.setTag(currentTime);
-            mMarkers.add(mMarker);
-
-        }
-
     }
 
 
@@ -686,7 +626,6 @@ public class FragmentPokeMap extends Fragment implements
     public void onConnected(@Nullable Bundle bundle) {
         // Once connected with google api, get the location
         getUserLocation();
-        //showCustomDialog();
     }
 
     @Override
@@ -705,176 +644,190 @@ public class FragmentPokeMap extends Fragment implements
      */
     private void attemptSearch() {
 
-       /* if (mPokemonTask == null) {
-            mPokemonTask = new PokemonsTask(true);
+
+        startService();
+
+       /*userPosition = mGoogleMap.getCameraPosition().target;
+
+        mMapCircleSearchPoint = mGoogleMap.addCircle(new CircleOptions()
+                .center(userPosition)
+                .radius(100)
+                .strokeColor(getResources().getColor(R.color.colorPrimaryDark))
+                .fillColor(getResources().getColor(R.color.colorPrimaryD)));
+
+        if (mPokemonTask == null) {
+            mPokemonTask = new PokemonsTask();
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                 mPokemonTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             } else {
                 mPokemonTask.execute();
             }
-        }*/
+        }
 
-        /*if (mPokeStopsTask == null) {
-            mPokeStopsTask = new PokeStopsTask(true);
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                mPokeStopsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-            } else {
-                mPokeStopsTask.execute();
-            }
-        }*/
-
-        /*if (mGymsTask == null) {
-            mGymsTask = new GymsTask(true);
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                mGymsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-            } else {
-                mGymsTask.execute();
-            }
-        }*/
-
-        if (mCounterToRemoveMarkers==null){
-
-            mCounterToRemoveMarkers = new CounterToRemoveMarkers(60000, 10000);
+        if (mCounterToRemoveMarkers == null) {
             mCounterToRemoveMarkers.start();
         }
 
-
         mGetPokemonsButton.setVisibility(View.GONE);
+
+        mGoogleMap.getUiSettings().setZoomControlsEnabled(false);
+
+        //onlyCancel
+        if (bsb.getState() == BottomSheetBehavior.STATE_COLLAPSED || bsb.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+            bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
+        }
 
         mSnackBar = Snackbar.make(mView, R.string.message_snackbar_searching_text, Snackbar.LENGTH_INDEFINITE)
                 .setAction(R.string.snack_bar_neg_btn, new View.OnClickListener() {
                     @Override
                     @TargetApi(Build.VERSION_CODES.M)
                     public void onClick(View v) {
-
-                        //onlyCancel
-                        cancelTask(true);
+                        cancelTask();
                     }
                 });
 
+        CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) mSnackBar.getView().getLayoutParams();
+        params.gravity = Gravity.TOP;
+        mSnackBar.getView().setLayoutParams(params);
         mSnackBar.show();
 
-        mSearchView.showProgress();
+        mSearchView.showProgress();*/
+    }
+
+    public void startService(){
+
+        Intent intent = new Intent(BroadcastScheduleStartServiceMap.ACTION_SHEDULE);
+
+        Bundle extras1 = new Bundle();
+        extras1.putString("action", "schedule");
+        intent.putExtras(extras1);
+        mContext.sendBroadcast(intent);
+
+        Bundle extras2 = new Bundle();
+        extras2.putString("action", "cancel");
+        intent.putExtras(extras2);
+        PendingIntent pendingIntent2 = PendingIntent.getBroadcast(mContext, 0, intent, PendingIntent.FLAG_NO_CREATE);
+
+        Intent notificationIntent = new Intent(mContext, ActivityDashboard.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, notificationIntent, PendingIntent.FLAG_NO_CREATE);
+
+        // Cancel all previous notifications
+        NotificationManagerCompat.from(mContext).cancelAll();
+
+        // Use NotificationCompat.Builder to set up our notification.
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
+        // Set a small icon that will appear in the upper right corner of the // notification card
+        builder.setOngoing(true);
+        builder.setSmallIcon(R.mipmap.ic_launcher);
+        // Content title and description
+        builder.setContentTitle("PokéEasy");
+        builder.setContentText("PokéEasy se está ejecutando");
+
+        // Set a content intent to return to this example.
+        builder.setContentIntent(pendingIntent);
+
+        builder.addAction(R.drawable.ic_clear_black_24dp, "CERRAR PokéEASY", pendingIntent2);
+
+        // Get an instance of the NotificationManagerCompat service
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(mContext);
+
+        // Build the notification and notify it using notification manager.
+        notificationManager.notify(Constants.NOTIFICATION_ID, builder.build());
+
     }
 
     /**
      * Represents an asynchronous get pokemons
      * with a location.
      */
-    /*public class PokemonsTask extends AsyncTask<Void, LocalPokemon, Boolean> {
-
-
-        PokemonsTask(Boolean isEnabled) {
-            isSearching = isEnabled;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
+    public class PokemonsTask extends AsyncTask<Void, Object, Boolean> {
 
         @Override
         protected Boolean doInBackground(Void... params) {
             try {
-                while (isSearching) {
 
-                    if (isDeviceOnline()) {
+                while (!isCancelled()) {
 
-                        if (ltn == null) {
-                            ltn = new LatLng(userPosition.longitude, userPosition.latitude);
-                        } else {
-                            ltn = getRandomeLocation(userPosition.longitude, userPosition.latitude, 100);
-                        }
-
-                        mPokemonGo.setLocation(ltn.latitude, ltn.longitude, 1);
-
-                        try {
-                            List<CatchablePokemon> chablePokemons = mPokemonGo.getMap().getCatchablePokemon();
-
-                            List<Pokeball> pokeBallsList = new ArrayList<>();
-
-                            int pokeballs = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_POKE_BALL).getCount();
-                            int greatBalls = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_GREAT_BALL).getCount();
-                            int ultraBalls = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_ULTRA_BALL).getCount();
-
-                            Log.i(TAG,"POKEBALL:" + String.valueOf(pokeballs)+ " GREAT_BALL: " + String.valueOf(greatBalls)+ " ULTRA_BALL: " + String.valueOf(ultraBalls));
-
-                            if (chablePokemons != null) {
-                                for (CatchablePokemon cachablePokemon : chablePokemons) {
-
-                                    // You need to Encounter first.
-                                    EncounterResult encResult = cachablePokemon.encounterPokemon();
-
-                                    Log.i(TAG, " Encountered Result: " + encResult.getStatus().toString());
-
-                                    // if encounter was succesful, catch
-                                    if (encResult.wasSuccessful()) {
-                                        Log.i(TAG, " Encountered: " + cachablePokemon.getPokemonId());
-
-                                        CatchOptions options = new CatchOptions(mPokemonGo);
-
-                                        if(options.getRazzberries()>0){
-                                            options.maxRazzberries(0);
-                                        }
-
-                                        if (pokeballs!=0){
-                                            options.usePokeball(Pokeball.POKEBALL);
-                                            options.noMasterBall(true);
-
-                                            CatchResult result = cachablePokemon.catchPokemon(options);
-
-                                            Log.i(TAG, "Attempt to catch: " + cachablePokemon.getPokemonId() + " " + result.getStatus());
-
-                                            showToast(cachablePokemon.getPokemonId() + " " + result.getStatus());
-
-                                        }
-                                        else if (greatBalls!=0){
-                                            options.usePokeball(Pokeball.GREATBALL);
-                                            options.noMasterBall(true);
-
-                                            CatchResult result = cachablePokemon.catchPokemon(options);
-
-                                            Log.i(TAG, "Attempt to catch: " + cachablePokemon.getPokemonId() + " " + result.getStatus());
-
-                                            showToast(cachablePokemon.getPokemonId() + " " + result.getStatus());
-                                        }else{
-                                            mPokemonTask.cancel(true);
-                                        }
-
-                                    }
-
-                                    LocalPokemon localPokemon = new LocalPokemon();
-                                    localPokemon.setId(cachablePokemon.getEncounterId());
-                                    localPokemon.setExpiration_time(cachablePokemon.getExpirationTimestampMs());
-                                    localPokemon.setNumber(cachablePokemon.getPokemonId().getNumber());
-                                    localPokemon.setName(cachablePokemon.getPokemonId().name());
-                                    localPokemon.setLatitude(cachablePokemon.getLatitude());
-                                    localPokemon.setLongitude(cachablePokemon.getLongitude());
-
-                                    Boolean isEncountered = containsEncounteredId(localPokemon, String.valueOf(localPokemon.getId()));
-
-                                    if (!isEncountered) {
-                                        mLocalPokemons.add(localPokemon);
-                                        publishProgress(localPokemon);
-                                    }
-
-                                }
-
-                                sleep(10000);
-                            }
-                        } catch (LoginFailedException | RemoteServerException e) {
-                            Log.e(TAG, "Failed to get pokemons or server issue Login or RemoteServer exception: ", e);
-                            cancelTask(false);
-                        }
+                    if (mSearchPoint == null) {
+                        mSearchPoint = new LatLng(userPosition.latitude, userPosition.longitude);
+                    } else {
+                        mSearchPoint = getRandomeLocation(userPosition.longitude, userPosition.latitude, 100);
                     }
 
+                    publishProgress(mSearchPoint);
+
+                    mPokemonGo.setLocation(mSearchPoint.latitude, mSearchPoint.longitude, 1);
+
+                    try {
+                        List<CatchablePokemon> catchablePokemonList = mPokemonGo.getMap().getCatchablePokemon();
+
+                        int pokeballs = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_POKE_BALL).getCount();
+                        int greatBalls = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_GREAT_BALL).getCount();
+                        int ultraBalls = mPokemonGo.getInventories().getItemBag().getItem(ItemIdOuterClass.ItemId.ITEM_ULTRA_BALL).getCount();
+
+                        Log.i(TAG, "POKEBALL:" + String.valueOf(pokeballs) + " GREAT_BALL: " + String.valueOf(greatBalls) + " ULTRA_BALL: " + String.valueOf(ultraBalls));
+
+                        if (catchablePokemonList != null) {
+
+                            for (CatchablePokemon catchablePokemon : catchablePokemonList) {
+
+                                // You need to Encounter first.
+                                EncounterResult encResult = catchablePokemon.encounterPokemon();
+
+                                if (encResult.wasSuccessful()) {
+
+                                    PokemonDataOuterClass.PokemonData pokemonData = encResult.getPokemonData();
+
+                                    LocalUserPokemon localUserPokemon = new LocalUserPokemon();
+
+                                    localUserPokemon.setId(catchablePokemon.getEncounterId());
+                                    localUserPokemon.setExpirationTimeMs(catchablePokemon.getExpirationTimestampMs());
+                                    localUserPokemon.setNumber(catchablePokemon.getPokemonId().getNumber());
+                                    localUserPokemon.setName(catchablePokemon.getPokemonId().name());
+                                    localUserPokemon.setLatitude(catchablePokemon.getLatitude());
+                                    localUserPokemon.setLongitude(catchablePokemon.getLongitude());
+                                    localUserPokemon.setBitmap(getBitmapFromAssets(catchablePokemon.getPokemonId().getNumber()));
+                                    localUserPokemon.setCp(pokemonData.getCp());
+                                    Double iv_ratio = ((pokemonData.getIndividualAttack() + pokemonData.getIndividualDefense() + pokemonData.getIndividualStamina()) / 45.0) * (100.0);
+                                    localUserPokemon.setIv(iv_ratio.intValue());
+                                    localUserPokemon.setAttack(pokemonData.getIndividualAttack());
+                                    localUserPokemon.setDefense(pokemonData.getIndividualDefense());
+                                    localUserPokemon.setStamina(pokemonData.getIndividualStamina());
+
+                                    PokemonMoveMeta moveMeta1 = PokemonMoveMetaRegistry.getMeta(pokemonData.getMove1());
+                                    PokemonMoveMeta moveMeta2 = PokemonMoveMetaRegistry.getMeta(pokemonData.getMove2());
+                                    PokemonMove move1 = new PokemonMove(moveMeta1.getMove().name(), moveMeta1.getAccuracy(), moveMeta1.getCritChance(), moveMeta1.getEnergy(),moveMeta1.getPower(), moveMeta1.getTime());
+                                    PokemonMove move2 = new PokemonMove(moveMeta2.getMove().name(), moveMeta2.getAccuracy(), moveMeta2.getCritChance(), moveMeta2.getEnergy(),moveMeta2.getPower(), moveMeta2.getTime());
+                                    final List<PokemonMove> moves = new ArrayList<>();
+                                    moves.add(move1);
+                                    moves.add(move2);
+                                    localUserPokemon.setMoves(moves);
+
+                                    Boolean isEncountered = containsEncounteredId(localUserPokemon, String.valueOf(localUserPokemon.getId()));
+
+                                    if (!isEncountered) {
+
+                                        Log.i(TAG, encResult.getPokemonData().getPokemonId() + " Encountered..." + " CP: " + encResult.getPokemonData().getCp() + " ExpirationTime: " + String.valueOf(catchablePokemon.getExpirationTimestampMs()));
+                                        mLocalPokemons.add(localUserPokemon);
+                                        publishProgress(localUserPokemon);
+                                    }
+
+                                    if (Constants.DEBUG_MODE) {
+                                        catchPokemon(catchablePokemon);
+                                    }
+                                }
+                            }
+
+                            sleep(10000);
+                        }
+                    } catch (LoginFailedException | RemoteServerException e) {
+                        Log.e(TAG, "Failed to get pokemons or server issue Login or RemoteServer exception: ", e);
+                        break;
+                    }
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Failed to get pokemons or server issue General exception: ", e);
-                cancelTask(false);
             }
 
             return false;
@@ -882,345 +835,98 @@ public class FragmentPokeMap extends Fragment implements
         }
 
         @Override
-        protected void onProgressUpdate(LocalPokemon... localPokemon) {
+        protected void onProgressUpdate(Object... obj) {
 
-            super.onProgressUpdate(localPokemon);
-            drawPokemon(localPokemon[0]);
-        }
+            super.onProgressUpdate(obj);
 
-        @Override
-        protected void onPostExecute(Boolean succes) {
-            mPokemonTask = null;
-            isSearching = false;
-        }
 
-        @Override
-        protected void onCancelled() {
-            mPokemonTask = null;
-            isSearching = false;
-        }
-    }*/
+            if (obj[0] instanceof LocalUserPokemon){
+                drawPokemon((LocalUserPokemon)obj[0]);
 
-    /**
-     * Represents an asynchronous get poke stops
-     * with a location.
-     */
-    public class PokeStopsTask extends AsyncTask<Void, LocalPokeStop, Boolean> {
+                mAdapter.notifyDataSetChanged();
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        PokeStopsTask(Boolean isEnabled) {
-            isSearching = isEnabled;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-
-            try {
-
-                while (isSearching) {
-
-                    if (isDeviceOnline()) {
-                        mPokemonGo.setLocation(userPosition.latitude, userPosition.longitude, 1);
-
-                        try {
-                            List<Pokestop> pokeStops = new ArrayList<>(mPokemonGo.getMap().getMapObjects().getPokestops());
-
-                            if (pokeStops != null) {
-
-                                for (Pokestop pkStop : pokeStops) {
-
-                                    LocalPokeStop localPokeStop = new LocalPokeStop();
-                                    localPokeStop.setId(pkStop.getId());
-                                    localPokeStop.setLatitude(pkStop.getLatitude());
-                                    localPokeStop.setLatitude(pkStop.getLatitude());
-                                    localPokeStop.setLongitude(pkStop.getLongitude());
-
-                                    //Check pokeStop to Add or Loot
-                                    if (!containsEncounteredId(localPokeStop, localPokeStop.getId())) {
-
-                                        //Check if the pokestop is in range to be drawed (< 150 [m])
-                                        if (!shouldMarkerRemove(localPokeStop)) {
-
-                                            Log.i(TAG, " Encountered PokeStop: " + pkStop.getDetails().getName());
-
-                                            //Check if the pokestop is in range to be Loot (< 90 [m])
-                                            if (isinRange(localPokeStop)) {
-                                                Log.i(TAG, "Attempt to Loot...");
-                                                mPokemonGo.setLocation(pkStop.getLatitude(), pkStop.getLongitude(), 1);
-                                               // if (pkStop.canLoot()) {
-                                                    PokestopLootResult result = pkStop.loot();
-
-                                                    if (result.wasSuccessful()){
-                                                        String items="";
-
-                                                        for (ItemAwardOuterClass.ItemAward itemAward: result.getItemsAwarded()){
-                                                            items = items + "\n* " + itemAward.getItemId().name();
-                                                        }
-
-                                                        String message = "Items obtained: " + String.valueOf(result.getItemsAwarded().size()+ items);
-                                                        Log.i(TAG, message);
-                                                        showToast(message);
-                                                    }
-
-                                                    Log.i(TAG, "Result: " + result.getResult().toString());
-                                               // }
-                                            }
-
-                                            //Add PokeStop
-                                            sleep(1000);
-                                            localPokeStop.setHasLure(pkStop.hasLure());
-                                            localPokeStop.setName(pkStop.getDetails().getName());
-                                            localPokeStop.setDescription(pkStop.getDetails().getDescription());
-
-                                            mLocalPokeStops.add(localPokeStop);
-                                            publishProgress(localPokeStop);
-                                        }
-                                    }
-                                    else{
-                                        //Check if the pokestop is in range to be Loot (< 90 [m])
-                                        if (isinRange(localPokeStop)) {
-                                            Log.i(TAG, "Attempt to Loot " + pkStop.getDetails().getName());
-                                            mPokemonGo.setLocation(pkStop.getLatitude(), pkStop.getLongitude(), 1);
-
-                                            if (pkStop.canLoot()) {
-                                            PokestopLootResult result = pkStop.loot();
-
-                                            if (result.wasSuccessful()){
-                                                String items="";
-
-                                                for (ItemAwardOuterClass.ItemAward itemAward: result.getItemsAwarded()){
-                                                    items = items + "\n* " + itemAward.getItemId().name();
-                                                }
-
-                                                String message = "Items obtained: " + String.valueOf(result.getItemsAwarded().size()+ items);
-                                                Log.i(TAG, message);
-                                                showToast(message);
-                                            }
-
-                                            Log.i(TAG, "Result: " + result.getResult().toString());
-                                            }
-                                        }
-                                        sleep(1000);
-                                    }
-                                }
-
-                            }
-                        } catch (LoginFailedException | RemoteServerException e) {
-                            Log.e(TAG, "Failed to get pokestops or server issue Login or RemoteServer exception: ", e);
-                            cancelTask(false);
-                        }
-                    }
+                if (bsb.getState() == BottomSheetBehavior.STATE_HIDDEN) {
+                    bsb.setState(BottomSheetBehavior.STATE_COLLAPSED);
                 }
-
-            } catch (Exception e) {
-                Log.e(TAG, "Failed to get pokestops or server issue General exception: ", e);
-                cancelTask(false);
+            }
+            else{
+                if (mMapCircleRandomPoint==null) {
+                    mMapCircleRandomPoint = mGoogleMap.addCircle(new CircleOptions()
+                            .center((LatLng) obj[0])
+                            .radius(40)
+                            .strokeColor(getResources().getColor(R.color.black))
+                            .fillColor(getResources().getColor(R.color.colorPrimaryD)));
+                }
+                else{
+                    mMapCircleRandomPoint.setCenter((LatLng) obj[0]);
+                }
             }
 
-            return true;
-        }
-
-        @Override
-        protected void onProgressUpdate(LocalPokeStop... localPokeStop) {
-
-            super.onProgressUpdate(localPokeStop);
-            drawPokeStop(localPokeStop[0]);
 
         }
 
         @Override
         protected void onPostExecute(Boolean succes) {
-
-            mPokeStopsTask = null;
-            isSearching = false;
-        }
-
-        @Override
-        protected void onCancelled() {
-            mPokeStopsTask = null;
-            isSearching = false;
-        }
-
-    }
-
-    /**
-     * Represents an asynchronous get Gyms
-     * with a location.
-     */
-    public class GymsTask extends AsyncTask<Void, LocalGym, Boolean> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        GymsTask(Boolean isEnabled) {
-            isSearching = isEnabled;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params)
-        {
-
-            try {
-
-                while (isSearching) {
-
-                    if (isDeviceOnline()) {
-
-                        mPokemonGo.setLocation(userPosition.latitude, userPosition.longitude, 1);
-
-                        try {
-                            List<Gym> gyms = new ArrayList<>(mPokemonGo.getMap().getGyms());
-
-                            if (gyms != null) {
-
-                                for (Gym gym : gyms) {
-                                    LocalGym localGym = new LocalGym();
-                                    localGym.setId(gym.getId());
-
-                                    Boolean isEncountered = containsEncounteredId(localGym, localGym.getId());
-
-                                    if (!isEncountered) {
-
-                                        sleep(1000);
-                                        localGym.setName(gym.getName());
-                                        localGym.setTeam(gym.getOwnedByTeam().getNumber());
-                                        localGym.setInBattle(gym.getIsInBattle());
-                                        localGym.setPoints(gym.getPoints());
-                                        localGym.setLatitude(gym.getLatitude());
-                                        localGym.setLongitude(gym.getLongitude());
-                                        localGym.setDescription(gym.getDescription());
-
-                                        mLocalGyms.add(localGym);
-                                        publishProgress(localGym);
-
-                                    }
-
-                                }
-                            }
-                            sleep(10000);
-                        } catch (LoginFailedException | RemoteServerException e) {
-                            Log.e(TAG, "Failed to get gyms or server issue Login or RemoteServer exception: ", e);
-                            cancelTask(false);
-                        }
-                    }
-                }
-
-            } catch (Exception e){
-                Log.e(TAG, "Failed to get gyms or server issue General exception: ", e);
-                cancelTask(false);
-            }
-
-            return false;
-        }
-
-        @Override
-        protected void onProgressUpdate(LocalGym... localGym) {
-
-            super.onProgressUpdate(localGym);
-            drawGym(localGym[0]);
-
-        }
-
-        @Override
-        protected void onPostExecute(Boolean succes) {
-
-            mGymsTask = null;
-            isSearching = false;
-        }
-
-        @Override
-        protected void onCancelled() {
-            mGymsTask = null;
-            isSearching = false;
-        }
-    }
-
-
-    public void cancelTask(Boolean onlyCancel){
-
-        if (isSearching != null) {
-            isSearching = false;
-        }
-
-        /*if (mPokemonTask!=null){
-            mPokemonTask.cancel(true);
             mPokemonTask = null;
-        }*/
-
-        if (mPokeStopsTask!=null){
-            mPokeStopsTask.cancel(true);
-            mPokeStopsTask = null;
-        }
-
-        if (mGymsTask!=null){
-            mGymsTask.cancel(true);
-            mGymsTask = null;
-        }
-
-        if (mCounterToRemoveMarkers != null) {
-            mCounterToRemoveMarkers.cancel();
-            mCounterToRemoveMarkers = null;
-        }
-
-        if (onlyCancel){
-            Log.i(TAG, "ONLY CANCEL TASK");
 
             if (mSnackBar != null && mSearchView != null && mGetPokemonsButton != null) {
                 mSnackBar.dismiss();
                 mGetPokemonsButton.setVisibility(View.VISIBLE);
                 mSearchView.hideProgress();
+
+                mGoogleMap.getUiSettings().setZoomControlsEnabled(true);
+
+                //onlyCancel
+                if (bsb.getState() == BottomSheetBehavior.STATE_COLLAPSED || bsb.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                    bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
+                }
             }
+
         }
-        else {
-            if (!Constants.DEBUG_MODE){
-                Log.i(TAG, "DEBUG MODE IS DISABLE");
-                //Show snackBar to let user restart the tasks
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
 
-                        if (mSnackBar != null && mSearchView != null) {
-                            mSnackBar.dismiss();
-                            mSnackBar = null;
-                            mSearchView.hideProgress();
-                        }
+        @Override
+        protected void onCancelled() {
+            mPokemonTask = null;
+        }
+    }
 
-                        if (mSnackBar == null) {
-                            mSnackBar = Snackbar.make(mView, R.string.snack_bar_error_with_pokemon, Snackbar.LENGTH_INDEFINITE)
-                                    .setAction(R.string.snack_bar_error_with_pokemon_negative_btn, new View.OnClickListener() {
-                                        @Override
-                                        @TargetApi(Build.VERSION_CODES.M)
-                                        public void onClick(View v) {
-                                            mGetPokemonsButton.setVisibility(View.VISIBLE);
-                                        }
-                                    })
-                                    .setAction(R.string.snack_bar_error_with_pokemon_positive_btn, new View.OnClickListener() {
-                                        @Override
-                                        @TargetApi(Build.VERSION_CODES.M)
-                                        public void onClick(View v) {
+    public void cancelTask() {
 
-                                            attemptSearch();
-                                        }
-                                    });
-                            mSnackBar.show();
-                        }
-                    }
-                });
+        if (mSearchPoint != null) {
+            mSearchPoint = null;
+        }
 
+        if (mPokemonTask != null) {
+            mPokemonTask.cancel(true);
+        }
+
+        if (mCounterToRemoveMarkers != null) {
+            mCounterToRemoveMarkers.cancel();
+        }
+
+        if (mMapCircleSearchPoint != null) {
+            mMapCircleSearchPoint.remove();
+            mMapCircleSearchPoint =null;
+        }
+        if (mMapCircleRandomPoint != null) {
+            mMapCircleRandomPoint.remove();
+            mMapCircleRandomPoint = null;
+        }
+
+        Log.i(TAG, "ONLY CANCEL TASK");
+
+        if (mSnackBar != null && mSearchView != null && mGetPokemonsButton != null) {
+            mSnackBar.dismiss();
+            mGetPokemonsButton.setVisibility(View.VISIBLE);
+            mSearchView.hideProgress();
+
+            mGoogleMap.getUiSettings().setZoomControlsEnabled(true);
+
+            //onlyCancel
+            if (bsb.getState() == BottomSheetBehavior.STATE_COLLAPSED || bsb.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
             }
-            else{
 
-                sleep(5000);
-                Log.i(TAG, "DEBUG MODE IS ENABLED, SO RESTART ALL THE TASKS");
-                //Restart all the Tasks
-                attemptSearch();
-            }
         }
 
     }
@@ -1276,7 +982,7 @@ public class FragmentPokeMap extends Fragment implements
                             mPlaceSuggestionList = new ArrayList<>();
 
                             //Southwest corner to Northeast corner.
-                            LatLngBounds bounds = new LatLngBounds(new LatLng(18.7887956,-98.3336627), new LatLng(19.0110955,-97.0607641));
+                            LatLngBounds bounds = new LatLngBounds(new LatLng(18.7887956, -98.3336627), new LatLng(19.0110955, -97.0607641));
 
                             Places.GeoDataApi.getAutocompletePredictions(mGoogleApiClient, value, bounds, null)
                                     .setResultCallback(
@@ -1429,8 +1135,8 @@ public class FragmentPokeMap extends Fragment implements
             mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
             mGoogleMap.getUiSettings().setZoomControlsEnabled(true);
             mGoogleMap.getUiSettings().setCompassEnabled(false);
-            mGoogleMap.setOnCameraChangeListener(this);
-            //mGoogleMap.setPadding(0, 0, 0, 150);
+            mGoogleMap.setOnMarkerClickListener(this);
+            mGoogleMap.setOnMapLongClickListener(this);
 
             mSearchView.setVisibility(View.VISIBLE);
             mUserMarker.setVisibility(View.VISIBLE);
@@ -1470,7 +1176,7 @@ public class FragmentPokeMap extends Fragment implements
                 // TODO Auto-generated method stub
 
                 if (action == Constants.ALERT_ADDRESS_RESULT_RECIVER) {
-                    //getUserLocation();
+                    getUserLocation();
                 }
                 if (action == Constants.ALERT_RESUME_TASK) {
                     attemptSearch();
@@ -1490,9 +1196,7 @@ public class FragmentPokeMap extends Fragment implements
 
                 if (action == Constants.ALERT_RESUME_TASK) {
                     mGoogleMap.clear();
-                   // mLocalPokemons = new ArrayList<>();
-                    mLocalPokeStops = new ArrayList<>();
-                    mLocalGyms = new ArrayList<>();
+                    mLocalPokemons = new ArrayList<>();
                     mMarkers = new ArrayList();
 
                     attemptSearch();
@@ -1500,29 +1204,6 @@ public class FragmentPokeMap extends Fragment implements
             }
         });
         dialog.show();
-    }
-
-    public boolean isDeviceOnline() {
-
-        boolean isConnected = false;
-        ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-
-        if (activeNetwork != null) { // connected to the internet
-            if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI) {
-                // connected to wifi
-                isConnected = true;
-            } else if (activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
-                // connected to the mobile provider's data plan
-                isConnected = true;
-            }
-        }
-        else {
-            // not connected to the internet
-            isConnected = false;
-        }
-
-        return isConnected;
     }
 
     public static String createDate(long timestamp) {
@@ -1566,170 +1247,9 @@ public class FragmentPokeMap extends Fragment implements
 
         Log.i(TAG, "New Location");
 
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                drawLocation(foundLocation);
-            }
-        });
+        Log.e(TAG, "Randome Point --> Latitude:" +foundLocation.latitude + " Longuitude: " + foundLocation.longitude);
 
         return foundLocation;
-    }
-
-    public void setUpData() {
-
-        mPokemonsMap.put("1", "Bulbasaur");
-        mPokemonsMap.put("2", "Ivysaur");
-        mPokemonsMap.put("3", "Venusaur");
-        mPokemonsMap.put("4", "Charmander");
-        mPokemonsMap.put("5", "Charmeleon");
-        mPokemonsMap.put("6", "Charizard");
-        mPokemonsMap.put("7", "Squirtle");
-        mPokemonsMap.put("8", "Wartortle");
-        mPokemonsMap.put("9", "Blastoise");
-        mPokemonsMap.put("10", "Caterpie");
-        mPokemonsMap.put("11", "Metapod");
-        mPokemonsMap.put("12", "Butterfree");
-        mPokemonsMap.put("13", "Weedle");
-        mPokemonsMap.put("14", "Kakuna");
-        mPokemonsMap.put("15", "Beedrill");
-        mPokemonsMap.put("16", "Pidgey");
-        mPokemonsMap.put("17", "Pidgeotto");
-        mPokemonsMap.put("18", "Pidgeot");
-        mPokemonsMap.put("19", "Rattata");
-        mPokemonsMap.put("20", "Raticate");
-        mPokemonsMap.put("21", "Spearow");
-        mPokemonsMap.put("22", "Fearow");
-        mPokemonsMap.put("23", "Ekans");
-        mPokemonsMap.put("24", "Arbok");
-        mPokemonsMap.put("25", "Pikachu");
-        mPokemonsMap.put("26", "Raichu");
-        mPokemonsMap.put("27", "Sandshrew");
-        mPokemonsMap.put("28", "Sandslash");
-        mPokemonsMap.put("29", "Nidoran♀");
-        mPokemonsMap.put("30", "Nidorina");
-        mPokemonsMap.put("31", "Nidoqueen");
-        mPokemonsMap.put("32", "Nidoran♂");
-        mPokemonsMap.put("33", "Nidorino");
-        mPokemonsMap.put("34", "Nidoking");
-        mPokemonsMap.put("35", "Clefairy");
-        mPokemonsMap.put("36", "Clefable");
-        mPokemonsMap.put("37", "Vulpix");
-        mPokemonsMap.put("38", "Ninetales");
-        mPokemonsMap.put("39", "Jigglypuff");
-        mPokemonsMap.put("40", "Wigglytuff");
-        mPokemonsMap.put("41", "Zubat");
-        mPokemonsMap.put("42", "Golbat");
-        mPokemonsMap.put("43", "Oddish");
-        mPokemonsMap.put("44", "Gloom");
-        mPokemonsMap.put("45", "Vileplume");
-        mPokemonsMap.put("46", "Paras");
-        mPokemonsMap.put("47", "Parasect");
-        mPokemonsMap.put("48", "Venonat");
-        mPokemonsMap.put("49", "Venomoth");
-        mPokemonsMap.put("50", "Diglett");
-        mPokemonsMap.put("51", "Dugtrio");
-        mPokemonsMap.put("52", "Meowth");
-        mPokemonsMap.put("53", "Persian");
-        mPokemonsMap.put("54", "Psyduck");
-        mPokemonsMap.put("55", "Golduck");
-        mPokemonsMap.put("56", "Mankey");
-        mPokemonsMap.put("57", "Primeape");
-        mPokemonsMap.put("58", "Growlithe");
-        mPokemonsMap.put("59", "Arcanine");
-        mPokemonsMap.put("60", "Poliwag");
-        mPokemonsMap.put("61", "Poliwhirl");
-        mPokemonsMap.put("62", "Poliwrath");
-        mPokemonsMap.put("63", "Abra");
-        mPokemonsMap.put("64", "Kadabra");
-        mPokemonsMap.put("65", "Alakazam");
-        mPokemonsMap.put("66", "Machop");
-        mPokemonsMap.put("67", "Machoke");
-        mPokemonsMap.put("68", "Machamp");
-        mPokemonsMap.put("69", "Bellsprout");
-        mPokemonsMap.put("70", "Weepinbell");
-        mPokemonsMap.put("71", "Victreebel");
-        mPokemonsMap.put("72", "Tentacool");
-        mPokemonsMap.put("73", "Tentacruel");
-        mPokemonsMap.put("74", "Geodude");
-        mPokemonsMap.put("75", "Graveler");
-        mPokemonsMap.put("76", "Golem");
-        mPokemonsMap.put("77", "Ponyta");
-        mPokemonsMap.put("78", "Rapidash");
-        mPokemonsMap.put("79", "Slowpoke");
-        mPokemonsMap.put("80", "Slowbro");
-        mPokemonsMap.put("81", "Magnemite");
-        mPokemonsMap.put("82", "Magneton");
-        mPokemonsMap.put("83", "Farfetch'd");
-        mPokemonsMap.put("84", "Doduo");
-        mPokemonsMap.put("85", "Dodrio");
-        mPokemonsMap.put("86", "Seel");
-        mPokemonsMap.put("87", "Dewgong");
-        mPokemonsMap.put("88", "Grimer");
-        mPokemonsMap.put("89", "Muk");
-        mPokemonsMap.put("90", "Shellder");
-        mPokemonsMap.put("91", "Cloyster");
-        mPokemonsMap.put("92", "Gastly");
-        mPokemonsMap.put("93", "Haunter");
-        mPokemonsMap.put("94", "Gengar");
-        mPokemonsMap.put("95", "Onix");
-        mPokemonsMap.put("96", "Drowzee");
-        mPokemonsMap.put("97", "Hypno");
-        mPokemonsMap.put("98", "Krabby");
-        mPokemonsMap.put("99", "Kingler");
-        mPokemonsMap.put("100", "Voltorb");
-        mPokemonsMap.put("101", "Electrode");
-        mPokemonsMap.put("102", "Exeggcute");
-        mPokemonsMap.put("103", "Exeggutor");
-        mPokemonsMap.put("104", "Cubone");
-        mPokemonsMap.put("105", "Marowak");
-        mPokemonsMap.put("106", "Hitmonlee");
-        mPokemonsMap.put("107", "Hitmonchan");
-        mPokemonsMap.put("108", "Lickitung");
-        mPokemonsMap.put("109", "Koffing");
-        mPokemonsMap.put("110", "Weezing");
-        mPokemonsMap.put("111", "Rhyhorn");
-        mPokemonsMap.put("112", "Rhydon");
-        mPokemonsMap.put("113", "Chansey");
-        mPokemonsMap.put("114", "Tangela");
-        mPokemonsMap.put("115", "Kangaskhan");
-        mPokemonsMap.put("116", "Horsea");
-        mPokemonsMap.put("117", "Seadra");
-        mPokemonsMap.put("118", "Goldeen");
-        mPokemonsMap.put("119", "Seaking");
-        mPokemonsMap.put("120", "Staryu");
-        mPokemonsMap.put("121", "Starmie");
-        mPokemonsMap.put("122", "Mr. Mime");
-        mPokemonsMap.put("123", "Scyther");
-        mPokemonsMap.put("124", "Jynx");
-        mPokemonsMap.put("125", "Electabuzz");
-        mPokemonsMap.put("126", "Magmar");
-        mPokemonsMap.put("127", "Pinsir");
-        mPokemonsMap.put("128", "Tauros");
-        mPokemonsMap.put("129", "Magikarp");
-        mPokemonsMap.put("130", "Gyarados");
-        mPokemonsMap.put("131", "Lapras");
-        mPokemonsMap.put("132", "Ditto");
-        mPokemonsMap.put("133", "Eevee");
-        mPokemonsMap.put("134", "Vaporeon");
-        mPokemonsMap.put("135", "Jolteon");
-        mPokemonsMap.put("136", "Flareon");
-        mPokemonsMap.put("137", "Porygon");
-        mPokemonsMap.put("138", "Omanyte");
-        mPokemonsMap.put("139", "Omastar");
-        mPokemonsMap.put("140", "Kabuto");
-        mPokemonsMap.put("141", "Kabutops");
-        mPokemonsMap.put("142", "Aerodactyl");
-        mPokemonsMap.put("143", "Snorlax");
-        mPokemonsMap.put("144", "Articuno");
-        mPokemonsMap.put("145", "Zapdos");
-        mPokemonsMap.put("146", "Moltres");
-        mPokemonsMap.put("147", "Dratini");
-        mPokemonsMap.put("148", "Dragonair");
-        mPokemonsMap.put("149", "Dragonite");
-        mPokemonsMap.put("150", "Mewtwo");
-        mPokemonsMap.put("151", "Mew");
-
     }
 
     public void getFiltros() {
@@ -1737,12 +1257,6 @@ public class FragmentPokeMap extends Fragment implements
 
         mAllMarkers = prefs_pokeWhere.getBoolean(Constants.KEY_PREF_ALL_MARKERS, false);
         mBusquedaMarkers = prefs_pokeWhere.getBoolean(Constants.KEY_PREF_BUSQUEDA_MARKERS, false);
-        mNormalPokeStopMarkers = prefs_pokeWhere.getBoolean(Constants.KEY_PREF_NORMAL_POKESTOPS_MARKERS, false);
-        mLuredPokeStopMarkers = prefs_pokeWhere.getBoolean(Constants.KEY_PREF_LURED_POKESTOPS_MARKERS, false);
-        mBlueGymMarkers = prefs_pokeWhere.getBoolean(Constants.KEY_PREF_BLUE_GYMS_MARKERS, false);
-        mRedGymMarkers = prefs_pokeWhere.getBoolean(Constants.KEY_PREF_RED_GYMS_MARKERS, false);
-        mYellowGymsMarkers = prefs_pokeWhere.getBoolean(Constants.KEY_PREF_YELLOW_GYMS_MARKERS, false);
-        mWhiteGymsMarkers = prefs_pokeWhere.getBoolean(Constants.KEY_PREF_WHITE_GYMS_MARKERS, false);
     }
 
     public void sleep(long millis) {
@@ -1755,93 +1269,25 @@ public class FragmentPokeMap extends Fragment implements
 
     public boolean containsEncounteredId(Object object, String enconunteredId) {
 
-        /*if (object instanceof LocalPokemon) {
-            for (LocalPokemon localPokemon : mLocalPokemons) {
-                if (String.valueOf(localPokemon.getId()).equals(enconunteredId)) {
-                    return true;
-                }
-            }
-        } else*/ if (object instanceof LocalGym) {
-            for (LocalGym localGym : mLocalGyms) {
-                if (String.valueOf(localGym.getId()).equals(enconunteredId)) {
-                    return true;
-                }
-            }
-        } else {
-            for (LocalPokeStop localPokeStop : mLocalPokeStops) {
-                if (String.valueOf(localPokeStop.getId()).equals(enconunteredId)) {
-                    return true;
+        boolean encountered = false;
+
+        if (object instanceof LocalUserPokemon) {
+            for (LocalUserPokemon localUserPokemon : mLocalPokemons) {
+                if (String.valueOf(localUserPokemon.getId()).equals(enconunteredId)) {
+                    encountered = true;
                 }
             }
         }
 
         //If the encontered id exist, return true, if it doesn't exist return false
-        return false;
-    }
-
-    public Boolean isinRange(LocalPokeStop localPokeStop) {
-
-        Boolean isInRange;
-
-        double earthRadius = 6371000; //meters
-
-        double dLat = Math.toRadians(localPokeStop.getLatitude() - userPosition.latitude);
-        double dLng = Math.toRadians(localPokeStop.getLongitude() - userPosition.longitude);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(Math.toRadians(userPosition.latitude)) * Math.cos(Math.toRadians(localPokeStop.getLatitude())) *
-                        Math.sin(dLng / 2) * Math.sin(dLng / 2);
-
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        float dist = (float) (earthRadius * c);
-
-        if (dist < 90) {
-            isInRange = true;
-        } else {
-            isInRange = false;
-        }
-
-        return isInRange;
+        return encountered;
     }
 
     public boolean shouldMarkerRemove(Object object) {
 
         Boolean remove = false;
 
-        if (object instanceof LocalGym || object instanceof LocalPokeStop) {
-
-            double earthRadius = 6371000; //meters
-
-            double dLat;
-            double dLng;
-            double a = 0.0f;
-
-            if (object instanceof LocalGym) {
-                dLat = Math.toRadians(((LocalGym) object).getLatitude() - userPosition.latitude);
-                dLng = Math.toRadians(((LocalGym) object).getLongitude() - userPosition.longitude);
-                a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                        Math.cos(Math.toRadians(userPosition.latitude)) * Math.cos(Math.toRadians(((LocalGym) object).getLatitude())) *
-                                Math.sin(dLng / 2) * Math.sin(dLng / 2);
-            }
-            else if (object instanceof LocalPokeStop) {
-                dLat = Math.toRadians(((LocalPokeStop) object).getLatitude() - userPosition.latitude);
-                dLng = Math.toRadians(((LocalPokeStop) object).getLongitude() - userPosition.longitude);
-                a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                        Math.cos(Math.toRadians(userPosition.latitude)) * Math.cos(Math.toRadians(((LocalPokeStop) object).getLatitude())) *
-                                Math.sin(dLng / 2) * Math.sin(dLng / 2);
-            }
-
-
-            double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            float dist = (float) (earthRadius * c);
-
-            if (dist > 150) {
-                remove = true;
-            } else {
-                remove = false;
-            }
-
-
-        } /*else if (object instanceof LocalPokemon) {
+        if (object instanceof LocalUserPokemon) {
             //LOCAL POKEMON
             //Get the local time
             Calendar localCalendar = Calendar.getInstance(Locale.getDefault());
@@ -1849,7 +1295,7 @@ public class FragmentPokeMap extends Fragment implements
             int localSeconds = localCalendar.get(Calendar.SECOND);
 
             //Getting the pokemon time expiration
-            Date date = new Date(((LocalPokemon) object).getExpiration_time());
+            Date date = new Date(((LocalUserPokemon) object).getExpirationTimeMs());
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(date);
             int expirationMinutes = calendar.get(Calendar.MINUTE);
@@ -1868,7 +1314,7 @@ public class FragmentPokeMap extends Fragment implements
             } else {
                 remove = false;
             }
-        } */ else if (object instanceof Long) {
+        } else if (object instanceof Long) {
             //Get the local time
             Calendar localCalendar = Calendar.getInstance(Locale.getDefault());
             int localMinutes = localCalendar.get(Calendar.MINUTE);
@@ -1883,7 +1329,6 @@ public class FragmentPokeMap extends Fragment implements
             int diferrenceMinutes = localMinutes - expirationMinutes;
 
             if (diferrenceMinutes >= 2) {
-
                 remove = true;
             } else {
                 remove = false;
@@ -1901,31 +1346,27 @@ public class FragmentPokeMap extends Fragment implements
 
         @Override
         public void onFinish() {
-            mCounterToRemoveMarkers = null;
-            mCounterToRemoveMarkers = new CounterToRemoveMarkers(60000, 10000);
             mCounterToRemoveMarkers.start();
         }
+
 
         @Override
         public void onTick(long millisUntilFinished) {
             if (mMarkers != null) {
                 final List<Marker> mMarkersToRemove = new ArrayList<>();
+
                 for (Marker marker : mMarkers) {
                     if (shouldMarkerRemove(marker.getTag())) {
                         mMarkersToRemove.add(marker);
                         marker.remove();
 
-                        Object object = marker.getTag();
+                        if (marker.getTag() instanceof LocalUserPokemon) {
 
-                        if (object instanceof LocalPokeStop){
-                            mLocalPokeStops.remove(object);
+                            mAdapter.notifyDataSetChanged();
+
+                            mLocalPokemons.remove(marker.getTag());
+
                         }
-                        else if(object instanceof  LocalGym){
-                            mLocalGyms.remove(object);
-                        }
-                       /* else if (object instanceof LocalPokemon){
-                            mLocalPokemons.remove(object);
-                        }*/
                     }
                 }
 
@@ -1934,23 +1375,107 @@ public class FragmentPokeMap extends Fragment implements
                 }
             }
         }
+
     }
 
-    public void showToast(final String message){
+    public void showToast(final String message) {
 
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(mContext,message, Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void catchPokemon(CatchablePokemon catchablePokemon) {
+        try {
+            CatchOptions options = new CatchOptions(mPokemonGo)
+                    .withPokeballSelector(PokeballSelector.SMART);
+
+            if (options.getRazzberries() > 20) {
+                options.useRazzberry(true);
+            }
+
+            List<Pokeball> useablePokeballs = mPokemonGo.getInventories().getItemBag().getUseablePokeballs();
+            double probability = catchablePokemon.getCaptureProbability();
+            Pokeball pokeball = PokeballSelector.SMART.select(useablePokeballs, probability);
+
+            Log.i(TAG, "Attempting to catch: " + catchablePokemon.getPokemonId() + " with " + pokeball
+                    + " (" + probability + ")");
+
+            CatchResult result = catchablePokemon.catchPokemon(options);
+
+            Log.i(TAG, catchablePokemon.getPokemonId() + " " + result.getStatus());
+
+            showToast(catchablePokemon.getPokemonId() + " " + result.getStatus());
+
+        } catch (LoginFailedException | NoSuchItemException | RemoteServerException | CaptchaActiveException e) {
+            // failed to login, invalid credentials, auth issue or server issue.
+            Log.e(TAG, "Failed to login, captcha or server issue: ", e);
+
+        }
+    }
+
+    private Bitmap getBitmapFromAssets(int pokemonIdNumber) {
+        AssetManager assetManager = mContext.getAssets();
+
+        Bitmap bitmap = null;
+
+        try {
+            InputStream is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
+
+            /*if (pokemonIdNumber < 10) {
+                is = assetManager.open(String.valueOf("00" + pokemonIdNumber) + ".png");
+            } else if (pokemonIdNumber < 100) {
+                is = assetManager.open(String.valueOf("0" + pokemonIdNumber) + ".png");
+            } else {
+                is = assetManager.open(String.valueOf(pokemonIdNumber) + ".png");
+            }*/
+
+
+            bitmap = BitmapFactory.decodeStream(is);
+        } catch (IOException e) {
+            Log.e("ERROR", e.getMessage());
+        }
+
+        return bitmap;
+    }
+
+
+    public class BroadcastScheduleMessage extends BroadcastReceiver {
+
+        public static final String ACTION_FIND_NEW_POKEMONS = "com.javic.pokewhere.broadcast.action.FIND_NEW_POKEMONS";
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            Bundle bundle = intent.getExtras();
+
+            if(bundle!=null){
+                mLocalPokemons = bundle.getParcelableArrayList("data");
+
+                for (LocalUserPokemon localUserPokemon:mLocalPokemons){
+                    drawPokemon(localUserPokemon);
+                }
+
+                mAdapter.notifyDataSetChanged();
+
+                if (bsb.getState() == BottomSheetBehavior.STATE_HIDDEN) {
+                    bsb.setState(BottomSheetBehavior.STATE_EXPANDED);
+                }
+            }
+        }
     }
 
     public void showCustomDialog(){
 
         MaterialDialog.Builder builder = new MaterialDialog.Builder(mContext)
-                .title(getString(R.string.dialog_title_unaviable_service))
-                .content(getString(R.string.dialog_content_unaviable_service))
+                .title(getString(R.string.dialog_title_working_on_it))
+                .titleGravity(GravityEnum.CENTER)
+                .titleColor(getResources().getColor(R.color.color_negro))
+                .content(getString(R.string.dialog_content_working_on_it))
+                .contentGravity(GravityEnum.CENTER)
                 .autoDismiss(false)
                 .cancelable(false)
                 .positiveText(getString(R.string.dialog_positive_unaviable_service))
@@ -1966,4 +1491,5 @@ public class FragmentPokeMap extends Fragment implements
         MaterialDialog dialog = builder.build();
         dialog.show();
     }
+
 }

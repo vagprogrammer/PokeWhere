@@ -26,6 +26,7 @@ import com.pokegoapi.api.map.pokemon.encounter.EncounterResult;
 import com.pokegoapi.api.pokemon.PokemonMoveMeta;
 import com.pokegoapi.api.pokemon.PokemonMoveMetaRegistry;
 import com.pokegoapi.auth.GoogleUserCredentialProvider;
+import com.pokegoapi.auth.PtcCredentialProvider;
 import com.pokegoapi.exceptions.CaptchaActiveException;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
@@ -37,7 +38,6 @@ import java.util.List;
 
 import POGOProtos.Data.PokemonDataOuterClass;
 import okhttp3.OkHttpClient;
-
 
 
 /**
@@ -170,6 +170,13 @@ public class ServiceMapObjects extends Service {
                     mPokemonGo.login(new PtcCredentialProvider(httpClient, getPref(Constants.KEY_PREF_USER_EMAIL), getPref(Constants.KEY_PREF_USER_PASS)));
                 }*/
 
+                try {
+                    mPokemonGo.login(new PtcCredentialProvider(httpClient, getPref(Constants.KEY_PREF_USER_EMAIL), getPref(Constants.KEY_PREF_USER_PASS)));
+                } catch (LoginFailedException | CaptchaActiveException | RemoteServerException e) {
+                    e.printStackTrace();
+                }
+
+
             }
 
             return false;
@@ -202,70 +209,74 @@ public class ServiceMapObjects extends Service {
 
         @Override
         protected Boolean doInBackground(Void... params) {
-                    try {
-                        mPokemonGo.setLocation(mSearchPoint.latitude, mSearchPoint.longitude, 1);
+            try {
+                mPokemonGo.setLocation(mSearchPoint.latitude, mSearchPoint.longitude, 1);
 
-                       List<CatchablePokemon> catchablePokemonList = mPokemonGo.getMap().getCatchablePokemon();
+                List<CatchablePokemon> catchablePokemonList = mPokemonGo.getMap().getCatchablePokemon();
 
-                        if (catchablePokemonList != null) {
+                if (catchablePokemonList != null) {
 
-                            for (CatchablePokemon catchablePokemon : catchablePokemonList) {
+                    for (CatchablePokemon catchablePokemon : catchablePokemonList) {
 
-                                // You need to Encounter first.
-                                EncounterResult encResult = catchablePokemon.encounterPokemon();
+                        // You need to Encounter first.
+                        EncounterResult encResult = catchablePokemon.encounterPokemon();
 
-                                if (encResult.wasSuccessful()) {
+                        if (encResult.wasSuccessful()) {
 
-                                    PokemonDataOuterClass.PokemonData pokemonData = encResult.getPokemonData();
+                            PokemonDataOuterClass.PokemonData pokemonData = encResult.getPokemonData();
 
-                                    LocalUserPokemon localUserPokemon = new LocalUserPokemon();
+                            LocalUserPokemon localUserPokemon = new LocalUserPokemon();
 
-                                    localUserPokemon.setId(catchablePokemon.getEncounterId());
-                                    localUserPokemon.setExpirationTimeMs(catchablePokemon.getExpirationTimestampMs());
-                                    localUserPokemon.setNumber(catchablePokemon.getPokemonId().getNumber());
-                                    localUserPokemon.setName(catchablePokemon.getPokemonId().name());
-                                    localUserPokemon.setLatitude(catchablePokemon.getLatitude());
-                                    localUserPokemon.setLongitude(catchablePokemon.getLongitude());
-                                    localUserPokemon.setBitmap(getBitmapFromAssets(catchablePokemon.getPokemonId().getNumber()));
-                                    localUserPokemon.setCp(pokemonData.getCp());
-                                    Double iv_ratio = ((pokemonData.getIndividualAttack() + pokemonData.getIndividualDefense() + pokemonData.getIndividualStamina()) / 45.0) * (100.0);
-                                    localUserPokemon.setIv(iv_ratio.intValue());
-                                    localUserPokemon.setAttack(pokemonData.getIndividualAttack());
-                                    localUserPokemon.setDefense(pokemonData.getIndividualDefense());
-                                    localUserPokemon.setStamina(pokemonData.getIndividualStamina());
+                            localUserPokemon.setId(catchablePokemon.getEncounterId());
+                            localUserPokemon.setName(catchablePokemon.getPokemonId().name());
+                            localUserPokemon.setName(catchablePokemon.getPokemonId().name());
+                            localUserPokemon.setBitmap(getBitmapFromAssets(catchablePokemon.getPokemonId().getNumber()));
+                            localUserPokemon.setNumber(catchablePokemon.getPokemonId().getNumber());
+                            localUserPokemon.setFavorite(false);
+                            localUserPokemon.setDead(false);
+                            localUserPokemon.setCp(pokemonData.getCp());
+                            Double iv_ratio = ((pokemonData.getIndividualAttack() + pokemonData.getIndividualDefense() + pokemonData.getIndividualStamina()) / 45.0) * (100.0);
+                            localUserPokemon.setIv(iv_ratio.intValue());
+                            localUserPokemon.setAttack(pokemonData.getIndividualAttack());
+                            localUserPokemon.setDefense(pokemonData.getIndividualDefense());
+                            localUserPokemon.setStamina(pokemonData.getIndividualStamina());
+                            localUserPokemon.setExpirationTimeMs(catchablePokemon.getExpirationTimestampMs());
 
-                                    PokemonMoveMeta moveMeta1 = PokemonMoveMetaRegistry.getMeta(pokemonData.getMove1());
-                                    PokemonMoveMeta moveMeta2 = PokemonMoveMetaRegistry.getMeta(pokemonData.getMove2());
-                                    PokemonMove move1 = new PokemonMove(moveMeta1.getMove().name(), moveMeta1.getAccuracy(), moveMeta1.getCritChance(), moveMeta1.getEnergy(),moveMeta1.getPower(), moveMeta1.getTime());
-                                    PokemonMove move2 = new PokemonMove(moveMeta2.getMove().name(), moveMeta2.getAccuracy(), moveMeta2.getCritChance(), moveMeta2.getEnergy(),moveMeta2.getPower(), moveMeta2.getTime());
-                                    final List<PokemonMove> moves = new ArrayList<>();
-                                    moves.add(move1);
-                                    moves.add(move2);
-                                    localUserPokemon.setMoves(moves);
+                            localUserPokemon.setLatitude(catchablePokemon.getLatitude());
+                            localUserPokemon.setLongitude(catchablePokemon.getLongitude());
 
-                                   Boolean isEncountered = containsEncounteredId(localUserPokemon, String.valueOf(localUserPokemon.getId()));
+                            PokemonMoveMeta moveMeta1 = PokemonMoveMetaRegistry.getMeta(pokemonData.getMove1());
+                            PokemonMoveMeta moveMeta2 = PokemonMoveMetaRegistry.getMeta(pokemonData.getMove2());
+                            PokemonMove move1 = new PokemonMove(moveMeta1.getMove().name(), moveMeta1.getAccuracy(), moveMeta1.getCritChance(), moveMeta1.getEnergy(),moveMeta1.getPower(), moveMeta1.getTime());
+                            PokemonMove move2 = new PokemonMove(moveMeta2.getMove().name(), moveMeta2.getAccuracy(), moveMeta2.getCritChance(), moveMeta2.getEnergy(),moveMeta2.getPower(), moveMeta2.getTime());
+                            final List<PokemonMove> moves = new ArrayList<>();
+                            moves.add(move1);
+                            moves.add(move2);
+                            localUserPokemon.setMoves(moves);
 
-                                    if (!isEncountered) {
-                                        Log.i(TAG, encResult.getPokemonData().getPokemonId() + " Encountered..." + " CP: " + encResult.getPokemonData().getCp() + " ExpirationTime: " + String.valueOf(catchablePokemon.getExpirationTimestampMs()));
-                                        localUserPokemonList.add(localUserPokemon);
-                                    }
-                                }
+                            Boolean isEncountered = containsEncounteredId(localUserPokemon, String.valueOf(localUserPokemon.getId()));
+
+                            if (!isEncountered) {
+                                Log.i(TAG, encResult.getPokemonData().getPokemonId() + " Encountered..." + " CP: " + encResult.getPokemonData().getCp() + " ExpirationTime: " + String.valueOf(catchablePokemon.getExpirationTimestampMs()));
+                                localUserPokemonList.add(localUserPokemon);
                             }
 
-                            Intent intent = new Intent(FragmentMapa.BroadcastScheduleMessage.ACTION_FIND_NEW_POKEMONS);
-
-                            Bundle bundle = new Bundle();
-                            bundle.putParcelableArrayList("data", localUserPokemonList);
-
-                            intent.putExtras(bundle);
-                            sendBroadcast(intent);
+                            localUserPokemon.setLevel(0);
+                            localUserPokemon.setCandies(0);
+                            localUserPokemon.setPowerUpStardust(0);
+                            localUserPokemon.setPoweUpCandies(0);
+                            localUserPokemon.setEvolveCandies(0);
+                            localUserPokemon.setCreationTimeMillis(catchablePokemon.getExpirationTimestampMs());
+                            localUserPokemon.setPokemonCount(0);
                         }
-                    } catch (LoginFailedException | RemoteServerException | CaptchaActiveException e) {
-                        Log.e(TAG, "Failed to get pokemons or server issue Login or RemoteServer exception: ", e);
                     }
+                }
+            } catch (LoginFailedException | RemoteServerException | CaptchaActiveException e) {
+                Log.e(TAG, "Failed to get pokemons or server issue Login or RemoteServer exception: ", e);
+            }
 
             return false;
-            }
+        }
 
         @Override
         protected void onPostExecute(Boolean succes) {
@@ -275,6 +286,14 @@ public class ServiceMapObjects extends Service {
                 for (LocalUserPokemon localUserPokemon: localUserPokemonList){
                     Log.i(TAG, localUserPokemon.getName());
                 }
+
+                Intent intent = new Intent(FragmentMapa.BroadcastScheduleMessage.ACTION_FIND_NEW_POKEMONS);
+
+                Bundle bundle = new Bundle();
+                bundle.putParcelableArrayList("data", localUserPokemonList);
+
+                intent.putExtras(bundle);
+                sendBroadcast(intent);
             }
         }
 

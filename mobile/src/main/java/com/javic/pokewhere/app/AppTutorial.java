@@ -30,6 +30,7 @@ public class AppTutorial extends AppIntro {
         // Add your slide fragments here.
         // AppIntro will automatically generate the dots indicator and buttons.
         addSlide(FragmentTutorial.newInstance(0));
+        addSlide(FragmentTutorial.newInstance(1));
         //addSlide(secondFragment);
         //addSlide(thirdFragment);
         //addSlide(fourthFragment);
