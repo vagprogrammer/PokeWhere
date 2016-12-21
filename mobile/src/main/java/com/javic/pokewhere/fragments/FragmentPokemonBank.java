@@ -57,7 +57,7 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     private ActionBarDrawerToggle mDrawerToggle;
 
     //Listas
-    private static List<LocalUserPokemon> mLocalUserPokemonList;
+    private List<LocalUserPokemon> mLocalUserPokemonList;
 
     //Adapter
     private AdapterPokemonBank mAdapter;
@@ -72,9 +72,10 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     public static FragmentPokemonBank newInstance(List<LocalUserPokemon> localUserPokemonList, int userPokeBankSpace) {
         FragmentPokemonBank fragment = new FragmentPokemonBank();
         Bundle args = new Bundle();
+        args.putParcelableArrayList("list", (ArrayList<LocalUserPokemon>) localUserPokemonList);
+        args.putInt("space", userPokeBankSpace);
         fragment.setArguments(args);
-        mLocalUserPokemonList = localUserPokemonList;
-        mUserPokeBankSpace = userPokeBankSpace;
+
         return fragment;
     }
 
@@ -94,6 +95,14 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Bundle args = getArguments();
+
+        if (args != null) {
+            mUserPokeBankSpace = args.getInt("space");
+            mLocalUserPokemonList= args.getParcelableArrayList("list");
+        }
+
         setHasOptionsMenu(true);
     }
 
@@ -152,6 +161,8 @@ public class FragmentPokemonBank extends Fragment implements AdapterPokemonBank.
         // Setup adapter and callbacks
         mAdapter = new AdapterPokemonBank(mContext, this, this, mLocalUserPokemonList);
         mAdapter.setSelectionListener(this);
+
+        //orderList(0);
 
         mRecyclerView = (DragSelectRecyclerView) mView.findViewById(R.id.recyclerView);
         mRecyclerView.setLayoutManager(mGridLayoutManager);

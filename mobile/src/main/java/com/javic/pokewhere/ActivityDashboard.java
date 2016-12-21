@@ -1051,7 +1051,6 @@ public class ActivityDashboard extends AppCompatActivity
                         mNavigationView.getMenu().getItem(Constants.FRAGMENT_POKEBANK).setChecked(true);
                         break;
                     case Constants.FRAGMENT_POKEBANK:
-
                         if (mFragmentPokemonBank != null) {
                             mFragmentPokemonBank.onTaskFinish(Constants.ACTION_CONNECT_WITH_PG, null, getLocalUserpokemonList());
                         } else {

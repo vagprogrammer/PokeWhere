@@ -4,8 +4,6 @@ package com.javic.pokewhere.util;
  * Created by victor on 28/10/16.
  */
 
-import android.util.Log;
-
 import com.javic.pokewhere.ActivityDashboard;
 import com.javic.pokewhere.models.LocalUserPokemon;
 
@@ -13,7 +11,6 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 
 import java.util.Calendar;
 import java.util.Comparator;
-import java.util.Date;
 
 /**
  * This comparator sorts a list of Creation time by year, month, day, minute, second
@@ -36,7 +33,11 @@ public class PokemonComparator implements Comparator<LocalUserPokemon> {
 
         switch (valueToCompare) {
             case Constants.VALUE_IV:
-                comparator.append(p2.getIv(), p1.getIv());
+                comparator.append(p2.getIv(), p1.getIv())
+                        .append(p2.getAttack(), p1.getAttack())
+                        .append(p2.getDefense(), p1.getDefense())
+                        .append(p2.getStamina(), p1.getStamina())
+                        .append(p2.getCp(), p1.getCp());
                 break;
             case Constants.VALUE_CP:
                 comparator.append(p2.getCp(), p1.getCp())
