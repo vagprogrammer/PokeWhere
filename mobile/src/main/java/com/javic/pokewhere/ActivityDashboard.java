@@ -14,6 +14,7 @@ import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -979,14 +980,17 @@ public class ActivityDashboard extends AppCompatActivity
                     if (mGO != null) {
 
                         publishProgress(getString(R.string.message_get_user_information));
-                        //sleep(1000);
+                        sleep(1000);
+
                         final PlayerDataOuterClass.PlayerData playerData = mGO.getPlayerProfile().getPlayerData();
 
                         publishProgress(getString(R.string.message_get_account_information));
-                        //sleep(1000);
-                        final Stats stats = mGO.getPlayerProfile().getStats();
+                        sleep(1000);
 
-                        //sleep(1000);
+                        final Stats stats = mGO.getPlayerProfile().getStats();
+                        sleep(1000);
+
+
                         mUserStardust = mGO.getPlayerProfile().getCurrency(PlayerProfile.Currency.STARDUST);
 
                         mUserName = playerData.getUsername();
@@ -1010,13 +1014,13 @@ public class ActivityDashboard extends AppCompatActivity
                         return true;
                     }
                 } catch (LoginFailedException | RemoteServerException e) {
-                    Log.i(TAG, "GET_ITEMS_TASK: doInBackground: login or remote_server exception");
+                    Log.i(TAG, "CONNECT_WITH_POKEMON_TASK: doInBackground: login or remote_server exception");
                     Log.i(TAG, e.toString());
                     return false;
                 }
 
             } catch (Exception e) {
-                Log.i(TAG, "GET_ITEMS_TASK: doInBackground: general exception");
+                Log.i(TAG, "CONNECT_WITH_POKEMON_TASK: doInBackground: general exception");
                 Log.i(TAG, e.toString());
                 return false;
 
@@ -1722,7 +1726,7 @@ public class ActivityDashboard extends AppCompatActivity
                 if (pokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE) {
                     localUserPokemon.setEvolveCP(pokemon.getCpAfterEvolve(evolutions.get(0)));
                 } else {
-                    localUserPokemon.setEvolveCP(-1);
+                    localUserPokemon.setEvolveCP(0);
                 }
             }
 
@@ -1733,20 +1737,43 @@ public class ActivityDashboard extends AppCompatActivity
                     Log.i(TAG,"Highest: " + " -> " + highest);
                 }*/
 
-                if (pokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE) {
-                    localUserPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer(highest.get(0)));
-                } else {
-                    localUserPokemon.setMaxCp(-1);
+                try {
+                    if (pokemon.getPokemonId() != PokemonIdOuterClass.PokemonId.EEVEE) {
+                        localUserPokemon.setMaxCp(pokemon.getMaxCpFullEvolveAndPowerupForPlayer(highest.get(0)));
+                    } else {
+                        localUserPokemon.setMaxCp(0);
+                    }
                 }
+                catch(Exception e){
+                    Log.e(TAG, e.toString());
+                    localUserPokemon.setMaxCp(0);
+                }
+
             }
 
             localUserPokemon.setLevel(pokemon.getLevel());
-            localUserPokemon.setCandies(pokemon.getCandy());
+
+            try {
+                localUserPokemon.setCandies(pokemon.getCandy());
+                localUserPokemon.setEvolveCandies(pokemon.getCandiesToEvolve());
+            }
+            catch(Exception e){
+                Log.e(TAG, e.toString());
+                localUserPokemon.setCandies(0);
+                localUserPokemon.setEvolveCandies(0);
+            }
+
+            localUserPokemon.setPowerUpStardust(pokemon.getStardustCostsForPowerup());
+            localUserPokemon.setPoweUpCandies(pokemon.getCandyCostsForPowerup());
+            localUserPokemon.setCreationTimeMillis(pokemon.getCreationTimeMs());
+            localUserPokemon.setPokemonCount(mGO.getInventories().getPokebank().getPokemonByPokemonId(pokemon.getPokemonId()).size());
+
+            /*localUserPokemon.setCandies(pokemon.getCandy());
             localUserPokemon.setPowerUpStardust(pokemon.getStardustCostsForPowerup());
             localUserPokemon.setPoweUpCandies(pokemon.getCandyCostsForPowerup());
             localUserPokemon.setEvolveCandies(pokemon.getCandiesToEvolve());
             localUserPokemon.setCreationTimeMillis(pokemon.getCreationTimeMs());
-            localUserPokemon.setPokemonCount(mGO.getInventories().getPokebank().getPokemonByPokemonId(pokemon.getPokemonId()).size());
+            localUserPokemon.setPokemonCount(mGO.getInventories().getPokebank().getPokemonByPokemonId(pokemon.getPokemonId()).size());*/
             mLocalUserPokemonList.add(localUserPokemon);
         }
 

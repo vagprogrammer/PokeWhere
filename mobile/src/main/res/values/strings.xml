@@ -6,6 +6,11 @@
     <string name="title_tutorial_pokebank">Transfer quicker</string>
     <string name="text_done_button">DONE</string>
     <string name="message_tutorial_pokebank">Press and hold, then swipe and TRANSFER</string>
+
+
+    <string name="title_tutorial_moves">Choose the best pokemon!</string>
+    <string name="message_tutorial_moves">Check optimal movests for both gym offense and gym defense</string>
+
     <!-- Activity Dashboard -->
     <!-- Strings related to the NavigationDrawer -->
     <string name="nav_header_user_level">Level</string>

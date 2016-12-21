@@ -60,6 +60,10 @@ public class AppTutorial extends AppIntro {
     public void onSkipPressed(Fragment currentFragment) {
         super.onSkipPressed(currentFragment);
         // Do something when users tap on Skip button.
+        prefmanager.setTutorialComplete(true);
+        Intent intent = new Intent(AppTutorial.this, ActivityDashboard.class);
+        startActivity(intent);
+        finish();
     }
 
     @Override

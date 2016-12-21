@@ -7,6 +7,9 @@
     <string name="text_done_button">HECHO</string>
     <string name="message_tutorial_pokebank">Presiona, manten presionado, luego desliza y TRANSFIERE</string>
 
+    <string name="title_tutorial_moves">¡Escoje a tu mejor pokémon!</string>
+    <string name="message_tutorial_moves">Comprueba los mejores movimientos para atacar o defender gimnasisos</string>
+
     <!-- Activity Dashboard -->
     <!-- Strings related to the NavigationDrawer -->
     <string name="nav_header_user_level">Nivel</string>

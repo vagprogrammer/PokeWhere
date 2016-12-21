@@ -63,9 +63,9 @@ public class FragmentTutorial extends Fragment {
 
         switch (position){
             case 0:
-                tutorial_title.setText(getString(R.string.title_tutorial_pokebank));
-                tutorial_subtitle.setText(getString(R.string.message_tutorial_pokebank));
-                pGif.setImageResource(R.drawable.pokebank);
+                tutorial_title.setText(getString(R.string.title_tutorial_moves));
+                tutorial_subtitle.setText(getString(R.string.message_tutorial_moves));
+                pGif.setImageResource(R.drawable.moves);
                 break;
 
             case 1:
