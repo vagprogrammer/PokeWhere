@@ -1,30 +1,67 @@
-Linio Android App
--------------
-Here is most of the information that you need to know in order to develop the Linio app for Android. Please read through this page and adapt your practices accordingly. If you want to cooperate, please [let me know](mailto:eduardo.garcia@linio.com,victor.aceves@linio.com).
+# Linio Android App
 
+Here is most of the information that you need to know in order to develop the Linio app for Android. Please read through this page and adapt your practices accordingly. If you want to cooperate, please [let us know](mailto:eduardo.garcia@linio.com,victor.aceves@linio.com).
 
-Daniel
+Linio Android Devs
 
+## Getting Started
+	
+### Prerequisites
 
-----------
-Project
--------------
-#### <i class="icon-file"></i> Getting started
-To get started, just clone this repository and you will find the `android-app` folder in your folder. Inside this folder, there are several items, the most important being: 
+We strongly recommend use Android Studio, which is the Official IDE for Android, it provides the fastest tools for building apps on every type of Android device.
 
- - `Linio` folder -  contains the Android Studio project.
- - `app` folder -  contains the source code for the app.
- 
-In order to start developing, you need to import the `Linio` project, via `File -> New -> Import Project`. As you do it, accept the IDE's suggestion to sync the build files, so that Gradle can download all dependencies. After syncing, you should be able to build all targets and run the app everywhere.
+#### Install Android Studio
+Setting up Android Studio takes just a few clicks. (You should have already downloaded [Android Studio](https://developer.android.com/studio/index.html).)
 
-#### <i class="icon-file"></i> Build variants 
-The Android Studio project has three schemes, detailed below. Use them to switch between our current environments: Development, Staging, and Production.
+- `Windows` To install Android Studio on Windows, proceed as follows:
+	- Launch the .exe file you downloaded.
+	- Follow the setup wizard to install Android Studio and any necessary SDK tools.
 
- - `dev` points to our [Apiary mock server](http://docs.liniomobileapi.apiary.io/#reference) version the Mobile API. 
- - `staging` points to our staging version the Mobile API. 
+- `Mac` To install Android Studio on your Mac, proceed as follows:
+	- Launch the Android Studio DMG file.
+	- Drag and drop Android Studio into the Applications folder, then launch Android Studio.
+	- Select whether you want to import previous Android Studio settings, then click OK.
+	- The Android Studio Setup Wizard guides you though the rest of the setup, which includes downloading Android SDK components that are required for development.
+	
+- `Linux` To install Android Studio on Linux, proceed as follows:
+
+	- Unpack the .zip file you downloaded to an appropriate location for your applications, such as within /usr/local/ for your user profile, or /opt/ for shared users.
+	- To launch Android Studio, open a terminal, navigate to the android-studio/bin/ directory, and execute studio.sh.
+	- Select whether you want to import previous Android Studio settings or not, then click OK.
+	- The Android Studio Setup Wizard guides you though the rest of the setup, which includes downloading Android SDK components that are required for development.
+	
+### Clone and run 
+	
+To get started, just clone this repository and find the `android-app` folder. Inside this folder, you will find the `Linio` folder, that is described below: 
+
+- `Linio` folder -  contains the Android Studio project; inside this folder you will find the source code for the app and several items, the most important being:
+
+	- `app` folder -  contains the source code for the app.
+	- `build` folder - contains build outputs.
+    - `build.gradle (project)` file - defines our build configuration that apply to all modules. This file is integral to the project, so you should maintain them in revision control with all other source code. 
+
+In order to start developing, you need to import the `Linio` project, via `File -> New -> Import Project`. As you do it, accept the IDE's suggestion to sync the build files, so that Gradle can download all dependencies. After syncing, you should be able to build all targets and run the app everywhere =D
+
+## Project description
+
+### API Level
+
+- The minimum system API Level that this application requires in order to run is `27 (Android 5.0 Lollipop)`
+	```
+	minSdkVersion 21
+	```
+- The API Level on which the application is designed to run is `21 (Android 8.1 Oreo)`
+	```
+	targetSdkVersion 27
+	```
+	
+#### Build variants 
+The Linio project has two schemes, detailed below. Use them to switch between our current environments: Staging and Production.
+
+ - `staging` points to our staging version to the Mobile API. 
  - `production` points to the production (Live) environment. 
 
-Additionally, the flags `DEBUG` and `RELEASE` are defined for each environment, so you can have, for example, a `DEBUG` version that points to `PROD`, or a `RELEASE` version that points to `DEV`.
+Additionally, the flags `DEBUG` and `RELEASE` are defined for each environment, so you can have, for example, a `DEBUG` version that points to `PROD`, or a `RELEASE` version that points to `STAGE`.
 
 Checking these flags in the code is easy:
 
@@ -35,7 +72,7 @@ Checking these flags in the code is easy:
     endif
 
 > **Note:**
-> In order to switch variants, click on the variant selection button bottom left, and change the build variant accordingly, selecting from `devDebug`, `devRelease`, `stagingRelease`, etc.
+> In order to switch variants, click on the Build Variants section button bottom left, and change the build variant accordingly, selecting from `satagingDebug`, `stagingRelease`, `productionRelease`, etc.
 
 Also very important are the per-release source folders:
 
