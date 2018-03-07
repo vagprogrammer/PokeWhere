@@ -30,7 +30,7 @@ Setting up Android Studio takes just a few clicks. (You should have already down
 	- Select whether you want to import previous Android Studio settings or not, then click OK.
 	- The Android Studio Setup Wizard guides you though the rest of the setup, which includes downloading Android SDK components that are required for development.
 	
-### Clone and run 
+### Get started
 	
 To get started, just clone this repository and find the `android-app` folder. Inside this folder, you will find the `Linio` folder, that is described below: 
 
@@ -38,7 +38,7 @@ To get started, just clone this repository and find the `android-app` folder. In
 
 	- `app` folder -  contains the source code for the app.
 	- `build` folder - contains build outputs.
-    - `build.gradle (project)` file - defines our build configuration that apply to all modules. This file is integral to the project, so you should maintain them in revision control with all other source code. 
+	- `build.gradle (project)` file - defines our build configuration that apply to all modules. This file is integral to the project, so you should maintain them in revision control with all other source code. 
 
 In order to start developing, you need to import the `Linio` project, via `File -> New -> Import Project`. As you do it, accept the IDE's suggestion to sync the build files, so that Gradle can download all dependencies. After syncing, you should be able to build all targets and run the app everywhere =D
 
@@ -69,18 +69,19 @@ Checking these flags in the code is easy:
         System.out.println("Debug mode set")
     else
         System.out.println("Release mode set")
-    endif
+   
+In order to switch variants, click on the Build Variants tab (normally located at the bottom left of the Android Studio main screen), and change the build variant accordingly, selecting from `satagingDebug`, `stagingRelease`, `productionDebug`, etc.
 
 > **Note:**
-> In order to switch variants, click on the Build Variants section button bottom left, and change the build variant accordingly, selecting from `satagingDebug`, `stagingRelease`, `productionRelease`, etc.
+> - For developping purpose you must work on `STAGING` enviroment.
+> - Be carefully when you work on any `PRODUCTION` variant, it can modify the stats of Trackers and CrashReporters. If you want to test some that points to the production (Live) environment, you can modify Constants, source code or any other value defined in `STAGING` enviroment, normally this wil be enought for developping purpose, but if you need all the configuration of `PRODUCTION` enviroment, feel free to work on it.
 
 Also very important are the per-release source folders:
 
-- `app/src/dev/...` for Dev
 - `app/src/staging/...` for Staging
 - `app/src/production/...` for Production
 
-If you have constants, values, source code, etc. that needs to vary across environments, place your source file in these three folders. For example, if you're adding a `Constants` class whose attributes vary with the environment, then add a `Constant.java` file to each of the folders above. Android Studio will then choose the appropriate .java file to compile against, depending on the build variant selected.
+If you have constants, values, source code, etc. that needs to vary across environments, place your source file in these two folders. For example, if you're adding a `Constants` class whose attributes vary with the environment, then add a `Constant.java` file to each of the folders above. Android Studio will then choose the appropriate .java file to compile against, depending on the build variant selected.
 
 Additionally, our `build.gradle` is configured like this:
 
@@ -106,35 +107,22 @@ Additionally, our `build.gradle` is configured like this:
             resValue "string", "A4SprivateKey", '"xxxxxxxxxxxxxxxxxxxxxxx"'
             resValue "string", "A4Slogging", '"true"'
         }
-
-        dev {
-            applicationId "com.linio.android.dev"
-            dimension "unique"
-            multiDexEnabled true
-            buildConfigField("String", "TestCountry", '"' + GradleCountryCode + '"')
-            resValue "string", "A4SpartnerId", '"xxxxxxxxxxxxxxxxxxxxxxx"'
-            resValue "string", "A4SprivateKey", '"xxxxxxxxxxxxxxxxxxxxxxx"'
-            resValue "string", "A4Slogging", '"true"'
-
-        }
     }
 
-Note that every environment has its own package name, so you can run builds of the Linio app for different environments simultaneously in your emulator or phone.
+Note that every environment has its own package name, so that you can run builds of the Linio app for different environments simultaneously in your emulator or phone.
 
-#### <i class="icon-file"></i> Targets 
+#### Targets 
 Our app has two targets:
 
 - `app`, which contains the app product. 
 - `src/main/androidTest`, which contains the instrumented tests for the business logic classes.
 
->Note
+> **Note:**
 >Instrumented tests are those that depend on the Android framework to run. If your test does not depend on Android at all (pure Java test), you can use the `Unit Test` test artifact in `Build Variants`.
 
 When you choose `app` and press the `Play` button, Android Studio will run the `app` target on the device or emulator. To run tests, click the `Project` view on the left side, drill down to `src/AndroidTest`, right-click then `Run tests in androidTest`. Additionally, you can run just one test suite, or even individual test cases (!) by just using the same procedure.
 
-----------
-Code & Architecture
--------------
+## Code & Architecture
 #### <i class="icon-file"></i> Adding new source files 
 Before you add a new source file, check this list out:
 
