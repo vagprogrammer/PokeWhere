@@ -46,11 +46,11 @@ In order to start developing, you need to import the `Linio` project, via `File 
 
 ### API Level
 
-- The minimum system API Level that this application requires in order to run is `27 (Android 5.0 Lollipop)`
+- The minimum system API Level that this application requires in order to run is `21 (Android 5.0 Lollipop)`
 	```
 	minSdkVersion 21
 	```
-- The API Level on which the application is designed to run is `21 (Android 8.1 Oreo)`
+- The API Level on which the application is designed to run is `27 (Android 8.1 Oreo)`
 	```
 	targetSdkVersion 27
 	```
